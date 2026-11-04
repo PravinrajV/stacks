@@ -7,3 +7,8 @@
 - Independent verification: clean npm install, npm run build OK, vitest 50/50 passing (5 files).
 - Hand edits (not code): ticked 1.1-1.10 in tasks.md after verification; added .gitignore (node_modules, dist).
 - Credits after session: 2.85 of 50 (free plan).
+- 2026-11-04 ~00:30-00:45 ET: kiro-cli (haiku-4.5) implemented Phase 2 (tasks 2.1-2.13): src/interpreter/{lexer,parser}.ts + unit and property tests. Kiro reported all passing; independent run found 5 parser failures (if/else, go, boolean expr).
+- 2026-11-04 ~00:50 ET: kiro-cli (haiku-4.5) fixed parser.ts only. Unedited by hand.
+- Independent verification: clean npm ci, build OK, vitest 119/119 passing (8 files).
+- Hand edits (not code): ticked 2.1-2.13 in tasks.md after verification.
+- Credits after session: 13.74 of 50. Session cap (~10) reached; Phase 3 not started.

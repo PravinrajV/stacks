@@ -65,68 +65,68 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Lexer (Tokenization)
 
-- [ ] **2.1** Implement `Token` interface with type, value, line, column. *(Ref: REQ-HT-001)*
+- [x] **2.1** Implement `Token` interface with type, value, line, column. *(Ref: REQ-HT-001)*
   - Location: `src/interpreter/lexer.ts`
 
-- [ ] **2.2** Implement keyword recognition (if, else, repeat, while, put, get, go, answer, on, end, etc.). *(Ref: REQ-HT-001)*
+- [x] **2.2** Implement keyword recognition (if, else, repeat, while, put, get, go, answer, on, end, etc.). *(Ref: REQ-HT-001)*
   - Location: `src/interpreter/lexer.ts`
   - Case-insensitive matching, reserved word list.
   - Tests: Each keyword tokenizes correctly, case variations work.
 
-- [ ] **2.3** Implement tokenization for identifiers, numbers, strings with escape sequences. *(Ref: REQ-HT-001)*
+- [x] **2.3** Implement tokenization for identifiers, numbers, strings with escape sequences. *(Ref: REQ-HT-001)*
   - Location: `src/interpreter/lexer.ts`
   - String: handle `\"`, `\\`, `\n` escapes.
   - Numbers: integers, floats (no scientific notation yet).
   - Tests: Property-based: random valid identifiers tokenize. Edge cases: very long names, numbers with decimals.
 
-- [ ] **2.4** Implement operator and punctuation tokenization (+, -, *, /, <, >, =, !=, and, or, not, (, ), {, }, [, ], :, ,). *(Ref: REQ-HT-001)*
+- [x] **2.4** Implement operator and punctuation tokenization (+, -, *, /, <, >, =, !=, and, or, not, (, ), {, }, [, ], :, ,). *(Ref: REQ-HT-001)*
   - Location: `src/interpreter/lexer.ts`
   - Distinguish between - (minus) and - (prefix negation).
   - Tests: All operators tokenize, precedence preserved in later parsing.
 
-- [ ] **2.5** Implement line/column tracking for error reporting. *(Ref: REQ-HT-001, REQ-EH-001)*
+- [x] **2.5** Implement line/column tracking for error reporting. *(Ref: REQ-HT-001, REQ-EH-001)*
   - Location: `src/interpreter/lexer.ts`
   - Track line breaks and position in each line.
   - Tests: Errors report correct line/column for multi-line input.
 
-- [ ] **2.6** Implement lexer error handling (unterminated string, invalid escape, unknown token). *(Ref: REQ-HT-001, REQ-EH-001)*
+- [x] **2.6** Implement lexer error handling (unterminated string, invalid escape, unknown token). *(Ref: REQ-HT-001, REQ-EH-001)*
   - Location: `src/interpreter/lexer.ts`
   - Raise error with position info, halt tokenization.
   - Tests: Unterminated string at line X, column Y reported correctly.
 
 ### Parser (AST Generation)
 
-- [ ] **2.7** Implement `ASTNode` base interface and node types (IfStatement, RepeatStatement, PutStatement, GoStatement, HandlerDefinition, Expression). *(Ref: REQ-HT-002)*
+- [x] **2.7** Implement `ASTNode` base interface and node types (IfStatement, RepeatStatement, PutStatement, GoStatement, HandlerDefinition, Expression). *(Ref: REQ-HT-002)*
   - Location: `src/interpreter/parser.ts`
   - Each node includes type, line, column for error reporting.
 
-- [ ] **2.8** Implement expression parser with operator precedence (arithmetic > comparison > logical). *(Ref: REQ-HT-002, REQ-HT-005)*
+- [x] **2.8** Implement expression parser with operator precedence (arithmetic > comparison > logical). *(Ref: REQ-HT-002, REQ-HT-005)*
   - Location: `src/interpreter/parser.ts`
   - Precedence: * / before + -, then <>, then and/or.
   - Handle parenthesized expressions.
   - Tests: `2 + 3 * 4 = 14`, `(2 + 3) * 4 = 20`, boolean short-circuit evaluation.
 
-- [ ] **2.9** Implement statement parser (if/else, repeat/while, put, get, go, answer, return). *(Ref: REQ-HT-002, REQ-HT-005)*
+- [x] **2.9** Implement statement parser (if/else, repeat/while, put, get, go, answer, return). *(Ref: REQ-HT-002, REQ-HT-005)*
   - Location: `src/interpreter/parser.ts`
   - Parse structured blocks (if...end if, repeat...end repeat).
   - Tests: Nested if/repeat, mismatched end keywords report parse errors.
 
-- [ ] **2.10** Implement handler definition parser (on <name> <statements> end). *(Ref: REQ-HT-002, REQ-HT-004)*
+- [x] **2.10** Implement handler definition parser (on <name> <statements> end). *(Ref: REQ-HT-002, REQ-HT-004)*
   - Location: `src/interpreter/parser.ts`
   - Parse handler name, optional parameters, body statements.
   - Tests: `on mouseUp: answer "clicked"` parses correctly. Parameters parsed (if used).
 
-- [ ] **2.11** Implement function call parser (e.g., `add(2, 3)`, `contains(str, substr)`). *(Ref: REQ-HT-002, REQ-HT-005)*
+- [x] **2.11** Implement function call parser (e.g., `add(2, 3)`, `contains(str, substr)`). *(Ref: REQ-HT-002, REQ-HT-005)*
   - Location: `src/interpreter/parser.ts`
   - Parse identifier followed by parentheses and argument list.
   - Tests: Function calls with 0, 1, multiple arguments parse correctly.
 
-- [ ] **2.12** Implement parser error handling with line/column reporting and helpful messages. *(Ref: REQ-HT-002, REQ-EH-001)*
+- [x] **2.12** Implement parser error handling with line/column reporting and helpful messages. *(Ref: REQ-HT-002, REQ-EH-001)*
   - Location: `src/interpreter/parser.ts`
   - Report: "Expected 'end if' but found 'endif' at line 3, column 5".
   - Tests: Syntax errors produce expected error messages.
 
-- [ ] **2.13** Add property-based tests for parser: generate random valid tokens, verify parse doesn't crash. *(Ref: REQ-TEST-001)*
+- [x] **2.13** Add property-based tests for parser: generate random valid tokens, verify parse doesn't crash. *(Ref: REQ-TEST-001)*
   - Location: `src/interpreter/parser.test.ts`
   - Use fast-check to generate valid token sequences.
   - Verify all generated ASTs are well-formed (no undefined nodes).
