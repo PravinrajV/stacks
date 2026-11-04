@@ -585,7 +585,7 @@ Phase 6 (Polish & Documentation)
 
 ### Layout and Viewport Management
 
-- [ ] **8.1** Implement fixed 512×342 logical card size with responsive scaling. *(Ref: REQ-P8-001)*
+- [x] **8.1** Implement fixed 512×342 logical card size with responsive scaling. *(Ref: REQ-P8-001)*
   - Location: `src/dom/cardCanvas.ts`, `src/dom/runMode.ts`
   - The card renders at fixed logical dimensions and scales proportionally to fit available viewport.
   - Implement a scale transform or CSS zoom that maintains aspect ratio.
@@ -613,7 +613,7 @@ Phase 6 (Polish & Documentation)
 
 ### 1-Bit Visual Design
 
-- [ ] **8.3** Implement classic Mac 1-bit aesthetic: black/white/gray, monospace font, borders, menu bar, accessible contrast. *(Ref: REQ-P8-003)*
+- [x] **8.3** Implement classic Mac 1-bit aesthetic: black/white/gray, monospace font, borders, menu bar, accessible contrast. *(Ref: REQ-P8-003)*
   - Location: `src/dom/styles.css`, all DOM components
   - Color palette: limit to #000, #fff, #ccc, #999, #666.
   - Typography: monospace (Monaco, "Courier New", system-ui fallback).

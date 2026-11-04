@@ -268,8 +268,12 @@ body.run-mode {
 
 /* Card view container - fixed logical dimensions, scales via transform */
 .card-view {
-  width: var(--card-logical-width);
-  height: var(--card-logical-height);
+  flex: none;
+  width: 512px;
+  min-width: 512px;
+  height: 342px;
+  min-height: 342px;
+  box-sizing: border-box;
   background-color: var(--color-white);
   border: 3px var(--border-style) var(--border-color);
   position: relative;
@@ -713,6 +717,16 @@ textarea:focus {
 }
 
 /* ===== Responsive ===== */
+
+@media (max-width: 900px) and (min-width: 700px) {
+  body.edit-mode {
+    grid-template-columns: 250px 1fr;
+  }
+
+  .element-inspector {
+    display: none;
+  }
+}
 
 @media (max-width: 768px) {
   body {
