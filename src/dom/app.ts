@@ -20,6 +20,7 @@ import { send } from '../interpreter/dispatcher'
 import { createExecutionContext } from '../interpreter/runtime'
 import { defaultRegistry } from '../generator/providerRegistry'
 import { deserializeStack } from '../model/serialization'
+import { createSunIcon, createMoonIcon, createGhostIcon } from './icons'
 
 // Import haunted-counter.json as a string at build time
 declare const HAUNTED_COUNTER_STACK: string | undefined
@@ -57,9 +58,15 @@ export class App {
   private isFirstRender: boolean = true
   private settingsPanel: SettingsPanel | null = null
   private settingsModal: ModalComponent | null = null
+  private currentTheme: 'haunted' | 'classic' = 'haunted'
 
   constructor(containerId: string) {
     this.container = document.getElementById(containerId) || document.body
+
+    // Load theme from localStorage
+    const savedTheme = localStorage.getItem('stacks-theme') as 'haunted' | 'classic' | null
+    this.currentTheme = savedTheme || 'haunted'
+    this.applyTheme(this.currentTheme)
 
     // Initialize state
     const loaded = loadStack()
@@ -113,6 +120,18 @@ export class App {
 
   getScriptEditor(): ScriptEditor {
     return this.scriptEditor
+  }
+
+  private applyTheme(theme: 'haunted' | 'classic'): void {
+    this.currentTheme = theme
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('stacks-theme', theme)
+  }
+
+  private toggleTheme(): void {
+    const newTheme = this.currentTheme === 'haunted' ? 'classic' : 'haunted'
+    this.applyTheme(newTheme)
+    this.render()
   }
 
   private setupEventHandlers(): void {
@@ -444,10 +463,16 @@ export class App {
 
     // Header
     const header = createElement('div', { className: 'app-header' })
-    const title = createElement('div')
-    title.textContent = 'Stacks'
-    title.style.fontWeight = 'bold'
-    header.appendChild(title)
+    
+    // Title with ghost icon and gradient text
+    const titleContainer = createElement('div', { className: 'app-header-title' })
+    const ghostIcon = createGhostIcon()
+    ghostIcon.classList.add('app-header-title-icon')
+    titleContainer.appendChild(ghostIcon)
+    const titleText = createElement('span', { className: 'app-header-title-text' })
+    titleText.textContent = 'Stacks'
+    titleContainer.appendChild(titleText)
+    header.appendChild(titleContainer)
 
     // Edit/Run toggle button
     const modeToggleBtn = createElement('button', {
@@ -529,6 +554,14 @@ export class App {
     aiSettingsBtn.getElement().setAttribute('aria-label', 'Open AI model provider settings')
     aiSettingsBtn.getElement().setAttribute('title', 'Configure API key and model provider')
     header.appendChild(aiSettingsBtn.getElement())
+
+    const themeToggleBtn = createElement('button', { className: 'theme-toggle button' })
+    themeToggleBtn.setAttribute('title', `Switch to ${this.currentTheme === 'haunted' ? 'Classic' : 'Haunted'} theme`)
+    themeToggleBtn.setAttribute('aria-label', `Switch to ${this.currentTheme === 'haunted' ? 'Classic' : 'Haunted'} theme`)
+    const themeIcon = this.currentTheme === 'haunted' ? createSunIcon() : createMoonIcon()
+    themeToggleBtn.appendChild(themeIcon)
+    addEventListener(themeToggleBtn, 'click', () => this.toggleTheme())
+    header.appendChild(themeToggleBtn)
 
     app.appendChild(header)
 
