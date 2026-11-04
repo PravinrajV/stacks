@@ -137,7 +137,10 @@ export class RunModeViewer {
 
     try {
       const context = createExecutionContext(this.stack, this.currentCard)
-      await send('mouseUp', button, context, this)
+      const result = await send('mouseUp', button, context, this)
+      if (!result.success && result.error) {
+        await this.modal.show(`Error: ${result.error.message || String(result.error)}`)
+      }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
       await this.modal.show(`Error: ${msg}`)

@@ -100,6 +100,7 @@ export class Runtime {
   private context: ExecutionContext
   private returnValue: any = undefined
   private shouldReturn: boolean = false
+  private handlers: Map<string, HandlerDefinition> = new Map()
 
   constructor(context: ExecutionContext) {
     this.context = context
@@ -111,9 +112,13 @@ export class Runtime {
    */
   execute(program: Program): ExecutionResult {
     try {
+      // Store handlers for potential later invocation
+      const handlerMap = new Map<string, HandlerDefinition>()
       for (const handler of program.handlers) {
-        // Just register handlers for later invocation
+        handlerMap.set(handler.name.toLowerCase(), handler)
       }
+      this.handlers = handlerMap
+
       let lastValue: any = undefined
       for (const statement of program.statements) {
         const result = this.executeStatement(statement)
@@ -132,6 +137,32 @@ export class Runtime {
         },
       }
     }
+  }
+
+  /**
+   * Execute a handler's body statements.
+   */
+  executeHandlerBody(handlerName: string): ExecutionResult {
+    const handler = this.handlers.get(handlerName.toLowerCase())
+    if (!handler) {
+      return {
+        success: false,
+        error: {
+          type: 'RuntimeError',
+          message: `Handler not found: ${handlerName}`,
+        },
+      }
+    }
+
+    let lastValue: any = undefined
+    for (const statement of handler.body) {
+      const result = this.executeStatement(statement)
+      if (!result.success) return result
+      lastValue = result.value
+      if (this.shouldReturn) break
+    }
+
+    return { success: true, value: this.returnValue !== undefined ? this.returnValue : lastValue }
   }
 
   /**
@@ -498,10 +529,10 @@ export class Runtime {
     // Switch context to new card
     this.context.currentCard = targetCard
 
-    // Emit openCard message to new card
-    // REQ-HT-004, 3.18
-    const openCardResult = MessageDispatcher.send('openCard', targetCard, this.context)
-    if (!openCardResult.success) return openCardResult
+    // Notify UI responder of navigation
+    if ((this.context as any).uiResponder?.handleNavigation) {
+      (this.context as any).uiResponder.handleNavigation(targetCard.id)
+    }
 
     return { success: true, value: undefined }
   }

@@ -279,6 +279,11 @@ export class Parser {
       return this.error('Expected "end"')
     }
 
+    // Consume optional handler name after end (e.g., "end mouseUp")
+    if (this.check('identifier')) {
+      this.advance()
+    }
+
     return {
       type: 'HandlerDefinition',
       name,
