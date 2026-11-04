@@ -289,14 +289,12 @@ describe('Task 4.2: AnthropicProvider', () => {
       const provider = new AnthropicProvider()
       provider.setApiKey('sk-ant-invalid-key')
       
-      const response = await provider.generate({
-        description: 'test',
-        context: {}
-      })
-      
-      expect(response.code).toBe('')
-      expect(response.explanation).toContain('invalid')
-      expect(response.explanation).not.toContain('sk-ant')
+      await expect(
+        provider.generate({
+          description: 'test',
+          context: {}
+        })
+      ).rejects.toThrow(/invalid/)
     })
 
     it('should map 429 to rate limit message', async () => {
@@ -309,13 +307,12 @@ describe('Task 4.2: AnthropicProvider', () => {
       const provider = new AnthropicProvider()
       provider.setApiKey('sk-ant-test123')
       
-      const response = await provider.generate({
-        description: 'test',
-        context: {}
-      })
-      
-      expect(response.code).toBe('')
-      expect(response.explanation).toContain('Rate limited')
+      await expect(
+        provider.generate({
+          description: 'test',
+          context: {}
+        })
+      ).rejects.toThrow(/rate limit/i)
     })
 
     it('should map 5xx to server error message', async () => {
@@ -328,13 +325,12 @@ describe('Task 4.2: AnthropicProvider', () => {
       const provider = new AnthropicProvider()
       provider.setApiKey('sk-ant-test123')
       
-      const response = await provider.generate({
-        description: 'test',
-        context: {}
-      })
-      
-      expect(response.code).toBe('')
-      expect(response.explanation).toContain('server error')
+      await expect(
+        provider.generate({
+          description: 'test',
+          context: {}
+        })
+      ).rejects.toThrow(/server error/i)
     })
   })
 

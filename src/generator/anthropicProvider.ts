@@ -143,7 +143,8 @@ Never include explanations or anything except the code.`
       
       if (!response.ok) {
         const errorBody = await response.text()
-        return this.mapErrorResponse(response.status, errorBody)
+        const errorResponse = this.mapErrorResponse(response.status, errorBody)
+        throw new Error(errorResponse.explanation)
       }
       
       const data = await response.json() as { content?: Array<{ type?: string; text?: string }> }

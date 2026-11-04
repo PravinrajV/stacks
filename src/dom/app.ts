@@ -83,6 +83,10 @@ export class App {
     return this.cardCanvas
   }
 
+  getScriptEditor(): ScriptEditor {
+    return this.scriptEditor
+  }
+
   private setupEventHandlers(): void {
     // Card list
     this.cardListPanel.onSelectCardChanged((cardId) => this.selectCard(cardId))
@@ -603,6 +607,7 @@ export function initApp(): void {
   appInstance = new App('app')
   // Expose for testing
   ;(window as any).__appState = {
-    cardCanvas: appInstance.getCardCanvas()
+    cardCanvas: appInstance.getCardCanvas(),
+    app: appInstance
   }
 }

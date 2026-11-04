@@ -571,15 +571,6 @@ export class ScriptEditor {
         provider = new MockModelProvider()
       }
 
-      // Check if selected provider is available
-      const available = await provider.isAvailable()
-      
-      if (!available) {
-        // Fall back to mock provider with notice
-        setTextContent(this.aiErrorDisplay, `Provider "${this.selectedProvider}" not available. Using Mock provider.`)
-        provider = new MockModelProvider()
-      }
-
       // Build context from current state
       const context = {
         cardName: this.currentCard?.name,
@@ -595,7 +586,7 @@ export class ScriptEditor {
       )
 
       if ('error' in result) {
-        setTextContent(this.aiErrorDisplay, `Error: ${result.error}`)
+        setTextContent(this.aiErrorDisplay, result.error)
         
         // Try fallback to mock if not already using it
         if (this.selectedProvider !== 'mock') {
@@ -603,7 +594,11 @@ export class ScriptEditor {
           const mockResult = await generateScript(mockProvider, prompt, context, this.getScript())
           
           if (!('error' in mockResult)) {
-            setTextContent(this.aiErrorDisplay, 'Primary provider failed. Falling back to Mock provider.')
+            // Append fallback notice
+            const noticeEl = createElement('div')
+            noticeEl.style.marginTop = '4px'
+            setTextContent(noticeEl, 'Falling back to Mock provider.')
+            this.aiErrorDisplay.appendChild(noticeEl)
             this.displayGeneratedCode(mockResult.code, mockResult.diff)
             ;(this.aiAcceptBtn as HTMLButtonElement).disabled = false
             return
