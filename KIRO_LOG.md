@@ -22,3 +22,7 @@
 - Independent verification: clean npm ci, build OK, vitest 199/199 passing (9 files). No eval/new Function/fetch in src.
 - Hand edits (not code): ticked 3.15-3.21 in tasks.md.
 - Credits after session: 24.58 of 50.
+- 2026-11-04 ~01:20 ET: kiro-cli (haiku-4.5) implemented Phase 4 subset (4.1, 4.4-4.7) in src/generator/ with mock provider only (no API calls). Tests passed but tsc build failed (2 type errors).
+- 2026-11-04 ~01:24 ET: kiro-cli (haiku-4.5) fixed the 2 type errors in src/generator. Unedited by hand.
+- Independent verification: clean npm ci, build OK, vitest 244/244 (11 files). No eval/new Function/fetch in src.
+- Hand edits (not code): ticked 4.1, 4.4-4.7 in tasks.md. 4.2 (Claude API), 4.3 (Ollama), 4.8, 4.9 not started.

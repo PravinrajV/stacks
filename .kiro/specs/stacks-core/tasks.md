@@ -257,7 +257,7 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Model Provider Interface
 
-- [ ] **4.1** Define `ModelProvider` interface and abstract class. *(Ref: REQ-SG-002)*
+- [x] **4.1** Define `ModelProvider` interface and abstract class. *(Ref: REQ-SG-002)*
   - Location: `src/ai/modelProvider.ts`
   - Methods: `generate(request): Promise<ScriptGenResponse>`, `isAvailable(): Promise<boolean>`.
 
@@ -273,23 +273,23 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Prompt and Validation
 
-- [ ] **4.4** Implement prompt template and context building for script generation. *(Ref: REQ-SG-001)*
+- [x] **4.4** Implement prompt template and context building for script generation. *(Ref: REQ-SG-001)*
   - Location: `src/ai/scriptGen.ts`
   - Build prompt from user description, card name, field names, button labels.
   - Example: "Generate HyperTalk code: When the user clicks, show an alert with the card title."
   - Tests: Prompts generated correctly, context injected.
 
-- [ ] **4.5** Implement response parsing (extract code from model output). *(Ref: REQ-SG-001)*
+- [x] **4.5** Implement response parsing (extract code from model output). *(Ref: REQ-SG-001)*
   - Location: `src/ai/scriptGen.ts`
   - Find HyperTalk code block in response (e.g., between ````hyperscript`` markers or plain code).
   - Tests: Code extracted correctly from various response formats.
 
-- [ ] **4.6** Implement output validation using parser (parse generated code before insertion). *(Ref: REQ-SG-001, REQ-SG-003)*
+- [x] **4.6** Implement output validation using parser (parse generated code before insertion). *(Ref: REQ-SG-001, REQ-SG-003)*
   - Location: `src/ai/scriptGen.ts`
   - Method: `validateGenerated(code): { valid: true } | { valid: false, error: ParseError }`
   - Tests: Invalid code rejected, valid code accepted.
 
-- [ ] **4.7** Implement diff generation (show what will be added/changed). *(Ref: REQ-SG-003)*
+- [x] **4.7** Implement diff generation (show what will be added/changed). *(Ref: REQ-SG-003)*
   - Location: `src/ai/diff.ts` or inline in UI
   - Generate visual diff comparing current script and generated code.
   - Tests: Diff highlights new/changed/deleted lines.
