@@ -21,6 +21,9 @@ import { createExecutionContext } from '../interpreter/runtime'
 import { defaultRegistry } from '../generator/providerRegistry'
 import { deserializeStack } from '../model/serialization'
 import { createSunIcon, createMoonIcon, createGhostIcon, createPlayIcon, createPlusIcon } from './icons'
+import { WelcomeScreen } from './welcomeScreen'
+import { StyledAlert, StyledConfirm, StyledPrompt } from './components/styledDialogs'
+import { animateModeSwitchIn, animateModeSwitchOut, prefersReducedMotion } from './utils/animations'
 
 // Import haunted-counter.json as a string at build time
 declare const HAUNTED_COUNTER_STACK: string | undefined
@@ -59,6 +62,7 @@ export class App {
   private settingsPanel: SettingsPanel | null = null
   private settingsModal: ModalComponent | null = null
   private currentTheme: 'haunted' | 'classic' = 'haunted'
+  private welcomeScreen: WelcomeScreen | null = null
 
   constructor(containerId: string) {
     this.container = document.getElementById(containerId) || document.body
@@ -67,6 +71,9 @@ export class App {
     const savedTheme = localStorage.getItem('stacks-theme') as 'haunted' | 'classic' | null
     this.currentTheme = savedTheme || 'haunted'
     this.applyTheme(this.currentTheme)
+
+    // Check if welcomed (Task 9.5.1)
+    const hasWelcomed = localStorage.getItem('stacks-welcomed') === 'true'
 
     // Initialize state
     const loaded = loadStack()
@@ -112,6 +119,11 @@ export class App {
 
     this.setupEventHandlers()
     this.render()
+
+    // Show welcome screen on first visit if no stack was previously saved
+    if (!hasWelcomed && !loaded) {
+      this.showWelcomeScreen()
+    }
   }
 
   getCardCanvas(): CardCanvas {
@@ -132,6 +144,38 @@ export class App {
     const newTheme = this.currentTheme === 'haunted' ? 'classic' : 'haunted'
     this.applyTheme(newTheme)
     this.render()
+  }
+
+  private showWelcomeScreen(): void {
+    if (this.welcomeScreen) return
+
+    this.welcomeScreen = new WelcomeScreen()
+    
+    // Handle "Start blank stack" - just close and keep current empty stack
+    this.welcomeScreen.onCreateNewClicked(() => {
+      localStorage.setItem('stacks-welcomed', 'true')
+      this.welcomeScreen?.close()
+      this.welcomeScreen = null
+    })
+
+    // Handle "Open the Haunted Counter" - load example stack
+    this.welcomeScreen.onLoadExampleClicked(() => {
+      const exampleStack = getHauntedCounterStack()
+      if (exampleStack) {
+        this.appState.stack = exampleStack
+        this.appState.currentCardId = exampleStack.cards[0]?.id || ''
+        this.appState.selectedElementId = null
+        this.appState.undoStack = []
+        this.appState.redoStack = []
+        saveStack(this.appState.stack)
+        localStorage.setItem('stacks-welcomed', 'true')
+        this.welcomeScreen?.close()
+        this.welcomeScreen = null
+        this.render()
+      }
+    })
+
+    this.welcomeScreen.show()
   }
 
   private setupEventHandlers(): void {
@@ -303,21 +347,25 @@ export class App {
   private deleteCard(cardId: string): void {
     // Don't allow deletion of the last card
     if (this.appState.stack.cards.length <= 1) {
-      alert('Cannot delete the last card in the stack.')
+      const alert = new StyledAlert()
+      alert.show('Cannot delete the last card in the stack.', 'Cannot Delete')
       return
     }
 
-    const confirm = window.confirm(`Delete card? This action cannot be undone.`)
-    if (!confirm) return
+    const confirm = new StyledConfirm()
+    confirm.show('Delete this card? This action cannot be undone.', 'Delete Card', true)
+      .then((confirmed) => {
+        if (!confirmed) return
 
-    const index = this.appState.stack.cards.findIndex((c) => c.id === cardId)
-    if (index !== -1) {
-      this.appState.stack.cards.splice(index, 1)
-      this.appState.currentCardId = this.appState.stack.cards[0]?.id || ''
-      this.appState.isDirty = true
-      this.saveToUndoStack()
-      this.render()
-    }
+        const index = this.appState.stack.cards.findIndex((c) => c.id === cardId)
+        if (index !== -1) {
+          this.appState.stack.cards.splice(index, 1)
+          this.appState.currentCardId = this.appState.stack.cards[0]?.id || ''
+          this.appState.isDirty = true
+          this.saveToUndoStack()
+          this.render()
+        }
+      })
   }
 
   private addButton(): void {
@@ -360,13 +408,16 @@ export class App {
     const card = this.appState.stack.cards.find((c) => c.id === cardId)
     if (!card) return
 
-    const newName = window.prompt('Rename card:', card.name || 'Card')
-    if (newName && newName.trim()) {
-      card.name = newName.trim()
-      this.appState.isDirty = true
-      this.saveToUndoStack()
-      this.render()
-    }
+    const prompt = new StyledPrompt()
+    prompt.show('Enter new card name:', card.name || 'Card', 'Rename Card')
+      .then((newName) => {
+        if (newName && newName.trim()) {
+          card.name = newName.trim()
+          this.appState.isDirty = true
+          this.saveToUndoStack()
+          this.render()
+        }
+      })
   }
 
   private moveElement(elementId: string, rect: Rect): void {

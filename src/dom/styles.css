@@ -1065,6 +1065,204 @@ textarea:focus {
   color: #51cf66;
 }
 
+/* ===== Welcome Screen ===== */
+
+.welcome-modal {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border: var(--glass-border);
+  border-radius: var(--glass-radius);
+  padding: var(--spacing-xl);
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  box-shadow: var(--glass-shadow);
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.welcome-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.welcome-icon svg {
+  width: 64px;
+  height: 64px;
+  color: var(--color-accent);
+  opacity: 0.8;
+}
+
+.welcome-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-orange, #f97316) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="classic"] .welcome-title {
+  background: none;
+  -webkit-text-fill-color: var(--color-text-primary);
+  color: var(--color-text-primary);
+}
+
+.welcome-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.welcome-tips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  text-align: left;
+}
+
+.welcome-tips li {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  padding-left: var(--spacing-md);
+  position: relative;
+}
+
+.welcome-tips li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);
+  font-weight: bold;
+}
+
+.welcome-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.welcome-btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--glass-radius);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all var(--transition-duration);
+  text-transform: none;
+}
+
+.welcome-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.welcome-btn-primary {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent);
+}
+
+.welcome-btn-primary:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  transform: translateY(-2px);
+}
+
+.welcome-btn-primary:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+.welcome-btn-secondary {
+  background-color: transparent;
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.welcome-btn-secondary:hover {
+  background-color: rgba(168, 85, 247, 0.1);
+  border-color: var(--color-accent-hover);
+  color: var(--color-accent-hover);
+  transform: translateY(-2px);
+}
+
+.welcome-btn-secondary:active {
+  transform: translateY(0);
+  opacity: 0.8;
+}
+
+/* ===== Styled Dialogs (Alert, Confirm, Prompt) ===== */
+
+.prompt-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.prompt-input-container input {
+  padding: var(--spacing-md);
+  font-size: 13px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--glass-radius);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+}
+
+.prompt-input-container input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  border-color: var(--color-accent);
+}
+
+.button-primary {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent);
+}
+
+.button-primary:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.button-primary:active {
+  background-color: var(--color-accent-active);
+  transform: scale(0.98);
+}
+
+.button-danger {
+  background-color: #ff6b6b;
+  color: #ffffff;
+  border-color: #ff6b6b;
+}
+
+.button-danger:hover {
+  background-color: #ff5252;
+  border-color: #ff5252;
+  transform: translateY(-2px);
+}
+
+.button-danger:active {
+  background-color: #ff3838;
+  transform: scale(0.98);
+}
+
 /* ===== Responsive ===== */
 
 @media (max-width: 900px) and (min-width: 700px) {
@@ -1094,6 +1292,149 @@ textarea:focus {
   }
 }
 
+
+/* ===== Animations & Transitions (Task 9.4) ===== */
+
+@keyframes cardFlipIn {
+  0% {
+    opacity: 0;
+    transform: rotateY(90deg);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(0deg);
+  }
+}
+
+@keyframes cardFlipOut {
+  0% {
+    opacity: 1;
+    transform: rotateY(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: rotateY(-90deg);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes scaleAndFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleAndFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* Animation classes for card transitions */
+.card-flip-in {
+  perspective: 1200px;
+  animation: cardFlipIn 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.card-flip-out {
+  perspective: 1200px;
+  animation: cardFlipOut 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.card-fade-in {
+  animation: fadeIn 320ms ease-out forwards;
+}
+
+.card-fade-out {
+  animation: fadeOut 320ms ease-out forwards;
+}
+
+/* Mode switch animations */
+.mode-switch-in {
+  animation: scaleAndFadeIn 250ms ease-out forwards;
+}
+
+.mode-switch-out {
+  animation: scaleAndFadeOut 250ms ease-out forwards;
+}
+
+/* Welcome screen animations */
+.welcome-fade-in {
+  animation: fadeIn 400ms ease-out forwards;
+}
+
+.modal-fade-in {
+  animation: fadeIn 150ms ease-out forwards;
+}
+
+.modal-fade-out {
+  animation: fadeOut 150ms ease-out forwards;
+}
+
+/* Respect user motion preferences (Task 9.4.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+
+  :root {
+    --transition-duration: 0ms !important;
+  }
+
+  [data-theme="haunted"],
+  [data-theme="haunted"] * {
+    --transition-duration: 0ms !important;
+  }
+
+  [data-theme="classic"],
+  [data-theme="classic"] * {
+    --transition-duration: 0ms !important;
+  }
+
+  .card-flip-in,
+  .card-flip-out,
+  .card-fade-in,
+  .card-fade-out,
+  .mode-switch-in,
+  .mode-switch-out,
+  .welcome-fade-in,
+  .modal-fade-in,
+  .modal-fade-out {
+    animation: none !important;
+  }
+}
 
 /* ===== Focus Styles for Keyboard Navigation ===== */
 
