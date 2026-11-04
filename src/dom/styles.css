@@ -7,14 +7,15 @@
  */
 
 :root {
+  /* 1-bit color palette */
   --color-black: #000000;
   --color-white: #ffffff;
   --color-light-gray: #cccccc;
   --color-medium-gray: #999999;
-  --color-dark-gray: #333333;
+  --color-dark-gray: #666666;
 
-  --font-mono: 'Monaco', 'Courier New', monospace;
-  --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  /* Classic Mac monospace font stack */
+  --font-mono: 'Chicago', 'ChicagoFLF', 'Geneva', 'Monaco', 'Courier New', monospace;
 
   --border-width: 1px;
   --border-style: solid;
@@ -25,6 +26,10 @@
   --spacing-md: 12px;
   --spacing-lg: 16px;
   --spacing-xl: 24px;
+
+  /* Card dimensions (logical) */
+  --card-logical-width: 512px;
+  --card-logical-height: 342px;
 }
 
 * {
@@ -43,12 +48,27 @@ body {
   line-height: 1.4;
 }
 
+/* Dithered/pattern background for 1-bit aesthetic */
 body {
+  background-image: 
+    repeating-conic-gradient(#000 0% 25%, #fff 0%) 0 0 / 2px 2px;
+  background-color: #f0f0f0;
+}
+
+body.edit-mode {
   display: grid;
   grid-template-columns: 250px 1fr 300px;
   grid-template-rows: 40px 1fr 200px;
   gap: 1px;
-  background-color: var(--color-light-gray);
+  background-color: #f0f0f0;
+}
+
+body.run-mode {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 40px 1fr;
+  gap: 1px;
+  background-color: #f0f0f0;
 }
 
 #app {
@@ -60,15 +80,53 @@ body {
 /* ===== Layout Containers ===== */
 
 .app-header {
-  grid-column: 1 / 4;
+  grid-column: 1 / -1;
   grid-row: 1;
   background-color: var(--color-light-gray);
-  border-bottom: var(--border-width) var(--border-style) var(--border-color);
-  padding: var(--spacing-sm);
+  border-bottom: 2px var(--border-style) var(--border-color);
+  padding: 0 var(--spacing-sm);
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
   font-weight: bold;
+  font-size: 14px;
+}
+
+.app-header-title {
+  font-weight: bold;
+  padding-right: var(--spacing-md);
+  border-right: 1px var(--border-style) var(--border-color);
+}
+
+.app-header-buttons {
+  display: flex;
+  gap: 0;
+}
+
+.app-header-group {
+  display: flex;
+  gap: 0;
+  border-left: 1px var(--border-style) var(--border-color);
+  border-right: 1px var(--border-style) var(--border-color);
+}
+
+.app-header button {
+  border: none;
+  border-right: 1px var(--border-style) var(--border-color);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: var(--color-light-gray);
+  font-weight: normal;
+  border-radius: 0;
+  margin: 0;
+}
+
+.app-header button:last-child {
+  border-right: none;
+}
+
+.app-header button:active {
+  background-color: var(--color-black);
+  color: var(--color-white);
 }
 
 .app-main {
@@ -100,9 +158,9 @@ body {
 
 .element-inspector {
   grid-column: 3;
-  grid-row: 2;
+  grid-row: 2 / 4;
   background-color: var(--color-white);
-  border-left: var(--border-width) var(--border-style) var(--border-color);
+  border-left: 2px var(--border-style) var(--border-color);
   overflow-y: auto;
   padding: var(--spacing-md);
   display: flex;
@@ -111,15 +169,39 @@ body {
 }
 
 .script-editor {
-  grid-column: 2 / 4;
+  grid-column: 2;
   grid-row: 3;
   background-color: var(--color-white);
-  border-top: var(--border-width) var(--border-style) var(--border-color);
+  border-top: 2px var(--border-style) var(--border-color);
   padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
   overflow-y: auto;
+}
+
+.edit-mode .card-list-panel {
+  display: flex;
+}
+
+.run-mode .card-list-panel {
+  display: none;
+}
+
+.edit-mode .element-inspector {
+  display: flex;
+}
+
+.run-mode .element-inspector {
+  display: none;
+}
+
+.edit-mode .script-editor {
+  display: flex;
+}
+
+.run-mode .script-editor {
+  display: none;
 }
 
 /* ===== Card List ===== */
@@ -174,23 +256,41 @@ body {
 
 .canvas-container {
   flex: 1;
-  overflow: auto;
-  padding: var(--spacing-lg);
+  overflow: hidden;
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background-color: #f0f0f0;
+  padding: 0;
+  min-height: 0;
 }
 
+/* Card view container - fixed logical dimensions, scales via transform */
 .card-view {
-  width: 512px;
-  height: 342px;
+  width: var(--card-logical-width);
+  height: var(--card-logical-height);
   background-color: var(--color-white);
-  border: 2px var(--border-style) var(--border-color);
+  border: 3px var(--border-style) var(--border-color);
   position: relative;
-  margin: var(--spacing-lg);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+  transform-origin: top left;
+  /* Scale and zoom applied via inline style: translate(...) scale(...) */
+}
+
+/* Edit mode: card displayed at canvas size with scaling */
+.card-canvas .card-view {
+  cursor: crosshair;
+}
+
+/* Run mode: larger centered card */
+.run-mode-viewer .card-view {
+  cursor: default;
 }
 
 .card-element {
   position: absolute;
-  border: 1px var(--border-style) var(--border-color);
+  border: 2px var(--border-style) var(--border-color);
   cursor: move;
   font-family: var(--font-mono);
   font-size: 12px;
@@ -203,27 +303,18 @@ body {
 }
 
 .card-element.selected {
-  outline: 2px var(--border-style) var(--color-dark-gray);
+  outline: 3px var(--border-style) var(--color-black);
   outline-offset: -1px;
 }
 
-.card-button {
-  background-color: var(--color-light-gray);
-  border: 2px var(--border-style) var(--border-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.card-button:hover {
-  background-color: var(--color-medium-gray);
+.card-element:focus {
+  outline: 3px var(--border-style) var(--color-black);
+  outline-offset: -1px;
 }
 
 .card-field {
   background-color: var(--color-white);
-  border: 1px var(--border-style) var(--border-color);
+  border: 2px var(--border-style) var(--border-color);
   padding: var(--spacing-xs);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -325,30 +416,58 @@ body {
 button,
 .button {
   padding: var(--spacing-xs) var(--spacing-md);
-  background-color: var(--color-light-gray);
+  background-color: var(--color-white);
   border: 2px var(--border-style) var(--border-color);
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: bold;
   color: var(--color-black);
-  transition: background-color 0.1s;
+  transition: none;
+  /* 3px focus outline */
 }
 
 button:hover,
 .button:hover {
-  background-color: var(--color-medium-gray);
+  background-color: var(--color-light-gray);
 }
 
 button:active,
 .button:active {
-  background-color: var(--color-dark-gray);
+  background-color: var(--color-black);
   color: var(--color-white);
+}
+
+button:focus,
+.button:focus {
+  outline: 3px var(--border-style) var(--color-black);
+  outline-offset: 1px;
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Card element styling with thicker borders */
+.card-button {
+  background-color: var(--color-white);
+  border: 2px var(--border-style) var(--border-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.card-button:active {
+  background-color: var(--color-black);
+  color: var(--color-white);
+}
+
+.card-button:focus {
+  outline: 3px var(--border-style) var(--color-black);
+  outline-offset: -2px;
 }
 
 /* ===== Modal ===== */
@@ -456,15 +575,32 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   background-color: var(--color-white);
+  grid-column: 1 / -1;
+  grid-row: 2;
 }
 
-.run-mode-card {
+.run-mode-viewer .editor-header {
+  border-bottom: 2px var(--border-style) var(--border-color);
+}
+
+.run-mode-viewer .card-canvas {
   flex: 1;
-  position: relative;
   overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
   background-color: var(--color-white);
-  border: 2px var(--border-style) var(--border-color);
-  margin: var(--spacing-lg);
+  min-height: 0;
+}
+
+.run-mode-viewer .card-view {
+  width: var(--card-logical-width);
+  height: var(--card-logical-height);
+  background-color: var(--color-white);
+  border: 3px var(--border-style) var(--border-color);
+  position: relative;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
 }
 
 .run-button {

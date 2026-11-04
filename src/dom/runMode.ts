@@ -14,6 +14,7 @@ import { createExecutionContext } from '../interpreter/runtime'
 
 export class RunModeViewer {
   private element: HTMLElement
+  private cardCanvas: HTMLElement
   private cardView: HTMLElement
   private modal: ModalComponent
   private stack: Stack | null = null
@@ -38,10 +39,22 @@ export class RunModeViewer {
 
     this.element.appendChild(header)
 
-    this.cardView = createElement('div', {
-      className: 'run-mode-card'
+    // Create card canvas container (matches edit mode structure)
+    this.cardCanvas = createElement('div', {
+      className: 'card-canvas'
     })
-    this.element.appendChild(this.cardView)
+    this.cardCanvas.setAttribute('aria-label', 'Card viewer')
+    this.cardCanvas.setAttribute('role', 'region')
+
+    // Create card view container
+    this.cardView = createElement('div', {
+      className: 'card-view'
+    })
+    this.cardView.setAttribute('role', 'img')
+    this.cardView.setAttribute('aria-label', 'Card')
+
+    this.cardCanvas.appendChild(this.cardView)
+    this.element.appendChild(this.cardCanvas)
 
     this.modal = new ModalComponent()
     this.element.appendChild(this.modal.getElement())

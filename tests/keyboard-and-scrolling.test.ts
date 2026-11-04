@@ -487,7 +487,10 @@ end mouseUp`
     const modeToggle = document.querySelector('.app-header .mode-toggle') as HTMLElement
     expect(modeToggle?.textContent).toBe('Run')
 
-    // Get the button element and its initial position
+    // Get the canvas and button elements
+    const canvas = document.querySelector('.card-canvas') as HTMLElement
+    expect(canvas).toBeTruthy()
+    
     let buttonEl = document.querySelector('[data-element-id="btn-1"]') as HTMLElement
     expect(buttonEl).toBeTruthy()
     const initialLeft = parseInt(buttonEl.style.left)
@@ -495,9 +498,9 @@ end mouseUp`
     expect(initialLeft).toBe(50)
     expect(initialTop).toBe(50)
 
-    // Get the canvas element to ensure events will bubble correctly
-    const canvas = document.querySelector('.card-canvas') as HTMLElement
-    expect(canvas).toBeTruthy()
+    // Get current scale factor to calculate expected movement
+    const cardCanvas = appState?.cardCanvas
+    const scale = cardCanvas.getScale()
 
     // Simulate a drag: mousedown on element -> mousemove on canvas -> mouseup on canvas
     const startEvent = new MouseEvent('mousedown', {
@@ -529,18 +532,22 @@ end mouseUp`
     canvas.dispatchEvent(endEvent)
     await waitForUIUpdate()
 
-    // Verify button moved by exactly 20px right, 10px down
+    // Verify button moved by the correct amount accounting for scale
     buttonEl = document.querySelector('[data-element-id="btn-1"]') as HTMLElement
     const newLeft = parseInt(buttonEl.style.left)
     const newTop = parseInt(buttonEl.style.top)
-    expect(newLeft).toBe(70) // 50 + 20
-    expect(newTop).toBe(60)  // 50 + 10
+    
+    // Expected move: client pixels / scale
+    const expectedDeltaX = Math.round(20 / scale)
+    const expectedDeltaY = Math.round(10 / scale)
+    expect(newLeft).toBe(50 + expectedDeltaX)
+    expect(newTop).toBe(50 + expectedDeltaY)
   })
 
   it('drag at 2x zoom: 20px mouse move = 10 card units', async () => {
-    // This test verifies the zoom-aware drag calculation.
-    // The cardCanvas.handleMouseMove() divides delta by zoomLevel.
-    // At zoomLevel=2: dx = 20 client pixels / 2 = 10 card units
+    // This test verifies the zoom-aware and scale-aware drag calculation.
+    // The cardCanvas.handleMouseMove() divides delta by (scale * zoomLevel).
+    // At zoomLevel=2 and scale=1: dx = 20 client pixels / (1 * 2) = 10 card units
     
     const stack = createStack('stack-1', 'Test Stack')
     const card = createCard('card-1', 'Card 1', null)
@@ -577,12 +584,15 @@ end mouseUp`
     const zoomAfter = cardCanvas.getZoomLevel()
     expect(zoomAfter).toBe(2)
 
+    // Get current scale
+    const scale = cardCanvas.getScale()
+
     // Select the button
     cardCanvas.selectElement('btn-1')
     await waitForUIUpdate()
     buttonEl = document.querySelector('[data-element-id="btn-1"]') as HTMLElement
 
-    // Now test drag: 20px mouse move should equal 10 card units at 2x zoom
+    // Now test drag: 20px mouse move should equal 20 / (scale * zoom) card units
     const startEvent = new MouseEvent('mousedown', {
       bubbles: true,
       cancelable: true,
@@ -610,11 +620,12 @@ end mouseUp`
     canvas.dispatchEvent(endEvent)
     await waitForUIUpdate()
 
-    // At 2x zoom, 20 client pixels should move 20/2 = 10 card units
+    // At zoom=2, scale=1: 20 client pixels should move 20 / (1 * 2) = 10 card units
     buttonEl = document.querySelector('[data-element-id="btn-1"]') as HTMLElement
     const newLeft = parseInt(buttonEl.style.left)
-    // 100 (initial) + 10 (20 client pixels / 2x zoom) = 110
-    expect(newLeft).toBe(110)
+    const expectedDelta = Math.round(20 / (scale * 2))
+    // 100 (initial) + 10 (20 client pixels / (1 * 2x zoom)) = 110
+    expect(newLeft).toBe(100 + expectedDelta)
   })
 
   it('arrow keys pan canvas when no element selected', async () => {

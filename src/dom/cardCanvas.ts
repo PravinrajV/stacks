@@ -6,11 +6,13 @@
 
 import { createElement, setAttributes, setStyles, removeAllChildren, addEventListener } from './utils/dom'
 import { offsetRect, createRect, rectWidth, rectHeight } from './utils/rect'
+import { computeFit } from './utils/fit'
 import type { Card, Button, Field, Background } from '../model/stack'
 import type { Rect } from '../model/types'
 
 export class CardCanvas {
   private element: HTMLElement
+  private container: HTMLElement
   private cardView: HTMLElement
   private selectedElementId: string | null = null
   private dragState: {
@@ -36,6 +38,12 @@ export class CardCanvas {
   private zoomLevel: number = 1
   private minZoom: number = 0.25
   private maxZoom: number = 4
+  private scale: number = 1  // Responsive scale factor
+  private fitLeft: number = 0  // Centering offset
+  private fitTop: number = 0   // Centering offset
+  private resizeObserver: ResizeObserver | null = null
+  private cardLogicalWidth: number = 512  // Fixed logical card dimensions
+  private cardLogicalHeight: number = 342
   private onElementClick: ((elementId: string) => void) | null = null
   private onElementMove: ((elementId: string, rect: Rect) => void) | null = null
   private onElementResize: ((elementId: string, rect: Rect) => void) | null = null
@@ -49,7 +57,7 @@ export class CardCanvas {
     this.element.setAttribute('role', 'region')
 
     // Create inner container (scrollable content area)
-    const containerDiv = createElement('div', {
+    this.container = createElement('div', {
       className: 'canvas-container'
     })
 
@@ -59,8 +67,14 @@ export class CardCanvas {
     this.cardView.setAttribute('role', 'img')
     this.cardView.setAttribute('aria-label', 'Card editing canvas')
     
-    containerDiv.appendChild(this.cardView)
-    this.element.appendChild(containerDiv)
+    this.container.appendChild(this.cardView)
+    this.element.appendChild(this.container)
+
+    // Set up ResizeObserver to recompute scale when container resizes
+    this.resizeObserver = new ResizeObserver(() => {
+      this.updateCardScale()
+    })
+    this.resizeObserver.observe(this.container)
 
     addEventListener(this.element, 'mousemove', (e) => this.handleMouseMove(e as MouseEvent))
     addEventListener(this.element, 'mouseup', () => this.handleMouseUp())
@@ -71,6 +85,47 @@ export class CardCanvas {
 
   getElement(): HTMLElement {
     return this.element
+  }
+
+  /**
+   * Calculate responsive scale factor to fit card in container while preserving aspect ratio.
+   * The card has fixed logical dimensions (512×342) and scales to fit available space.
+   */
+  private updateCardScale(): void {
+    const containerRect = this.container.getBoundingClientRect()
+    const containerWidth = containerRect.width
+    const containerHeight = containerRect.height
+
+    if (containerWidth <= 0 || containerHeight <= 0) {
+      // Container not yet laid out, skip update
+      return
+    }
+
+    // Get actual client dimensions (excluding any padding/borders)
+    const padding = 0
+    const availWidth = containerWidth - padding * 2
+    const availHeight = containerHeight - padding * 2
+
+    // Compute fit and centering parameters
+    const { scale, left, top } = computeFit(availWidth, availHeight)
+    this.scale = Math.max(0.1, scale)
+    this.fitLeft = left
+    this.fitTop = top
+
+    // Update the combined transform with new scale and position
+    this.updateCanvasTransform()
+  }
+
+  getScale(): number {
+    return this.scale
+  }
+
+  /**
+   * For testing: recalculate scale based on current container size.
+   * Normally called automatically by ResizeObserver.
+   */
+  testUpdateScale(): void {
+    this.updateCardScale()
   }
 
   render(card: Card, background: Background | null): void {
@@ -93,6 +148,9 @@ export class CardCanvas {
     for (const button of card.buttons) {
       this.renderButton(button, 'card')
     }
+
+    // Recompute scale after rendering
+    this.updateCardScale()
   }
 
   private renderField(field: Field, scope: string): void {
@@ -353,7 +411,12 @@ export class CardCanvas {
   }
 
   private updateCanvasTransform(): void {
-    const transform = `translate(${this.panState.offsetX}px, ${this.panState.offsetY}px) scale(${this.zoomLevel})`
+    // Combine pan translate, centering offset, and zoom scale into a single transform
+    // Order: translate for centering + pan, then scale (combined responsive + zoom)
+    const combinedScale = this.scale * this.zoomLevel
+    const totalX = this.fitLeft + this.panState.offsetX
+    const totalY = this.fitTop + this.panState.offsetY
+    const transform = `translate(${totalX}px, ${totalY}px) scale(${combinedScale})`
     this.cardView.style.transform = transform
     this.cardView.style.transformOrigin = 'top left'
   }
@@ -372,8 +435,9 @@ export class CardCanvas {
 
     if (!this.dragState) return
 
-    const dx = (e.clientX - this.dragState.startX) / this.zoomLevel
-    const dy = (e.clientY - this.dragState.startY) / this.zoomLevel
+    // Divide by combined scale and zoom to convert client pixels to card units
+    const dx = (e.clientX - this.dragState.startX) / (this.scale * this.zoomLevel)
+    const dy = (e.clientY - this.dragState.startY) / (this.scale * this.zoomLevel)
     const { startRect, mode, elementId } = this.dragState
 
     let newRect: Rect

@@ -348,7 +348,9 @@ export class App {
   private render(): void {
     removeAllChildren(this.container)
 
-    // Create main layout
+    // Update body class for CSS mode-aware styling
+    document.body.classList.remove('edit-mode', 'run-mode')
+    document.body.classList.add(this.appState.mode === 'edit' ? 'edit-mode' : 'run-mode')
     const app = createElement('div', {
       id: 'app'
     })
