@@ -137,33 +137,33 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Runtime Core
 
-- [ ] **3.1** Implement `ExecutionContext` with stack, currentCard, localVariables, callStack, stepCount, startTime. *(Ref: REQ-HT-003, REQ-EH-002)*
+- [x] **3.1** Implement `ExecutionContext` with stack, currentCard, localVariables, callStack, stepCount, startTime. *(Ref: REQ-HT-003, REQ-EH-002)*
   - Location: `src/interpreter/runtime.ts`
 
-- [ ] **3.2** Implement variable scoping: local → card → stack lookup order. *(Ref: REQ-HT-006)*
+- [x] **3.2** Implement variable scoping: local → card → stack lookup order. *(Ref: REQ-HT-006)*
   - Location: `src/interpreter/runtime.ts`
   - Methods: `getVariable(scope, name)`, `setVariable(scope, name, value)`, `resolveVariable(name)`.
   - Tests: Variable shadowing (local overrides card overrides stack).
 
-- [ ] **3.3** Implement basic tree-walking evaluator that executes AST statements in order. *(Ref: REQ-HT-003)*
+- [x] **3.3** Implement basic tree-walking evaluator that executes AST statements in order. *(Ref: REQ-HT-003)*
   - Location: `src/interpreter/runtime.ts`
   - Method: `execute(ast, context): void`
   - Handle statement types (if, repeat, put, get, go, answer, return).
   - Tests: Sequential statements execute in order. Variables persist across statements.
 
-- [ ] **3.4** Implement expression evaluator (literals, variables, operators, function calls). *(Ref: REQ-HT-003, REQ-HT-005)*
+- [x] **3.4** Implement expression evaluator (literals, variables, operators, function calls). *(Ref: REQ-HT-003, REQ-HT-005)*
   - Location: `src/interpreter/runtime.ts`
   - Method: `evaluateExpression(expr, context): any`
   - Support arithmetic (+, -, *, /), comparison (<, >, =, !=), logical (and, or, not).
   - Tests: `2 + 3 = 5`, `"hello" concat "world" = "helloworld"`, boolean logic short-circuits.
 
-- [ ] **3.5** Implement execution timeout and step limit enforcement (5s, 100k steps). *(Ref: REQ-HT-003, REQ-EH-003)*
+- [x] **3.5** Implement execution timeout and step limit enforcement (5s, 100k steps). *(Ref: REQ-HT-003, REQ-EH-003)*
   - Location: `src/interpreter/runtime.ts`
   - Check time elapsed and step count in each statement/loop.
   - Halt with "Execution timeout" error if exceeded.
   - Tests: Script that runs too long halts, step counter increments correctly.
 
-- [ ] **3.6** Implement error catching and reporting without crashing. *(Ref: REQ-HT-003, REQ-EH-002)*
+- [x] **3.6** Implement error catching and reporting without crashing. *(Ref: REQ-HT-003, REQ-EH-002)*
   - Location: `src/interpreter/runtime.ts`
   - Catch runtime errors (undefined variable, type error, division by zero).
   - Emit user-facing error message, log stack trace.
@@ -171,42 +171,42 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Built-in Commands and Functions
 
-- [ ] **3.7** Implement `put` command (assign value to field or variable). *(Ref: REQ-HT-005)*
+- [x] **3.7** Implement `put` command (assign value to field or variable). *(Ref: REQ-HT-005)*
   - Location: `src/interpreter/builtins.ts`
   - Syntax: `put <expr> into <target>` where target is field, card var, or stack var.
   - Tests: `put 5 into x`, `put "hi" into field "name"` work correctly.
 
-- [ ] **3.8** Implement `get` command (retrieve value from field or variable). *(Ref: REQ-HT-005)*
+- [x] **3.8** Implement `get` command (retrieve value from field or variable). *(Ref: REQ-HT-005)*
   - Location: `src/interpreter/builtins.ts`
   - Syntax: `get <expr>` (typically used in expressions, implicit return).
   - Tests: `get field "score"` returns field content.
 
-- [ ] **3.9** Implement `go` command (navigate to card). *(Ref: REQ-HT-005, REQ-CE-001)*
+- [x] **3.9** Implement `go` command (navigate to card). *(Ref: REQ-HT-005, REQ-CE-001)*
   - Location: `src/interpreter/builtins.ts`
   - Syntax: `go to card <id>`, `go next card`, `go previous card`, `go first card`, `go last card`.
   - Emit `openCard` message to target card.
   - Tests: Navigation to valid/invalid cards. openCard handler fires correctly.
 
-- [ ] **3.10** Implement `answer` command (modal dialog with buttons). *(Ref: REQ-HT-005)*
+- [x] **3.10** Implement `answer` command (modal dialog with buttons). *(Ref: REQ-HT-005)*
   - Location: `src/interpreter/builtins.ts`
   - Syntax: `answer "message" with button "OK" or button "Cancel"`.
   - Return which button was clicked (0, 1, 2, ...).
   - Tests: Dialog displays, correct button index returned based on user click.
 
-- [ ] **3.11** Implement math functions (add, subtract, multiply, divide, sqrt, round, random). *(Ref: REQ-HT-005)*
+- [x] **3.11** Implement math functions (add, subtract, multiply, divide, sqrt, round, random). *(Ref: REQ-HT-005)*
   - Location: `src/interpreter/builtins.ts`
   - Tests: Each function computes correctly. Division by zero caught.
 
-- [ ] **3.12** Implement string functions (concat, length, contains, split, uppercase, lowercase, substring, trim). *(Ref: REQ-HT-005)*
+- [x] **3.12** Implement string functions (concat, length, contains, split, uppercase, lowercase, substring, trim). *(Ref: REQ-HT-005)*
   - Location: `src/interpreter/builtins.ts`
   - Tests: Each function manipulates strings correctly. Edge cases: empty strings, out-of-bounds indices.
 
-- [ ] **3.13** Implement if/else control flow. *(Ref: REQ-HT-005)*
+- [x] **3.13** Implement if/else control flow. *(Ref: REQ-HT-005)*
   - Location: `src/interpreter/runtime.ts`
   - Evaluate condition, execute then or else branch.
   - Tests: Conditions evaluated correctly, else branch skipped if condition true.
 
-- [ ] **3.14** Implement repeat control flow (repeat N times, repeat while, repeat until). *(Ref: REQ-HT-005)*
+- [x] **3.14** Implement repeat control flow (repeat N times, repeat while, repeat until). *(Ref: REQ-HT-005)*
   - Location: `src/interpreter/runtime.ts`
   - Tests: Loops execute correct number of times, while/until conditions respected.
 

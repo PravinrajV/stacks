@@ -12,3 +12,9 @@
 - Independent verification: clean npm ci, build OK, vitest 119/119 passing (8 files).
 - Hand edits (not code): ticked 2.1-2.13 in tasks.md after verification.
 - Credits after session: 13.74 of 50. Session cap (~10) reached; Phase 3 not started.
+- 2026-11-04 ~00:55-01:05 ET: kiro-cli (haiku-4.5) implemented Phase 3a (tasks 3.1-3.14): src/interpreter/runtime.ts + runtime.test.ts; also changed lexer to preserve identifier case, which broke 7 Phase 2 tests.
+- Credits after session: 19.85 of 50.
+- 2026-11-04 ~01:08 ET: kiro-cli (haiku-4.5) fixed lexer and updated 7 lexer/parser test expectations to the case-preserving behaviour. Unedited by hand.
+- Independent verification: clean npm ci, build OK, vitest 174/174 passing (9 files). No eval/new Function/fetch in src.
+- Hand edits (not code): ticked 3.1-3.14 in tasks.md after verification.
+- Credits after session: 20.97 of 50.

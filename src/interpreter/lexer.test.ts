@@ -56,7 +56,7 @@ describe('Lexer (Tasks 2.1-2.6)', () => {
       expect(Array.isArray(result)).toBe(true)
       if (Array.isArray(result)) {
         expect(result[0].type).toBe('identifier')
-        expect(result[0].value).toBe('MYVAR')
+        expect(result[0].value).toBe('myVar')
         expect(result[1].type).toBe('identifier')
         expect(result[2].type).toBe('identifier')
       }
@@ -280,7 +280,7 @@ describe('Lexer (Tasks 2.1-2.6)', () => {
         expect(result[0].value).toBe('PUT')
         expect(result[1].value).toBe('5')
         expect(result[2].value).toBe('INTO')
-        expect(result[3].value).toBe('X')
+        expect(result[3].value).toBe('x')
       }
     })
 
@@ -299,7 +299,7 @@ describe('Lexer (Tasks 2.1-2.6)', () => {
       expect(Array.isArray(result)).toBe(true)
       if (Array.isArray(result)) {
         expect(result[0].value).toBe('ON')
-        expect(result[1].value).toBe('MOUSEUP')
+        expect(result[1].value).toBe('mouseUp')
       }
     })
 
@@ -307,7 +307,7 @@ describe('Lexer (Tasks 2.1-2.6)', () => {
       const result = tokenize('add(2, 3)')
       expect(Array.isArray(result)).toBe(true)
       if (Array.isArray(result)) {
-        expect(result[0].value).toBe('ADD')
+        expect(result[0].value).toBe('add')
         expect(result[1].value).toBe('(')
         expect(result[2].value).toBe('2')
         expect(result[3].value).toBe(',')

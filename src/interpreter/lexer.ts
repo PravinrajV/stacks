@@ -307,7 +307,7 @@ export class Lexer {
 
     return {
       type: isKeyword ? 'keyword' : 'identifier',
-      value: upperValue,
+      value: isKeyword ? upperValue : value, // Preserve case for identifiers
       line: startLine,
       column: startColumn
     }

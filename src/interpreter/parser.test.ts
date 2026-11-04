@@ -190,7 +190,7 @@ describe('Parser (Tasks 2.7-2.12)', () => {
       expect(result.handlers.length).toBeGreaterThan(0)
       const handler = result.handlers[0]
       expect(handler.type).toBe('HandlerDefinition')
-      expect(handler.name).toBe('MOUSEUP')
+      expect(handler.name).toBe('mouseUp')
     })
 
     it('should parse multiple handlers', () => {
@@ -216,7 +216,7 @@ describe('Parser (Tasks 2.7-2.12)', () => {
       if (!('statements' in result)) throw new Error('Expected Program')
       const expr = (result.statements[0] as any).value
       expect(expr.type).toBe('FunctionCall')
-      expect(expr.name).toBe('RANDOM')
+      expect(expr.name).toBe('random')
       expect(expr.args.length).toBe(0)
     })
 
@@ -226,7 +226,7 @@ describe('Parser (Tasks 2.7-2.12)', () => {
       if (!('statements' in result)) throw new Error('Expected Program')
       const expr = (result.statements[0] as any).value
       expect(expr.type).toBe('FunctionCall')
-      expect(expr.name).toBe('SQRT')
+      expect(expr.name).toBe('sqrt')
       expect(expr.args.length).toBe(1)
     })
 
