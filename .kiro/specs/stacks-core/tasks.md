@@ -625,7 +625,7 @@ Phase 6 (Polish & Documentation)
 
 ### Answer Modal Dialog
 
-- [ ] **8.4** Implement accessible modal dialog for `answer` command in run mode. *(Ref: REQ-P8-004)*
+- [x] **8.4** Implement accessible modal dialog for `answer` command in run mode. *(Ref: REQ-P8-004)*
   - Location: `src/dom/components/modal.ts`, `src/interpreter/runtime.ts`
   - Modal displays message text and a row of buttons.
   - Focus is captured in the modal; clicking a button returns its index to the script.
@@ -635,7 +635,7 @@ Phase 6 (Polish & Documentation)
 
 ### Script Editor Syntax Highlight Layer
 
-- [ ] **8.5** Implement perfectly-aligned syntax highlight overlay (textarea + div layer) with synchronized scrolling. *(Ref: REQ-P8-005)*
+- [x] **8.5** Implement perfectly-aligned syntax highlight overlay (textarea + div layer) with synchronized scrolling. *(Ref: REQ-P8-005)*
   - Location: `src/dom/scriptEditor.ts`
   - Use `<textarea>` for user input and `<div contenteditable="false">` for highlights.
   - Apply identical CSS: font, font-size, line-height, padding, border, white-space: pre.

@@ -99,10 +99,11 @@ async function executeHandler(
       return { success: false, error: registerResult.error }
     }
 
-    // Then execute the specific handler body if it exists
-    // If the handler isn't found, executeHandlerBody will return an error, but we should still return success
+    // Then execute the specific handler body if it exists asynchronously
+    // This allows answer dialogs to work properly
+    // If the handler isn't found, executeHandlerBodyAsync will return an error, but we should still return success
     // because it might be a message that's handled at a different level
-    const result = runtime.executeHandlerBody(handlerName)
+    const result = await runtime.executeHandlerBodyAsync(handlerName)
     if (!result.success) {
       // Only treat as error if the handler was found but failed to execute
       // If handler not found, that's ok (message propagates)

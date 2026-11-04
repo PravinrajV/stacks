@@ -71,37 +71,56 @@ export class ScriptEditor {
       className: 'editor-container'
     })
     this.editorContainer.style.position = 'relative'
-    this.editorContainer.style.flex = '1'
+    this.editorContainer.style.width = '100%'
+    this.editorContainer.style.minHeight = '160px'
     this.editorContainer.style.overflow = 'hidden'
 
     // Highlight layer (read-only, behind textarea)
+    // REQ-P8-005: Perfectly aligned overlay with identical CSS
     this.highlightLayer = createElement('div', {
       className: 'highlight-layer'
     })
-    this.highlightLayer.style.position = 'absolute'
-    this.highlightLayer.style.top = '0'
-    this.highlightLayer.style.left = '0'
-    this.highlightLayer.style.right = '0'
-    this.highlightLayer.style.bottom = '0'
-    this.highlightLayer.style.padding = '0'
-    this.highlightLayer.style.overflow = 'hidden'
-    this.highlightLayer.style.pointerEvents = 'none'
-    this.highlightLayer.style.whiteSpace = 'pre-wrap'
-    this.highlightLayer.style.wordWrap = 'break-word'
-    this.highlightLayer.style.fontFamily = 'var(--font-mono)'
-    this.highlightLayer.style.fontSize = '12px'
-    this.highlightLayer.style.lineHeight = '1.4'
+    
+    // REQ-P8-005: Apply identical CSS to ensure perfect alignment
+    const sharedStyles = {
+      position: 'absolute' as const,
+      inset: '0',
+      padding: 'var(--spacing-sm)',
+      margin: '0',
+      border: '1px solid var(--border-color)',
+      overflow: 'auto' as const,
+      pointerEvents: 'none' as const,
+      whiteSpace: 'pre' as const,
+      fontFamily: 'var(--font-mono)',
+      fontSize: '12px',
+      lineHeight: '1.4',
+      tabSize: '4' as any,
+      boxSizing: 'border-box' as const,
+      width: '100%',
+      height: '100%'
+    }
+
+    // Apply styles to highlight layer
+    Object.entries(sharedStyles).forEach(([key, value]) => {
+      (this.highlightLayer.style as any)[key] = value
+    })
+    this.highlightLayer.style.backgroundColor = 'transparent'
+    this.highlightLayer.style.color = 'transparent'
 
     // Textarea (transparent background, over highlight layer)
     this.textarea = createElement('textarea', {
       className: 'editor-textarea'
     }) as HTMLTextAreaElement
-    this.textarea.style.position = 'relative'
+    
+    // REQ-P8-005: Apply identical CSS to textarea
+    Object.entries(sharedStyles).forEach(([key, value]) => {
+      (this.textarea.style as any)[key] = value
+    })
     this.textarea.style.backgroundColor = 'transparent'
     this.textarea.style.color = 'transparent'
     this.textarea.style.caretColor = 'var(--color-black)'
-    this.textarea.style.resize = 'none'
     this.textarea.style.zIndex = '1'
+    this.textarea.style.pointerEvents = 'auto'
 
     addEventListener(this.textarea, 'input', () => {
       this.script = this.textarea.value
@@ -169,8 +188,10 @@ export class ScriptEditor {
   }
 
   /**
-   * Task 7.5: Update syntax highlighting based on tokens.
-   * Uses tokenize() to get tokens, then renders each token as a span with appropriate class.
+   * Task 7.5 & REQ-P8-005: Update syntax highlighting based on tokens.
+   * Iterate original source by token offsets; emit exact source slices.
+   * No line divs, no case changes, gaps preserved as plain text.
+   * Layer textContent must equal textarea.value exactly.
    */
   private updateHighlighting(): void {
     const source = this.textarea.value
@@ -185,30 +206,26 @@ export class ScriptEditor {
 
     removeAllChildren(this.highlightLayer)
 
-    // Build lines with tokens
-    const lines: HTMLElement[] = []
-    let currentLine: HTMLElement | null = null
-    let currentLineNum = 1
+    let pos = 0
 
     for (const token of tokens) {
-      // Create new line when needed
-      while (currentLineNum < token.line) {
-        if (currentLine) lines.push(currentLine)
-        currentLine = createElement('div')
-        currentLineNum++
-      }
-
-      if (!currentLine) {
-        currentLine = createElement('div')
-      }
-
       if (token.type === 'eof') {
         break
       }
 
-      // Create span for token
+      const start = token.start ?? 0
+      const end = token.end ?? start + token.value.length
+
+      // Emit gap (spaces, newlines, comments) from current pos to token start
+      if (pos < start) {
+        const gap = source.substring(pos, start)
+        const textNode = document.createTextNode(gap)
+        this.highlightLayer.appendChild(textNode)
+      }
+
+      // Emit token as span with class
       const span = createElement('span', {
-        className: `token token-${token.type}${this.errorLineNumbers.has(token.line) ? ' error-line' : ''}`
+        className: `token token-${token.type}`
       })
 
       // Apply styling based on token type
@@ -225,18 +242,19 @@ export class ScriptEditor {
         span.style.color = 'var(--color-black)'
       }
 
-      setTextContent(span, token.value)
-      currentLine.appendChild(span)
+      // Get exact source slice for this token (preserves original case and formatting)
+      const tokenSource = source.substring(start, end)
+      setTextContent(span, tokenSource)
+      this.highlightLayer.appendChild(span)
+
+      pos = end
     }
 
-    // Add last line
-    if (currentLine) {
-      lines.push(currentLine)
-    }
-
-    // Append all lines to highlight layer
-    for (const line of lines) {
-      this.highlightLayer.appendChild(line)
+    // Emit any trailing text (spaces, newlines)
+    if (pos < source.length) {
+      const trailing = source.substring(pos)
+      const textNode = document.createTextNode(trailing)
+      this.highlightLayer.appendChild(textNode)
     }
   }
 

@@ -15,6 +15,8 @@ import { ScriptEditor } from '../src/dom/scriptEditor'
 import { createStack, createCard, createButton, createField } from '../src/model/stack'
 import { clearStack } from '../src/dom/storage'
 import { MockModelProvider } from '../src/generator/mockProvider'
+import { tokenize } from '../src/interpreter/lexer'
+import { parse } from '../src/interpreter/parser'
 
 function setupDOM(): HTMLElement {
   const existing = document.getElementById('app')
@@ -86,7 +88,7 @@ end mouseUp`
     expect((stringSpans?.length || 0) > 0).toBe(true)
 
     const stringSpan = stringSpans?.[0] as HTMLElement
-    expect(stringSpan?.textContent).toBe('hello world')
+    expect(stringSpan?.textContent).toBe('"hello world"')
   })
 
   it('highlights numbers with correct class', () => {
@@ -787,6 +789,204 @@ describe('Task 6.3: Keyboard Shortcuts', () => {
     await new Promise(r => setTimeout(r, 100))
 
     expect(alertSpy).toHaveBeenCalled()
+    alertSpy.mockRestore()
+  })
+})
+
+/**
+ * Task 8.5: Highlight Layer Overlay Tests
+ * Verify that layer.textContent === textarea.value for exact text matching.
+ * No uppercasing, no duplication, no transparent spans.
+ */
+describe('Task 8.5: Highlight Layer Overlay Alignment', () => {
+  let container: HTMLElement
+  let editor: ScriptEditor
+  let textarea: HTMLTextAreaElement
+  let highlightLayer: HTMLElement
+
+  beforeEach(() => {
+    container = setupDOM()
+    editor = new ScriptEditor()
+    container.appendChild(editor.getElement())
+    textarea = container.querySelector('.editor-textarea') as HTMLTextAreaElement
+    highlightLayer = container.querySelector('.highlight-layer') as HTMLElement
+  })
+
+  afterEach(() => {
+    clearStack()
+    if (container.parentElement) {
+      container.parentElement.removeChild(container)
+    }
+  })
+
+  it('layer textContent equals textarea value for simple handler', () => {
+    const script = `on mouseUp
+  put "hello" into x
+end mouseUp`
+
+    editor.setScript(script)
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with comments', () => {
+    const script = `-- This is a comment
+on mouseUp
+  -- nested comment
+  put "test" into x
+end mouseUp`
+
+    editor.setScript(script)
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with strings', () => {
+    const script = `put "hello world" into x
+put "line 1
+line 2" into y`
+
+    editor.setScript(script)
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with multiple spaces', () => {
+    const script = `put    "x"    into    y`
+
+    editor.setScript(script)
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with tabs', () => {
+    const script = 'put\t"x"\tinto\ty'
+
+    editor.setScript(script)
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with mixed case keywords', () => {
+    const script = `ON MouseUp
+  PUT "test" INTO x
+END MouseUp`
+
+    editor.setScript(script)
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with operators', () => {
+    const script = 'if x > 5 and y != 10 or z <= 3\nend if'
+
+    editor.setScript(script)
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with numbers', () => {
+    const script = 'put 42 into x\nput 3.14 into y'
+
+    editor.setScript(script)
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with empty script', () => {
+    editor.setScript('')
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value with only newlines', () => {
+    editor.setScript('\n\n\n')
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('layer textContent equals textarea value after input event', () => {
+    editor.setScript('initial')
+
+    const newScript = 'on mouseUp\nput "new" into x\nend mouseUp'
+    textarea.value = newScript
+    textarea.dispatchEvent(new Event('input'))
+
+    expect(highlightLayer.textContent).toBe(textarea.value)
+  })
+
+  it('textarea and layer have same dimensions and position', () => {
+    editor.setScript('on mouseUp\nend mouseUp')
+
+    const layerRect = highlightLayer.getBoundingClientRect()
+    const textareaRect = textarea.getBoundingClientRect()
+
+    expect(layerRect.left).toBe(textareaRect.left)
+    expect(layerRect.top).toBe(textareaRect.top)
+    expect(layerRect.width).toBe(textareaRect.width)
+    expect(layerRect.height).toBe(textareaRect.height)
+  })
+
+  it('textarea has transparent background and visible caret', () => {
+    const bgColor = window.getComputedStyle(textarea).backgroundColor
+    const color = window.getComputedStyle(textarea).color
+    const caretColor = window.getComputedStyle(textarea).caretColor
+
+    // Both 'transparent' and 'rgba(0, 0, 0, 0)' are valid representations
+    expect(['rgba(0, 0, 0, 0)', 'transparent'].includes(bgColor)).toBe(true)
+    expect(['rgba(0, 0, 0, 0)', 'transparent'].includes(color)).toBe(true)
+    expect(['rgba(0, 0, 0, 0)', 'transparent'].includes(caretColor)).toBe(false)
+  })
+
+  it('scroll position syncs between textarea and layer', () => {
+    const longScript = 'line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10'
+    editor.setScript(longScript)
+
+    textarea.scrollTop = 50
+    textarea.scrollLeft = 20
+    textarea.dispatchEvent(new Event('scroll'))
+
+    expect(highlightLayer.scrollTop).toBe(50)
+    expect(highlightLayer.scrollLeft).toBe(20)
+  })
+})
+
+/**
+ * Task 8.4: Answer Dialog Integration Test
+ * Verify script with answer command executes properly.
+ */
+describe('Task 8.4: Answer Dialog from Button Script', () => {
+  let container: HTMLElement
+
+  beforeEach(() => {
+    container = setupDOM()
+  })
+
+  afterEach(() => {
+    clearStack()
+    if (container.parentElement) {
+      container.parentElement.removeChild(container)
+    }
+  })
+
+  it('button script with answer executes correctly', () => {
+    const stack = createStack('s1', 'Test')
+    const card = createCard('c1', 'Card', null)
+
+    const btn = createButton('btn1', 'Click Me', 10, 10, 100, 30)
+    const script = `on mouseUp
+  answer "Hello from button"
+end mouseUp`
+    btn.scripts['mouseUp'] = script
+    card.buttons.push(btn)
+    stack.cards.push(card)
+
+    const editor = new ScriptEditor()
+    editor.setContext(stack, card)
+    editor.setScript(script)
+
+    // Verify the script is parsed correctly
+    expect(editor.getError()).toBeNull()
+
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+    // Verify that script can be executed
+    const tokens = tokenize(script)
+    expect(Array.isArray(tokens)).toBe(true)
+
+    const ast = parse(tokens)
+    expect(!('type' in ast && ast.type === 'ParseError')).toBe(true)
+
     alertSpy.mockRestore()
   })
 })

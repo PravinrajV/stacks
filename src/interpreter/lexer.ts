@@ -26,6 +26,8 @@ export interface Token {
   value: string
   line: number
   column: number
+  start?: number // Byte offset in source
+  end?: number   // Byte offset in source
 }
 
 /**
@@ -103,6 +105,7 @@ export class Lexer {
   private line: number = 1
   private column: number = 1
   private tokens: Token[] = []
+  private tokenStart: number = 0
 
   constructor(source: string) {
     this.source = source
@@ -119,6 +122,7 @@ export class Lexer {
 
       if (this.position >= this.source.length) break
 
+      this.tokenStart = this.position
       const ch = this.source[this.position]
 
       // String literal
@@ -145,7 +149,9 @@ export class Lexer {
           type: 'punctuation',
           value: ch,
           line: this.line,
-          column: this.column
+          column: this.column,
+          start: this.position,
+          end: this.position + 1
         }
         this.tokens.push(token)
         this.advance()
@@ -166,7 +172,9 @@ export class Lexer {
       type: 'eof',
       value: '',
       line: this.line,
-      column: this.column
+      column: this.column,
+      start: this.position,
+      end: this.position
     })
 
     return this.tokens
@@ -180,6 +188,7 @@ export class Lexer {
   private readString(): Token | LexError {
     const startLine = this.line
     const startColumn = this.column
+    const start = this.position
     this.advance() // Skip opening quote
 
     let value = ''
@@ -187,12 +196,15 @@ export class Lexer {
       const ch = this.source[this.position]
 
       if (ch === '"') {
+        const end = this.position + 1
         this.advance() // Skip closing quote
         return {
           type: 'string',
           value,
           line: startLine,
-          column: startColumn
+          column: startColumn,
+          start,
+          end
         }
       } else if (ch === '\\') {
         this.advance()
@@ -254,6 +266,7 @@ export class Lexer {
   private readNumber(): Token {
     const startLine = this.line
     const startColumn = this.column
+    const start = this.position
     let value = ''
 
     while (this.position < this.source.length && this.isDigit(this.source[this.position])) {
@@ -280,7 +293,9 @@ export class Lexer {
       type: 'number',
       value,
       line: startLine,
-      column: startColumn
+      column: startColumn,
+      start,
+      end: this.position
     }
   }
 
@@ -292,6 +307,7 @@ export class Lexer {
   private readIdentifierOrKeyword(): Token {
     const startLine = this.line
     const startColumn = this.column
+    const start = this.position
     let value = ''
 
     while (
@@ -307,9 +323,11 @@ export class Lexer {
 
     return {
       type: isKeyword ? 'keyword' : 'identifier',
-      value: isKeyword ? upperValue : value, // Preserve case for identifiers
+      value: isKeyword ? upperValue : value, // Keep uppercase for keywords for parser compatibility
       line: startLine,
-      column: startColumn
+      column: startColumn,
+      start,
+      end: this.position
     }
   }
 
@@ -320,6 +338,7 @@ export class Lexer {
   private readOperator(): Token {
     const startLine = this.line
     const startColumn = this.column
+    const start = this.position
 
     // Check for multi-character operators
     for (const op of OPERATORS) {
@@ -331,7 +350,9 @@ export class Lexer {
           type: 'operator',
           value: op,
           line: startLine,
-          column: startColumn
+          column: startColumn,
+          start,
+          end: this.position
         }
       }
     }
@@ -343,7 +364,9 @@ export class Lexer {
       type: 'operator',
       value,
       line: startLine,
-      column: startColumn
+      column: startColumn,
+      start,
+      end: this.position
     }
   }
 

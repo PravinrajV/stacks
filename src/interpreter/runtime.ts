@@ -39,8 +39,21 @@ import { Lexer } from './lexer'
 import { Parser } from './parser'
 
 /**
+ * UI Response callback interface for showing dialogs.
+ * REQ-P8-004: answer command integration with UI
+ */
+export interface UIResponder {
+  /**
+   * Show an answer dialog with message and buttons.
+   * Returns a promise that resolves to the button index clicked (0, 1, 2, ...).
+   * REQ-P8-004: async dialog that blocks script execution until answered
+   */
+  showAnswer(message: string, buttons: string[]): Promise<number>
+}
+
+/**
  * Execution Context: maintains state during script execution.
- * REQ-HT-003, REQ-EH-002
+ * REQ-HT-003, REQ-EH-002, REQ-P8-004
  */
 export interface ExecutionContext {
   stack: Stack
@@ -50,6 +63,7 @@ export interface ExecutionContext {
   stepCount: number
   startTime: number
   sandboxViolations: string[]
+  uiResponder?: UIResponder
 }
 
 /**
@@ -109,6 +123,9 @@ export class Runtime {
   /**
    * Execute a program (handlers + statements).
    * REQ-HT-003
+   * 
+   * Note: This is synchronous and doesn't support async answer dialogs.
+   * Use executeAsync() if you need async support with UIResponder.
    */
   execute(program: Program): ExecutionResult {
     try {
@@ -127,6 +144,46 @@ export class Runtime {
         lastValue = result.value
       }
       // Return last statement's value, or return value if set
+      return { success: true, value: this.returnValue !== undefined ? this.returnValue : lastValue }
+    } catch (e) {
+      return {
+        success: false,
+        error: {
+          type: 'RuntimeError',
+          message: (e as Error).message || 'Unknown runtime error',
+        },
+      }
+    }
+  }
+
+  /**
+   * Execute a program (handlers + statements) asynchronously.
+   * REQ-HT-003, REQ-P8-004
+   * 
+   * This version processes answer statements asynchronously with UI callbacks.
+   */
+  async executeAsync(program: Program): Promise<ExecutionResult> {
+    try {
+      // Store handlers for potential later invocation
+      const handlerMap = new Map<string, HandlerDefinition>()
+      for (const handler of program.handlers) {
+        handlerMap.set(handler.name.toLowerCase(), handler)
+      }
+      this.handlers = handlerMap
+
+      let lastValue: any = undefined
+      for (const statement of program.statements) {
+        // Check if this is an answer statement that needs async handling
+        if ((statement as any).type === 'AnswerStatement') {
+          const result = await this.executeAnswerStatementAsync(statement as AnswerStatement)
+          if (!result.success) return result
+          lastValue = result.value
+        } else {
+          const result = this.executeStatement(statement)
+          if (!result.success) return result
+          lastValue = result.value
+        }
+      }
       return { success: true, value: this.returnValue !== undefined ? this.returnValue : lastValue }
     } catch (e) {
       return {
@@ -159,6 +216,42 @@ export class Runtime {
       const result = this.executeStatement(statement)
       if (!result.success) return result
       lastValue = result.value
+      if (this.shouldReturn) break
+    }
+
+    return { success: true, value: this.returnValue !== undefined ? this.returnValue : lastValue }
+  }
+
+  /**
+   * Execute a handler's body statements asynchronously.
+   * REQ-P8-004: Allows answer dialogs to block handler execution
+   * 
+   * Used by RunMode to execute handlers with UI integration.
+   */
+  async executeHandlerBodyAsync(handlerName: string): Promise<ExecutionResult> {
+    const handler = this.handlers.get(handlerName.toLowerCase())
+    if (!handler) {
+      return {
+        success: false,
+        error: {
+          type: 'RuntimeError',
+          message: `Handler not found: ${handlerName}`,
+        },
+      }
+    }
+
+    let lastValue: any = undefined
+    for (const statement of handler.body) {
+      // Check if this is an answer statement that needs async handling
+      if ((statement as any).type === 'AnswerStatement') {
+        const result = await this.executeAnswerStatementAsync(statement as AnswerStatement)
+        if (!result.success) return result
+        lastValue = result.value
+      } else {
+        const result = this.executeStatement(statement)
+        if (!result.success) return result
+        lastValue = result.value
+      }
       if (this.shouldReturn) break
     }
 
@@ -539,7 +632,10 @@ export class Runtime {
 
   /**
    * Execute answer statement: answer <message> [with button ...]
-   * REQ-HT-005, 3.10
+   * REQ-HT-005, 3.10, REQ-P8-004
+   * 
+   * In sync mode: simulates first button click
+   * In async mode: uses uiResponder.showAnswer() to display real dialog
    */
   private executeAnswerStatement(stmt: AnswerStatement): ExecutionResult {
     const messageResult = this.evaluateExpression(stmt.message)
@@ -556,10 +652,46 @@ export class Runtime {
       }
     }
 
-    // In a real implementation, this would show a dialog and return user choice.
-    // For now, simulate user clicking first button or return -1 if no buttons.
+    // If UI responder is available, we can't use it in sync mode
+    // The async method executeAnswerStatementAsync must be used instead
+    // For sync mode: simulate user clicking first button or return -1 if no buttons.
     const buttonIndex = buttons.length > 0 ? 0 : -1
 
+    return { success: true, value: buttonIndex }
+  }
+
+  /**
+   * Execute answer statement asynchronously with real UI dialog.
+   * REQ-P8-004: answer command shows real modal, script waits for response
+   * 
+   * This method should be used when uiResponder is available and async execution is possible.
+   */
+  async executeAnswerStatementAsync(stmt: AnswerStatement): Promise<ExecutionResult> {
+    const messageResult = this.evaluateExpression(stmt.message)
+    if (!messageResult.success) return messageResult
+
+    const message = String(messageResult.value)
+    const buttons: string[] = []
+
+    if (stmt.buttons) {
+      for (const buttonExpr of stmt.buttons) {
+        const buttonResult = this.evaluateExpression(buttonExpr)
+        if (!buttonResult.success) return buttonResult
+        buttons.push(String(buttonResult.value))
+      }
+    }
+
+    // Use UI responder if available, otherwise fallback to sync behavior
+    if (this.context.uiResponder?.showAnswer) {
+      const buttonIndex = await this.context.uiResponder.showAnswer(
+        message,
+        buttons.length > 0 ? buttons : ['OK']
+      )
+      return { success: true, value: buttonIndex }
+    }
+
+    // Fallback to sync behavior
+    const buttonIndex = buttons.length > 0 ? 0 : -1
     return { success: true, value: buttonIndex }
   }
 
