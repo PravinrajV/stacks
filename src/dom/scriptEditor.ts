@@ -20,6 +20,8 @@ import type { Stack, Card } from '../model/stack'
 import { createExecutionContext, Runtime } from '../interpreter/runtime'
 import { generateScript } from '../generator/scriptGen'
 import { MockModelProvider } from '../generator/mockProvider'
+import { defaultRegistry } from '../generator/providerRegistry'
+import type { ModelProvider } from '../generator/modelProvider'
 import type { DiffLine } from '../generator/scriptGen'
 
 export class ScriptEditor {
@@ -34,6 +36,7 @@ export class ScriptEditor {
   private onScriptChange: ((script: string) => void) | null = null
   private currentStack: Stack | null = null
   private currentCard: Card | null = null
+  private selectedProvider: 'mock' | 'anthropic' | 'ollama' = 'mock'
 
   // AI generation panel
   private aiPanel: HTMLElement | null = null
@@ -43,6 +46,7 @@ export class ScriptEditor {
   private aiResultDisplay: HTMLElement | null = null
   private aiAcceptBtn: HTMLElement | null = null
   private aiDiscardBtn: HTMLElement | null = null
+  private aiErrorDisplay: HTMLElement | null = null
 
   constructor() {
     this.element = createElement('div', {
@@ -155,6 +159,13 @@ export class ScriptEditor {
   setContext(stack: Stack, card: Card): void {
     this.currentStack = stack
     this.currentCard = card
+  }
+
+  /**
+   * Set the selected provider for script generation (mock, anthropic, ollama).
+   */
+  setSelectedProvider(provider: 'mock' | 'anthropic' | 'ollama'): void {
+    this.selectedProvider = provider
   }
 
   /**
@@ -461,6 +472,17 @@ export class ScriptEditor {
     addEventListener(this.aiGenerateBtn, 'click', () => this.generateScript())
     this.aiPanel.appendChild(this.aiGenerateBtn)
 
+    // Error display
+    this.aiErrorDisplay = createElement('div', {
+      className: 'ai-error-display'
+    })
+    this.aiErrorDisplay.style.minHeight = '20px'
+    this.aiErrorDisplay.style.padding = 'var(--spacing-xs)'
+    this.aiErrorDisplay.style.fontSize = '10px'
+    this.aiErrorDisplay.style.color = '#cc0000'
+    this.aiErrorDisplay.style.fontFamily = 'var(--font-mono)'
+    this.aiPanel.appendChild(this.aiErrorDisplay)
+
     // Result display
     this.aiResultDisplay = createElement('div', {
       className: 'ai-result-display'
@@ -518,10 +540,10 @@ export class ScriptEditor {
   }
 
   /**
-   * Task 4.9: Generate script using mock provider.
+   * Task 4.9: Generate script using selected provider from registry with fallback.
    */
   private async generateScript(): Promise<void> {
-    if (!this.aiPromptInput || !this.aiResultDisplay || !this.aiGenerateBtn || !this.aiAcceptBtn) {
+    if (!this.aiPromptInput || !this.aiResultDisplay || !this.aiGenerateBtn || !this.aiAcceptBtn || !this.aiErrorDisplay) {
       return
     }
 
@@ -534,10 +556,29 @@ export class ScriptEditor {
     this.aiLoading = true
     ;(this.aiGenerateBtn as HTMLButtonElement).disabled = true
     ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
+    removeAllChildren(this.aiErrorDisplay)
     setTextContent(this.aiResultDisplay, 'Generating...')
 
     try {
-      const provider = new MockModelProvider()
+      // Get the appropriate provider based on selection
+      let provider: ModelProvider
+      
+      if (this.selectedProvider === 'anthropic') {
+        provider = defaultRegistry.getAnthropicProvider()
+      } else if (this.selectedProvider === 'ollama') {
+        provider = defaultRegistry.getOllamaProvider()
+      } else {
+        provider = new MockModelProvider()
+      }
+
+      // Check if selected provider is available
+      const available = await provider.isAvailable()
+      
+      if (!available) {
+        // Fall back to mock provider with notice
+        setTextContent(this.aiErrorDisplay, `Provider "${this.selectedProvider}" not available. Using Mock provider.`)
+        provider = new MockModelProvider()
+      }
 
       // Build context from current state
       const context = {
@@ -554,38 +595,60 @@ export class ScriptEditor {
       )
 
       if ('error' in result) {
-        setTextContent(this.aiResultDisplay, `Error: ${result.error}`)
+        setTextContent(this.aiErrorDisplay, `Error: ${result.error}`)
+        
+        // Try fallback to mock if not already using it
+        if (this.selectedProvider !== 'mock') {
+          const mockProvider = new MockModelProvider()
+          const mockResult = await generateScript(mockProvider, prompt, context, this.getScript())
+          
+          if (!('error' in mockResult)) {
+            setTextContent(this.aiErrorDisplay, 'Primary provider failed. Falling back to Mock provider.')
+            this.displayGeneratedCode(mockResult.code, mockResult.diff)
+            ;(this.aiAcceptBtn as HTMLButtonElement).disabled = false
+            return
+          }
+        }
+        
         ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
       } else {
-        // Display generated code and diff
-        const diffLines = result.diff
-          .map(line => {
-            if (line.type === 'add') return `+ ${line.content}`
-            if (line.type === 'remove') return `- ${line.content}`
-            return `  ${line.content}`
-          })
-          .join('\n')
-
-        removeAllChildren(this.aiResultDisplay)
-        const codeDiv = createElement('div')
-        codeDiv.style.whiteSpace = 'pre-wrap'
-        codeDiv.style.wordWrap = 'break-word'
-        codeDiv.style.color = 'var(--color-dark-gray)'
-        setTextContent(codeDiv, `Generated:\n\n${result.code}\n\nDiff:\n${diffLines}`)
-        this.aiResultDisplay.appendChild(codeDiv)
-
-        // Store generated code for accept
-        ;(this.aiResultDisplay as any).__generatedCode = result.code
-
+        removeAllChildren(this.aiErrorDisplay)
+        this.displayGeneratedCode(result.code, result.diff)
         ;(this.aiAcceptBtn as HTMLButtonElement).disabled = false
       }
     } catch (err) {
-      setTextContent(this.aiResultDisplay, `Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      setTextContent(this.aiErrorDisplay, `Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
       ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
     } finally {
       this.aiLoading = false
       ;(this.aiGenerateBtn as HTMLButtonElement).disabled = false
     }
+  }
+
+  /**
+   * Display generated code and diff in result area.
+   */
+  private displayGeneratedCode(code: string, diff: DiffLine[]): void {
+    if (!this.aiResultDisplay) return
+
+    const diffLines = diff
+      .map(line => {
+        if (line.type === 'add') return `+ ${line.content}`
+        if (line.type === 'remove') return `- ${line.content}`
+        return `  ${line.content}`
+      })
+      .join('\n')
+
+    removeAllChildren(this.aiResultDisplay)
+    const codeDiv = createElement('div')
+    codeDiv.style.whiteSpace = 'pre-wrap'
+    codeDiv.style.wordWrap = 'break-word'
+    codeDiv.style.color = 'var(--color-dark-gray)'
+    setTextContent(codeDiv, `Generated:\n\n${code}\n\nDiff:\n${diffLines}`)
+    this.aiResultDisplay.appendChild(codeDiv)
+
+    // Store generated code for accept
+    ;(this.aiResultDisplay as any).__generatedCode = code
   }
 
   /**

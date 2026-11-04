@@ -44,6 +44,12 @@ export class SettingsPanel {
     this.element.style.fontSize = '12px'
     this.element.style.lineHeight = '1.5'
     
+    // Load provider from sessionStorage if available
+    const savedProvider = sessionStorage.getItem('provider_choice')
+    if (savedProvider === 'anthropic' || savedProvider === 'ollama') {
+      this.currentSettings.provider = savedProvider as 'anthropic' | 'ollama'
+    }
+    
     this.render()
   }
   
@@ -91,6 +97,7 @@ export class SettingsPanel {
     
     addEventListener(providerSelect, 'change', () => {
       this.currentSettings.provider = providerSelect.value as 'mock' | 'anthropic' | 'ollama'
+      sessionStorage.setItem('provider_choice', this.currentSettings.provider)
       this.render()
       this.notifyChanged()
     })

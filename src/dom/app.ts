@@ -11,11 +11,14 @@ import { ElementInspector } from './elementInspector'
 import { ScriptEditor } from './scriptEditor'
 import { RunModeViewer } from './runMode'
 import { ButtonComponent } from './components/button'
+import { ModalComponent } from './components/modal'
+import { SettingsPanel, type ProviderSettings } from './components/settingsPanel'
 import { saveStack, loadStack, loadUndoRedo, saveUndoRedo, exportJSON, importJSON, readJSONFile } from './storage'
 import { Stack, Card, createCard, createStack, Button, Field } from '../model/stack'
 import type { Rect } from '../model/types'
 import { send } from '../interpreter/dispatcher'
 import { createExecutionContext } from '../interpreter/runtime'
+import { defaultRegistry } from '../generator/providerRegistry'
 
 export interface AppState {
   stack: Stack
@@ -36,6 +39,8 @@ export class App {
   private scriptEditor: ScriptEditor
   private runModeViewer: RunModeViewer | null = null
   private isFirstRender: boolean = true
+  private settingsPanel: SettingsPanel | null = null
+  private settingsModal: ModalComponent | null = null
 
   constructor(containerId: string) {
     this.container = document.getElementById(containerId) || document.body
@@ -414,6 +419,11 @@ export class App {
     saveBtn.getElement().setAttribute('title', 'Save current stack (Ctrl/Cmd+S)')
     header.appendChild(saveBtn.getElement())
 
+    const aiSettingsBtn = new ButtonComponent('⚙ AI Settings', () => this.openAISettings())
+    aiSettingsBtn.getElement().setAttribute('aria-label', 'Open AI model provider settings')
+    aiSettingsBtn.getElement().setAttribute('title', 'Configure API key and model provider')
+    header.appendChild(aiSettingsBtn.getElement())
+
     app.appendChild(header)
 
     // Main content
@@ -522,6 +532,65 @@ export class App {
           console.error('Error during card navigation:', err)
         })
     }
+  }
+
+  private openAISettings(): void {
+    if (!this.settingsPanel) {
+      this.settingsPanel = new SettingsPanel()
+      
+      // Load current settings from registry
+      const anthropic = defaultRegistry.getAnthropicProvider()
+      const ollama = defaultRegistry.getOllamaProvider()
+      
+      this.settingsPanel.setSettings({
+        provider: 'mock',
+        anthropicModel: anthropic.getModel(),
+        anthropicKey: anthropic.getApiKey() === '***' ? '' : '',
+        ollamaBaseUrl: ollama.getBaseUrl(),
+        ollamaModel: ollama.getModel()
+      })
+      
+      // Notify registry when settings change
+      this.settingsPanel.onChanged((settings) => {
+        this.applyProviderSettings(settings)
+      })
+    }
+
+    // Create modal if not exists
+    if (!this.settingsModal) {
+      this.settingsModal = new ModalComponent('AI Settings', this.settingsPanel.getElement())
+    }
+
+    this.settingsModal.show()
+  }
+
+  private applyProviderSettings(settings: ProviderSettings): void {
+    const anthropic = defaultRegistry.getAnthropicProvider()
+    const ollama = defaultRegistry.getOllamaProvider()
+
+    if (settings.provider === 'anthropic') {
+      if (settings.anthropicKey && settings.anthropicKey.length > 0) {
+        anthropic.setApiKey(settings.anthropicKey)
+      } else {
+        // Clear key if empty
+        anthropic.clearApiKey()
+      }
+      if (settings.anthropicModel) {
+        anthropic.setModel(settings.anthropicModel)
+      }
+    }
+
+    if (settings.provider === 'ollama') {
+      if (settings.ollamaBaseUrl) {
+        ollama.setBaseUrl(settings.ollamaBaseUrl)
+      }
+      if (settings.ollamaModel) {
+        ollama.setModel(settings.ollamaModel)
+      }
+    }
+
+    // Notify script editor of provider change
+    this.scriptEditor.setSelectedProvider(settings.provider)
   }
 }
 
