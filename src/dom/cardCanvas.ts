@@ -41,18 +41,26 @@ export class CardCanvas {
   private onElementResize: ((elementId: string, rect: Rect) => void) | null = null
 
   constructor() {
+    // Create outer container (scrollable, positioned)
     this.element = createElement('div', {
       className: 'card-canvas'
     })
-    this.element.setAttribute('aria-label', 'Card canvas - click elements to select, drag to move. Use Ctrl+scroll to zoom, arrow keys to pan')
+    this.element.setAttribute('aria-label', 'Card canvas - click elements to select, drag to move. Use Ctrl+scroll to zoom, Shift+drag to pan, arrow keys to nudge selected elements')
     this.element.setAttribute('role', 'region')
+
+    // Create inner container (scrollable content area)
+    const containerDiv = createElement('div', {
+      className: 'canvas-container'
+    })
 
     this.cardView = createElement('div', {
       className: 'card-view'
     })
     this.cardView.setAttribute('role', 'img')
     this.cardView.setAttribute('aria-label', 'Card editing canvas')
-    this.element.appendChild(this.cardView)
+    
+    containerDiv.appendChild(this.cardView)
+    this.element.appendChild(containerDiv)
 
     addEventListener(this.element, 'mousemove', (e) => this.handleMouseMove(e as MouseEvent))
     addEventListener(this.element, 'mouseup', () => this.handleMouseUp())
@@ -196,6 +204,10 @@ export class CardCanvas {
     return this.selectedElementId
   }
 
+  deselectElement(): void {
+    this.selectedElementId = null
+  }
+
   onElementClicked(handler: (elementId: string) => void): void {
     this.onElementClick = handler
   }
@@ -242,7 +254,69 @@ export class CardCanvas {
   }
 
   private handleKeyDown(e: KeyboardEvent): void {
-    // Arrow keys to pan
+    // If element is selected, arrow keys nudge it; otherwise pan canvas
+    if (this.selectedElementId) {
+      this.handleArrowKeyNudge(e)
+    } else {
+      this.handleArrowKeyPan(e)
+    }
+  }
+
+  private handleArrowKeyNudge(e: KeyboardEvent): void {
+    // Arrow keys nudge selected element
+    const nudgeStep = e.shiftKey ? 10 : 1
+    let moved = false
+    let dx = 0
+    let dy = 0
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      dy = -nudgeStep
+      moved = true
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      dy = nudgeStep
+      moved = true
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      dx = -nudgeStep
+      moved = true
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      dx = nudgeStep
+      moved = true
+    }
+
+    if (moved && this.selectedElementId) {
+      // Get current element position
+      const el = this.cardView.querySelector(`[data-element-id="${this.selectedElementId}"]`) as HTMLElement
+      if (el) {
+        const left = parseInt(el.style.left) || 0
+        const top = parseInt(el.style.top) || 0
+        const width = parseInt(el.style.width) || 0
+        const height = parseInt(el.style.height) || 0
+
+        const newRect: Rect = {
+          left: left + dx,
+          top: top + dy,
+          right: left + dx + width,
+          bottom: top + dy + height
+        }
+
+        // Update display
+        setStyles(el, {
+          left: `${newRect.left}px`,
+          top: `${newRect.top}px`
+        })
+
+        // Notify listeners
+        this.onElementMove?.(this.selectedElementId, newRect)
+      }
+    }
+  }
+
+  private handleArrowKeyPan(e: KeyboardEvent): void {
+    // Arrow keys pan canvas
     const panStep = 20
     let moved = false
 

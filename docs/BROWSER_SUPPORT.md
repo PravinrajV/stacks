@@ -1,6 +1,8 @@
 # Browser Support for Stacks
 
-This document describes the browser APIs used by Stacks and their standard support across modern browsers. Stacks is designed for desktop browsers and has been tested on Chrome, Firefox, and Safari.
+This document describes the browser APIs used by Stacks and their standard support across modern browsers. Stacks is designed for desktop browsers.
+
+**Important**: Stacks has not yet been manually tested on any browsers. The browser support matrix below reflects API compatibility only, not confirmed working state in actual browser environments.
 
 ## Browser Compatibility Matrix
 
@@ -100,40 +102,63 @@ The following are intentionally **not** supported in Stacks scripts:
 - **localStorage access from scripts** - Blocked for security
 - **setTimeout/setInterval** - Not implemented (scripts run synchronously)
 
-## Tested Browsers
+## Manual Testing Checklist
+
+Stacks has not yet been tested on any browser. Use the following checklist to verify functionality:
 
 ### Chrome (Latest)
-- ✓ Layout renders correctly with CSS Grid
-- ✓ All keyboard shortcuts work (Ctrl+S, Ctrl+Z, Tab, Delete, Escape, arrow keys)
-- ✓ Mouse wheel zoom with Ctrl+scroll works smoothly
-- ✓ Pan functionality with Shift+drag and middle-mouse works
-- ✓ Element selection and drag/resize operations responsive
-- ✓ Script execution consistent with other browsers
-- ✓ localStorage persistence works correctly
-- ✓ Focus styles visible with `:focus-visible`
-- ✓ Scrollbars render with -webkit- styling
+- [ ] Layout renders correctly with CSS Grid
+- [ ] All keyboard shortcuts work (Ctrl+S, Ctrl+Z, Tab, Delete, Escape, arrow keys)
+- [ ] Mouse wheel zoom with Ctrl+scroll works smoothly
+- [ ] Pan functionality with Shift+drag and middle-mouse works
+- [ ] Arrow keys nudge selected elements on canvas
+- [ ] Element selection and drag/resize operations responsive
+- [ ] Canvas scrolls when card is larger than viewport
+- [ ] Dragged elements position correctly after canvas scroll/zoom
+- [ ] Script execution consistent with other browsers
+- [ ] localStorage persistence works correctly
+- [ ] Focus styles visible with `:focus-visible`
+- [ ] Scrollbars render with -webkit- styling
+- [ ] Error messages displayed with role=alert
+- [ ] All buttons/inputs have non-empty accessible names
+- [ ] Run mode buttons execute scripts on Enter/Space
+- [ ] Screen reader announces interface correctly
 
 ### Firefox (Latest)
-- ✓ Layout renders correctly with CSS Grid
-- ✓ All keyboard shortcuts work (Ctrl+S, Ctrl+Z, Tab, Delete, Escape, arrow keys)
-- ✓ Mouse wheel zoom with Ctrl+scroll works smoothly
-- ✓ Pan functionality with Shift+drag works
-- ✓ Element selection and drag/resize operations responsive
-- ✓ Script execution consistent with other browsers
-- ✓ localStorage persistence works correctly
-- ✓ Focus styles visible with `:focus-visible`
-- ✓ Native scrollbars (less customizable than Chrome)
+- [ ] Layout renders correctly with CSS Grid
+- [ ] All keyboard shortcuts work (Ctrl+S, Ctrl+Z, Tab, Delete, Escape, arrow keys)
+- [ ] Mouse wheel zoom with Ctrl+scroll works smoothly
+- [ ] Pan functionality with Shift+drag works
+- [ ] Arrow keys nudge selected elements on canvas
+- [ ] Element selection and drag/resize operations responsive
+- [ ] Canvas scrolls when card is larger than viewport
+- [ ] Dragged elements position correctly after canvas scroll/zoom
+- [ ] Script execution consistent with other browsers
+- [ ] localStorage persistence works correctly
+- [ ] Focus styles visible with `:focus-visible`
+- [ ] Native scrollbars work correctly
+- [ ] Error messages displayed with role=alert
+- [ ] All buttons/inputs have non-empty accessible names
+- [ ] Run mode buttons execute scripts on Enter/Space
+- [ ] Screen reader announces interface correctly
 
 ### Safari (Latest)
-- ✓ Layout renders correctly with CSS Grid
-- ✓ All keyboard shortcuts work (Cmd+S, Cmd+Z, Tab, Delete, Escape, arrow keys)
-- ✓ Mouse wheel zoom with Cmd+scroll works smoothly (trackpad zoom)
-- ✓ Pan functionality with Shift+drag works
-- ✓ Element selection and drag/resize operations responsive
-- ✓ Script execution consistent with other browsers
-- ✓ localStorage persistence works correctly
-- ✓ Focus styles visible with `:focus-visible` (Safari 15.4+)
-- ✓ Native scrollbars
+- [ ] Layout renders correctly with CSS Grid
+- [ ] All keyboard shortcuts work (Cmd+S, Cmd+Z, Tab, Delete, Escape, arrow keys)
+- [ ] Mouse wheel zoom with Cmd+scroll works smoothly (trackpad zoom)
+- [ ] Pan functionality with Shift+drag works
+- [ ] Arrow keys nudge selected elements on canvas
+- [ ] Element selection and drag/resize operations responsive
+- [ ] Canvas scrolls when card is larger than viewport
+- [ ] Dragged elements position correctly after canvas scroll/zoom
+- [ ] Script execution consistent with other browsers
+- [ ] localStorage persistence works correctly
+- [ ] Focus styles visible with `:focus-visible` (Safari 15.4+)
+- [ ] Native scrollbars work correctly
+- [ ] Error messages displayed with role=alert
+- [ ] All buttons/inputs have non-empty accessible names
+- [ ] Run mode buttons execute scripts on Enter/Space
+- [ ] Screen reader announces interface correctly
 
 ## Known Differences by Browser
 

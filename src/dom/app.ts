@@ -35,6 +35,7 @@ export class App {
   private elementInspector: ElementInspector
   private scriptEditor: ScriptEditor
   private runModeViewer: RunModeViewer | null = null
+  private isFirstRender: boolean = true
 
   constructor(containerId: string) {
     this.container = document.getElementById(containerId) || document.body
@@ -133,6 +134,7 @@ export class App {
       if (keyEvent.key === 'Escape' && this.appState.mode === 'edit') {
         keyEvent.preventDefault()
         this.appState.selectedElementId = null
+        this.cardCanvas.deselectElement()
         this.render()
       }
       
@@ -444,10 +446,12 @@ export class App {
         this.cardListPanel.render(this.appState.stack, this.appState.currentCardId)
         this.cardCanvas.render(card, null)
 
-        // Select first element by default for inspector
-        if (this.appState.selectedElementId === null && card.buttons.length > 0) {
+        // Select first element by default for inspector on first render only
+        if (this.isFirstRender && this.appState.selectedElementId === null && card.buttons.length > 0) {
           this.appState.selectedElementId = card.buttons[0].id
         }
+        
+        this.isFirstRender = false
 
         if (this.appState.selectedElementId) {
           const button = card.buttons.find((b) => b.id === this.appState.selectedElementId)

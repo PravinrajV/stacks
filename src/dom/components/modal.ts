@@ -35,6 +35,7 @@ export class ModalComponent {
       const messageEl = createElement('div', {
         className: 'modal-message'
       })
+      messageEl.setAttribute('role', 'alert')
       setTextContent(messageEl, message)
       this.modal.appendChild(messageEl)
 
