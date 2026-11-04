@@ -3,43 +3,67 @@
 ```
 stacks/
 ├── .kiro/
-│   └── steering/           # This file and product/tech visions
+│   ├── steering/           # Architecture & language conventions docs
+│   ├── hooks/              # Automation on file save, test execution
+│   ├── specs/
+│   └── agents/
 ├── src/
 │   ├── main.ts             # App entry point
 │   ├── dom/
-│   │   ├── renderer.ts     # Card → DOM rendering
-│   │   ├── editor.ts       # Script editor UI
+│   │   ├── app.ts          # Main coordinator, state management
+│   │   ├── cardCanvas.ts   # Drag/resize/pan/zoom editor
+│   │   ├── cardList.ts     # Navigation sidebar
+│   │   ├── scriptEditor.ts # Script editor with syntax highlighting
+│   │   ├── runMode.ts      # Run-mode event dispatch
+│   │   ├── elementInspector.ts # Property inspector
+│   │   ├── storage.ts      # localStorage persistence
+│   │   ├── components/     # Button, TextInput, Modal components
+│   │   ├── utils/          # DOM helpers, geometry utilities
 │   │   └── styles.css      # 1-bit aesthetic (black/white/gray only)
 │   ├── model/
 │   │   ├── stack.ts        # Stack, Card, Field, Button data structures
-│   │   └── serialization.ts # JSON ↔ object
+│   │   ├── types.ts        # Rect and type definitions
+│   │   └── serialization.ts # JSON ↔ object, validation
 │   ├── interpreter/
 │   │   ├── lexer.ts        # HyperTalk tokenization
 │   │   ├── parser.ts       # AST generation
-│   │   ├── runtime.ts      # Script execution in sandbox
-│   │   └── builtins.ts     # Safe built-in functions
-│   ├── ai/
-│   │   └── scriptGen.ts    # Text-to-script via API/local model
+│   │   ├── runtime.ts      # Script execution in sandbox (no eval)
+│   │   ├── dispatcher.ts   # Message routing to handlers
+│   │   └── performance.bench.ts # Vitest benchmarks
+│   ├── generator/
+│   │   ├── scriptGen.ts    # Text-to-code entry point
+│   │   ├── modelProvider.ts # Provider interface
+│   │   ├── mockProvider.ts # Mock provider (current default)
+│   │   └── providerRegistry.ts # Plugin registry with fallback chain
 │   ├── storage/
-│   │   └── cloudflare.ts   # KV storage for stack persistence
+│   │   ├── compression.ts  # Gzip utility for stack export
+│   │   └── encoding.ts     # Base64 encoding for URLs
 │   └── utils/
-│       ├── validation.ts   # Input sanitization
-│       └── logging.ts      # Debug/error logging
+│       └── validation.ts   # Input sanitization
 ├── tests/
-│   ├── model.test.ts
-│   ├── interpreter.test.ts # Property-based tests for parsing
-│   ├── renderer.test.ts
-│   └── scriptGen.test.ts
+│   ├── keyboard-and-scrolling.test.ts # Real DOM tests via happy-dom
+│   ├── run-mode-click.test.ts
+│   ├── script-editor-features.test.ts
+│   └── ui-integration.test.ts
+├── docs/
+│   ├── PERFORMANCE.md      # Benchmark results with machine caveat
+│   └── BROWSER_SUPPORT.md
 ├── vite.config.ts
 ├── vitest.config.ts
 ├── package.json
 ├── tsconfig.json
-└── README.md
+├── README.md
+└── index.html
 ```
 
 ## Key Design Decisions
 
-- **Flat interpreter module**: Lexer → Parser → Runtime. No intermediate IR.
-- **Data-model-first**: Stack/Card/Field are pure data. Renderer consumes and syncs to DOM.
-- **Tests colocated**: `*.test.ts` next to implementation files for fast feedback.
-- **No monorepo complexity**: Single Vite app for Kiroween scope.
+- **Interpreter**: Lexer → Parser → Runtime. No eval, no innerHTML. Fully sandboxed.
+- **DOM Layer**: Real happy-dom for testing; vanilla TS + CSS (no React/Vue/Svelte).
+- **Testing**: Real DOM events (MouseEvent, KeyboardEvent, WheelEvent) dispatched in tests.
+- **Data-model-first**: Stack/Card/Field are immutable. DOM syncs via event handlers.
+- **Generator**: Mock provider only; real providers can be plugged in via registry.
+- **Tests colocated**: `*.test.ts` next to source files for fast feedback.
+- **No external DOM libraries**: Tailwind, Material Design, etc. Pure CSS only.
+
+

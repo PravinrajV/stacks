@@ -74,6 +74,10 @@ export class App {
     this.render()
   }
 
+  getCardCanvas(): CardCanvas {
+    return this.cardCanvas
+  }
+
   private setupEventHandlers(): void {
     // Card list
     this.cardListPanel.onSelectCardChanged((cardId) => this.selectCard(cardId))
@@ -521,6 +525,12 @@ export class App {
   }
 }
 
+let appInstance: App | null = null
+
 export function initApp(): void {
-  new App('app')
+  appInstance = new App('app')
+  // Expose for testing
+  ;(window as any).__appState = {
+    cardCanvas: appInstance.getCardCanvas()
+  }
 }

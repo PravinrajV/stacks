@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Spec Task Reminder on DOM Changes",
+      "trigger": "PostFileSave",
+      "description": "Reminds to update spec tasks when DOM layer changes",
+      "matcher": "src/dom/.*\\.ts$",
+      "action": {
+        "type": "agent",
+        "prompt": "A DOM file was just saved (src/dom/). If you made significant UI changes, remember to check if spec tasks need updating. If new features were added to the editor, canvas, or UI components, the related tasks in .kiro/specs/ may need updates or new tests."
+      }
+    }
+  ]
+}

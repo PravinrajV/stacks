@@ -675,3 +675,119 @@ describe('Task 7.5 & 4.9: Integration', () => {
     expect(errorDisplay?.textContent).toContain('Valid')
   })
 })
+
+/**
+ * Task 6.3: Keyboard Shortcuts Tests
+ */
+describe('Task 6.3: Keyboard Shortcuts', () => {
+  let container: HTMLElement
+  let editor: ScriptEditor
+  let textarea: HTMLTextAreaElement
+
+  beforeEach(() => {
+    container = setupDOM()
+    editor = new ScriptEditor()
+    container.appendChild(editor.getElement())
+    textarea = container.querySelector('.editor-textarea') as HTMLTextAreaElement
+  })
+
+  afterEach(() => {
+    clearStack()
+    if (container.parentElement) {
+      container.parentElement.removeChild(container)
+    }
+  })
+
+  it('Ctrl+Enter triggers preview', async () => {
+    const stack = createStack('s1', 'Test')
+    const card = createCard('c1', 'Card', null)
+    const field = createField('f1', 'Result', '')
+    field.rect = { left: 10, top: 10, right: 100, bottom: 50 }
+    card.fields.push(field)
+    stack.cards.push(card)
+
+    editor.setContext(stack, card)
+    editor.setScript(`on mouseUp\n  put "OK" into field "Result"\nend mouseUp`)
+
+    // Mock alert to avoid popup
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+    const keyEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true
+    })
+
+    textarea.dispatchEvent(keyEvent)
+    await new Promise(r => setTimeout(r, 100))
+
+    expect(alertSpy).toHaveBeenCalled()
+    alertSpy.mockRestore()
+  })
+
+  it('Ctrl+/ toggles comment on current line', async () => {
+    editor.setScript('put "hello" into x')
+
+    textarea.selectionStart = 0
+    textarea.selectionEnd = 0
+
+    const keyEvent = new KeyboardEvent('keydown', {
+      key: '/',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true
+    })
+
+    textarea.dispatchEvent(keyEvent)
+    await new Promise(r => setTimeout(r, 50))
+
+    const newScript = editor.getScript()
+    expect(newScript).toContain('--')
+  })
+
+  it('Ctrl+/ uncomments commented line', async () => {
+    editor.setScript('-- put "hello" into x')
+
+    textarea.selectionStart = 0
+    textarea.selectionEnd = 0
+
+    const keyEvent = new KeyboardEvent('keydown', {
+      key: '/',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true
+    })
+
+    textarea.dispatchEvent(keyEvent)
+    await new Promise(r => setTimeout(r, 50))
+
+    const newScript = editor.getScript()
+    expect(newScript).not.toContain('--')
+  })
+
+  it('Cmd+Enter works on Mac (alternative to Ctrl+Enter)', async () => {
+    const stack = createStack('s1', 'Test')
+    const card = createCard('c1', 'Card', null)
+    stack.cards.push(card)
+
+    editor.setContext(stack, card)
+    editor.setScript('on mouseUp\nend mouseUp')
+
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+    const keyEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      metaKey: true, // Mac Cmd key
+      bubbles: true,
+      cancelable: true
+    })
+
+    textarea.dispatchEvent(keyEvent)
+    await new Promise(r => setTimeout(r, 100))
+
+    expect(alertSpy).toHaveBeenCalled()
+    alertSpy.mockRestore()
+  })
+})
+

@@ -112,6 +112,20 @@ export class ScriptEditor {
       this.highlightLayer.scrollTop = this.textarea.scrollTop
     })
 
+    addEventListener(this.textarea, 'keydown', (e) => {
+      const keyEvent = e as KeyboardEvent
+      // Ctrl+Enter: Show preview
+      if ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.key === 'Enter') {
+        keyEvent.preventDefault()
+        this.showPreview()
+      }
+      // Ctrl+/: Toggle comment on current line
+      if ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.key === '/') {
+        keyEvent.preventDefault()
+        this.toggleLineComment()
+      }
+    })
+
     this.editorContainer.appendChild(this.highlightLayer)
     this.editorContainer.appendChild(this.textarea)
     this.element.appendChild(this.editorContainer)
@@ -603,7 +617,7 @@ export class ScriptEditor {
   }
 
   /**
-   * Task 4.9: Discard generated script and close panel.
+   * Task 6.3: Discard generated script and close panel.
    */
   private discardGeneratedScript(): void {
     if (this.aiPanel) {
@@ -621,5 +635,53 @@ export class ScriptEditor {
     if (this.aiAcceptBtn) {
       ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
     }
+  }
+
+  /**
+   * Task 6.3: Toggle comment (--) on current line(s) with Ctrl+/
+   */
+  private toggleLineComment(): void {
+    const textarea = this.textarea
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = textarea.value
+
+    // Find the start and end of the line(s)
+    let lineStart = text.lastIndexOf('\n', start - 1) + 1
+    let lineEnd = text.indexOf('\n', end)
+    if (lineEnd === -1) lineEnd = text.length
+
+    const selectedText = text.substring(lineStart, lineEnd)
+    const lines = selectedText.split('\n')
+
+    // Check if first line is commented
+    const trimmed = lines[0].trim()
+    const isCommented = trimmed.startsWith('--')
+
+    // Toggle comment on all selected lines
+    const newLines = lines.map(line => {
+      const trimmedLine = line.trim()
+      if (trimmedLine.length === 0) return line
+      if (isCommented) {
+        // Remove comment
+        return line.replace(/^\s*--\s?/, '')
+      } else {
+        // Add comment
+        return line.replace(/^(\s*)/, '$1-- ')
+      }
+    })
+
+    const newText = text.substring(0, lineStart) + newLines.join('\n') + text.substring(lineEnd)
+    textarea.value = newText
+
+    // Update script and highlighting
+    this.script = newText
+    this.updateHighlighting()
+    this.updateError()
+    this.onScriptChange?.(this.script)
+
+    // Restore selection
+    textarea.selectionStart = start
+    textarea.selectionEnd = end
   }
 }

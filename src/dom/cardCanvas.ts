@@ -208,6 +208,10 @@ export class CardCanvas {
     this.selectedElementId = null
   }
 
+  getZoomLevel(): number {
+    return this.zoomLevel
+  }
+
   onElementClicked(handler: (elementId: string) => void): void {
     this.onElementClick = handler
   }

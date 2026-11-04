@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Security Check on Save",
+      "trigger": "PostFileSave",
+      "description": "Scans src/ TypeScript files for unsafe patterns like eval, innerHTML, fetch in interpreter/runtime code",
+      "matcher": "src/.*\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "grep -l \"eval\\|innerHTML\\|window\\.location\\|fetch\\|require\" \"$1\" 2>/dev/null && echo \"⚠️  Security check: Found potentially unsafe patterns (eval, innerHTML, fetch, require, window.location) in $1. Verify these are not used in runtime/script context.\" || echo \"✓ Security check passed for $1\"",
+        "timeout": 10
+      }
+    }
+  ]
+}
