@@ -301,7 +301,7 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Integration with UI (Script Editor)
 
-- [ ] **4.9** Integrate script generator with script editor UI. *(Ref: REQ-SG-001, REQ-SG-003, REQ-SG-004)*
+- [x] **4.9** Integrate script generator with script editor UI. *(Ref: REQ-SG-001, REQ-SG-003, REQ-SG-004)*
   - Location: `src/dom/editor.ts` (or new `src/dom/scriptGenPanel.ts`)
   - UI: Text input for description, "Generate" button, diff preview, "Accept" / "Reject" buttons.
   - On "Accept": insert code and re-parse handler.
@@ -443,7 +443,7 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
   - Support different field types (text input, checkbox, select).
   - Tests: Inspector renders correct properties; changes update model.
 
-- [ ] **7.5** Implement `ScriptEditor` with syntax highlighting. *(Ref: REQ-UI-005, REQ-UI-EH-001)*
+- [x] **7.5** Implement `ScriptEditor` with syntax highlighting. *(Ref: REQ-UI-005, REQ-UI-EH-001)*
   - Location: `src/dom/scriptEditor.ts`
   - Display script text in editor (textarea with custom token highlighting overlay).
   - Parse on every keystroke; show parse errors with underline.

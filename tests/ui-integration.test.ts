@@ -458,9 +458,9 @@ end mouseUp`)
     const error = editor.getError()
     expect(error).toBeNull()
 
-    // Error display should be empty
+    // Error display should show success message
     const errorDiv = appContainer.querySelector('.editor-error') as HTMLElement
-    expect(errorDiv.textContent).toBe('')
+    expect(errorDiv.textContent).toContain('Valid')
   })
 
   it('displays column information in error message', () => {

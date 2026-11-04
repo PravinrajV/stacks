@@ -378,11 +378,13 @@ export class App {
             this.cardCanvas.selectElement(button.id)
             this.elementInspector.setElement(button)
             this.scriptEditor.setScript(button.scripts['mouseUp'] || '')
+            this.scriptEditor.setContext(this.appState.stack, card)
           } else {
             const field = card.fields.find((f) => f.id === this.appState.selectedElementId)
             if (field) {
               this.cardCanvas.selectElement(field.id)
               this.elementInspector.setElement(field)
+              this.scriptEditor.setContext(this.appState.stack, card)
             }
           }
         }
