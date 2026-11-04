@@ -673,14 +673,14 @@ Phase 6 (Polish & Documentation)
 
 ### Theme System and Token Foundation
 
-- [ ] **9.1.1** Define theme color variables and CSS system. *(Ref: REQ-P9-001, REQ-P9-002, REQ-P9-003)*
+- [x] **9.1.1** Define theme color variables and CSS system. *(Ref: REQ-P9-001, REQ-P9-002, REQ-P9-003)*
   - Location: `src/dom/styles.css`
   - Define CSS custom properties for Haunted theme (colors, shadows, borders, fonts).
   - Define CSS custom properties for Classic theme (overrides).
   - Implement `[data-theme="haunted"]` and `[data-theme="classic"]` selectors.
   - Tests: Verify CSS variables are accessible, color values correct, contrast meets WCAG AA (4.5:1 for text).
 
-- [ ] **9.1.2** Implement theme toggle logic and localStorage persistence. *(Ref: REQ-P9-003)*
+- [x] **9.1.2** Implement theme toggle logic and localStorage persistence. *(Ref: REQ-P9-003)*
   - Location: `src/dom/app.ts`
   - Add `toggleTheme()` method to App class.
   - Read/write theme preference to localStorage on load and toggle.
@@ -699,14 +699,14 @@ Phase 6 (Polish & Documentation)
 
 ### Toolbar with Icons and Micro-Interactions
 
-- [ ] **9.2.1** Implement inline SVG icon library. *(Ref: REQ-P9-004)*
+- [x] **9.2.1** Implement inline SVG icon library. *(Ref: REQ-P9-004)*
   - Location: `src/dom/icons.ts`
   - Create SVG functions for: Add Card, Add Button, Add Field, Delete, Undo, Redo, Run, Save, Export, Import, Theme Toggle.
   - Icons use `currentColor` to inherit theme colors.
   - Each function returns SVGElement (no external icon fonts or CDN).
   - Tests: All icons render, SVG structure valid, scale smoothly at different sizes.
 
-- [ ] **9.2.2** Implement polished toolbar component with button layout. *(Ref: REQ-P9-004)*
+- [x] **9.2.2** Implement polished toolbar component with button layout. *(Ref: REQ-P9-004)*
   - Location: `src/dom/components/toolbar.ts`
   - Create toolbar container with icon buttons.
   - Support grouping (navigation, editing, view mode, file actions, theme).
@@ -720,7 +720,7 @@ Phase 6 (Polish & Documentation)
   - Fade in/out (100ms) with slight delay (300ms) on hover.
   - Tests: Tooltips display on hover, disappear on mouse leave, show correct text and shortcuts.
 
-- [ ] **9.2.4** Implement micro-interactions for buttons (scale, shadow, color transitions). *(Ref: REQ-P9-005)*
+- [x] **9.2.4** Implement micro-interactions for buttons (scale, shadow, color transitions). *(Ref: REQ-P9-005)*
   - Location: `src/dom/styles.css`
   - Hover: scale 1 → 1.05, shadow increase (100–150ms ease-out).
   - Press: scale 1.05 → 0.98, shadow decrease (50ms ease-in).
@@ -731,28 +731,28 @@ Phase 6 (Polish & Documentation)
 
 ### Dark Panels and Inspector Theming
 
-- [ ] **9.3.1** Apply glass-morphism styling to panels (card list, inspector, script editor). *(Ref: REQ-P9-005)*
+- [x] **9.3.1** Apply glass-morphism styling to panels (card list, inspector, script editor). *(Ref: REQ-P9-005)*
   - Location: `src/dom/styles.css`
   - Update `.card-list`, `.element-inspector`, `.script-editor` with glass background, backdrop blur, soft shadow.
   - Haunted theme: semi-transparent white background with blur, light border.
   - Classic theme: solid white/gray with 1px border (no blur).
   - Tests: Panels render with correct styling in both themes, readability maintained.
 
-- [ ] **9.3.2** Implement dark script editor theme with token colors. *(Ref: REQ-P9-007)*
+- [x] **9.3.2** Implement dark script editor theme with token colors. *(Ref: REQ-P9-007)*
   - Location: `src/dom/scriptEditor.ts` and `src/dom/styles.css`
   - Dark background (#1a1a2e) in Haunted theme.
   - Token colors: keywords (purple), strings (orange), numbers (cyan), comments (gray).
   - Error highlighting: red tint on error line.
   - Tests: Syntax highlighting visible in both themes, error lines clearly marked.
 
-- [ ] **9.3.3** Update element inspector styling for dark theme. *(Ref: REQ-P9-005)*
+- [x] **9.3.3** Update element inspector styling for dark theme. *(Ref: REQ-P9-005)*
   - Location: `src/dom/elementInspector.ts` and `src/dom/styles.css`
   - Glass panel background in Haunted theme.
   - Form inputs: themed with dark background, light text, proper contrast.
   - Labels and sections: organized visually with subtle separation.
   - Tests: Inspector readable in both themes, form inputs functional.
 
-- [ ] **9.3.4** Update card list styling for dark theme. *(Ref: REQ-P9-005)*
+- [x] **9.3.4** Update card list styling for dark theme. *(Ref: REQ-P9-005)*
   - Location: `src/dom/cardList.ts` and `src/dom/styles.css`
   - Glass panel background in Haunted theme.
   - Card list items: hover effect with subtle highlight.
@@ -770,14 +770,14 @@ Phase 6 (Polish & Documentation)
   - Ensure final card fully interactive upon completion.
   - Tests: Navigation transitions smoothly, card content updates correctly, clicks work after transition.
 
-- [ ] **9.4.2** Implement Edit ↔ Run mode switch animation. *(Ref: REQ-P9-006)*
+- [x] **9.4.2** Implement Edit ↔ Run mode switch animation. *(Ref: REQ-P9-006)*
   - Location: `src/dom/app.ts` and `src/dom/runMode.ts`
   - Scale + fade transition when switching modes (150–200ms ease-out).
   - Run mode: card scales up to fill canvas area.
   - Edit mode: card scales down to editor size.
   - Tests: Mode transitions smooth, UI updates correctly, all elements visible post-transition.
 
-- [ ] **9.4.3** Implement prefers-reduced-motion media query handling. *(Ref: REQ-P9-001, REQ-P9-006)*
+- [x] **9.4.3** Implement prefers-reduced-motion media query handling. *(Ref: REQ-P9-001, REQ-P9-006)*
   - Location: `src/dom/styles.css`
   - All animations and transitions set to 0s when prefers-reduced-motion is active.
   - Visual state changes still apply (colors, positions), just no animation duration.
@@ -793,7 +793,7 @@ Phase 6 (Polish & Documentation)
 
 ### Start Screen and Styled Dialogs
 
-- [ ] **9.5.1** Implement welcome screen for empty state. *(Ref: REQ-P9-009)*
+- [x] **9.5.1** Implement welcome screen for empty state. *(Ref: REQ-P9-009)*
   - Location: `src/dom/welcomeScreen.ts`
   - Display when app loads with no saved stack.
   - Show welcome message, brief description, feature list (cards, scripts, AI).
@@ -808,14 +808,14 @@ Phase 6 (Polish & Documentation)
   - Fade-in transition (100–150ms), fade-out on dismiss.
   - Tests: Alert displays with correct text, button triggers callback, themed correctly.
 
-- [ ] **9.5.3** Implement styled confirm dialog replacing window.confirm(). *(Ref: REQ-P9-010)*
+- [x] **9.5.3** Implement styled confirm dialog replacing window.confirm(). *(Ref: REQ-P9-010)*
   - Location: `src/dom/components/styledDialogs.ts`
   - Custom modal with message and two buttons (e.g., "Delete" and "Cancel").
   - Returns boolean (true for confirm, false for cancel).
   - Themed (Haunted or Classic).
   - Tests: Confirm dialog displays, returns correct value on button click.
 
-- [ ] **9.5.4** Implement styled text input (rename) dialog replacing window.prompt(). *(Ref: REQ-P9-010)*
+- [x] **9.5.4** Implement styled text input (rename) dialog replacing window.prompt(). *(Ref: REQ-P9-010)*
   - Location: `src/dom/components/styledDialogs.ts`
   - Custom modal with text input, pre-filled with current value.
   - Buttons: "Save" and "Cancel".
