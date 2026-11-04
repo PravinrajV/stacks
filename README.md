@@ -125,9 +125,21 @@ Supported events: `mouseUp`, `mouseDown`, `keyDown`, `keyUp`, `openCard`, `close
 
 Switch modes via the **Run** button in the header.
 
-## AI Script Writer
+## AI Script Writer (Bring Your Own Key)
 
-Currently uses a mock provider for testing. To enable real code generation, implement a `ModelProvider` for Claude API or local LLM. See `src/generator/README.md` for details.
+Three provider options:
+
+1. **Mock Provider** — No setup required, works offline (testing/demo)
+2. **Anthropic Claude** — Use your own API key for Claude 3.5 Sonnet
+   - Get a free API key from [console.anthropic.com](https://console.anthropic.com)
+   - Enter it in Settings (encrypted in sessionStorage, never stored permanently)
+3. **Ollama** — Run local models on your machine
+   - Install [Ollama](https://ollama.ai), run `ollama serve`, then select "Ollama" in Settings
+   - Works completely offline
+
+**Privacy:** Your API key stays in this browser tab and is sent only to your chosen provider. It is never saved in stacks, exports, logs, or undo history.
+
+See `src/generator/README.md` for detailed setup and examples.
 
 ## Architecture
 

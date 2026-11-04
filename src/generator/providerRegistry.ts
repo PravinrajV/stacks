@@ -4,14 +4,44 @@
  * Manages multiple model providers with automatic fallback.
  * If primary provider fails or is unavailable, tries fallback chain.
  * Always falls back to mock provider as last resort.
+ * 
+ * Supported providers:
+ * - MockModelProvider: Works offline, no configuration needed
+ * - AnthropicProvider: BYOK for Claude API (needs API key)
+ * - OllamaProvider: Local LLM via Ollama (needs running server)
  */
 
 import { ModelProvider, ScriptGenRequest, ScriptGenResponse } from './modelProvider'
 import { MockModelProvider } from './mockProvider'
+import { AnthropicProvider } from './anthropicProvider'
+import { OllamaProvider } from './ollamaProvider'
 
 export class ProviderRegistry {
   private providers: ModelProvider[] = []
   private mockProvider = new MockModelProvider()
+  private anthropicProvider = new AnthropicProvider()
+  private ollamaProvider = new OllamaProvider()
+
+  /**
+   * Get the Anthropic provider instance for configuration.
+   */
+  getAnthropicProvider(): AnthropicProvider {
+    return this.anthropicProvider
+  }
+
+  /**
+   * Get the Ollama provider instance for configuration.
+   */
+  getOllamaProvider(): OllamaProvider {
+    return this.ollamaProvider
+  }
+
+  /**
+   * Get the Mock provider instance.
+   */
+  getMockProvider(): MockModelProvider {
+    return this.mockProvider
+  }
 
   /**
    * Register a provider. First registered has highest priority.

@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Fetch Security: Only src/generator",
+      "trigger": "PreToolUse",
+      "description": "Verify that fetch calls only exist in src/generator provider files",
+      "matcher": "str_replace",
+      "action": {
+        "type": "command",
+        "command": "grep -r \"fetch\" src --include=\"*.ts\" --exclude-dir=generator | grep -v \"src/generator/\" | grep -v \"test\" | grep -v \".test.ts\" || exit 0"
+      }
+    }
+  ]
+}
