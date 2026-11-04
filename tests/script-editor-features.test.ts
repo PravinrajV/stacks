@@ -328,6 +328,11 @@ describe('Task 4.9: AI Generation Panel', () => {
     if (container.parentElement) {
       container.parentElement.removeChild(container)
     }
+    // Clean up AI panel if it exists
+    const aiPanel = document.querySelector('.ai-panel')
+    if (aiPanel && aiPanel.parentElement) {
+      aiPanel.parentElement.removeChild(aiPanel)
+    }
   })
 
   it('has AI button in header', () => {
@@ -342,13 +347,13 @@ describe('Task 4.9: AI Generation Panel', () => {
     // Click to show
     aiBtn.click()
 
-    let panel = container.querySelector('.ai-panel') as HTMLElement
+    let panel = document.querySelector('.ai-panel') as HTMLElement
     expect(panel).toBeTruthy()
     expect(panel?.style.display).toBe('flex')
 
     // Click to hide
     aiBtn.click()
-    panel = container.querySelector('.ai-panel') as HTMLElement
+    panel = document.querySelector('.ai-panel') as HTMLElement
     expect(panel?.style.display).toBe('none')
   })
 
@@ -356,7 +361,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel')
+    const panel = document.querySelector('.ai-panel')
     expect(panel?.querySelector('.ai-prompt-input')).toBeTruthy()
     expect(panel?.querySelector('.ai-generate-btn')).toBeTruthy()
     expect(panel?.querySelector('.ai-result-display')).toBeTruthy()
@@ -374,7 +379,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
 
@@ -384,9 +389,9 @@ describe('Task 4.9: AI Generation Panel', () => {
     // Wait for async generation
     await new Promise(r => setTimeout(r, 100))
 
-    const resultDisplay = panel.querySelector('.ai-result-display')
-    expect(resultDisplay?.textContent).toBeTruthy()
-    expect(resultDisplay?.textContent).not.toContain('Generating')
+    const codeBlock = panel.querySelector('.ai-code-block')
+    expect(codeBlock?.textContent).toBeTruthy()
+    expect(codeBlock?.textContent).not.toContain('Generating')
   })
 
   it('shows generated code in result display', async () => {
@@ -399,7 +404,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
 
@@ -408,9 +413,8 @@ describe('Task 4.9: AI Generation Panel', () => {
 
     await new Promise(r => setTimeout(r, 100))
 
-    const resultDisplay = panel.querySelector('.ai-result-display')
-    const text = resultDisplay?.textContent || ''
-    expect(text).toContain('Generated:')
+    const codeBlock = panel.querySelector('.ai-code-block')
+    const text = codeBlock?.textContent || ''
     expect(text).toContain('on mouseUp')
   })
 
@@ -424,7 +428,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
     const acceptBtn = panel.querySelector('.ai-accept-btn') as HTMLButtonElement
@@ -449,7 +453,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
     const acceptBtn = panel.querySelector('.ai-accept-btn') as HTMLButtonElement
@@ -480,7 +484,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
     const acceptBtn = panel.querySelector('.ai-accept-btn') as HTMLButtonElement
@@ -503,7 +507,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const discardBtn = panel.querySelector('.ai-discard-btn') as HTMLButtonElement
 
@@ -527,7 +531,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
 
@@ -544,7 +548,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const acceptBtn = panel?.querySelector('.ai-accept-btn') as HTMLButtonElement
     
     expect(acceptBtn).toBeTruthy()
@@ -561,7 +565,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
 
@@ -581,7 +585,7 @@ describe('Task 4.9: AI Generation Panel', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const offlineNotice = panel?.querySelector('.ai-offline-notice') as HTMLElement
 
     expect(offlineNotice).toBeTruthy()
@@ -611,6 +615,11 @@ describe('Task 7.5 & 4.9: Integration', () => {
     if (container.parentElement) {
       container.parentElement.removeChild(container)
     }
+    // Clean up AI panel if it exists
+    const aiPanel = document.querySelector('.ai-panel')
+    if (aiPanel && aiPanel.parentElement) {
+      aiPanel.parentElement.removeChild(aiPanel)
+    }
   })
 
   it('highlighting updates when script is modified via AI accept', async () => {
@@ -623,7 +632,7 @@ describe('Task 7.5 & 4.9: Integration', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
     const acceptBtn = panel.querySelector('.ai-accept-btn') as HTMLButtonElement
@@ -653,7 +662,7 @@ describe('Task 7.5 & 4.9: Integration', () => {
     const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
     aiBtn.click()
 
-    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const panel = document.querySelector('.ai-panel') as HTMLElement
     const promptInput = panel.querySelector('.ai-prompt-input') as HTMLTextAreaElement
     const generateBtn = panel.querySelector('.ai-generate-btn') as HTMLButtonElement
     const acceptBtn = panel.querySelector('.ai-accept-btn') as HTMLButtonElement

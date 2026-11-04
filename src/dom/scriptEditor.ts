@@ -681,25 +681,6 @@ export class ScriptEditor {
     }
     this.aiDiffPreview.style.display = 'block'
 
-    // Update result display for test compatibility
-    const resultDisplay = this.aiPanel?.querySelector('.ai-result-display') as HTMLElement | null
-    if (resultDisplay) {
-      removeAllChildren(resultDisplay)
-      const codeDiv = createElement('div')
-      codeDiv.style.whiteSpace = 'pre-wrap'
-      codeDiv.style.wordWrap = 'break-word'
-      const diffLines = diff
-        .map(line => {
-          if (line.type === 'add') return `+ ${line.content}`
-          if (line.type === 'remove') return `- ${line.content}`
-          return `  ${line.content}`
-        })
-        .join('\n')
-      setTextContent(codeDiv, `Generated:\n\n${code}\n\nDiff:\n${diffLines}`)
-      resultDisplay.appendChild(codeDiv)
-      resultDisplay.style.display = 'block'
-    }
-
     // Show Accept/Discard buttons
     const buttonGroup = this.aiPanel?.querySelector('.ai-button-group') as HTMLElement | null
     if (buttonGroup) {

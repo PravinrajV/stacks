@@ -132,8 +132,8 @@ describe('BYOK: Anthropic Provider Integration', () => {
     expect(body.messages[0].content).toContain('Show greeting')
 
     // Verify code in result display
-    const resultDisplay = aiPanel.querySelector('.ai-result-display') as HTMLElement
-    expect(resultDisplay.textContent).toContain(generatedCode)
+    const codeBlock = aiPanel.querySelector('.ai-code-block') as HTMLElement
+    expect(codeBlock.textContent).toContain(generatedCode)
 
     // Accept and verify in editor
     const acceptBtn = aiPanel.querySelector('.ai-accept-btn') as HTMLButtonElement
@@ -259,19 +259,19 @@ describe('BYOK: Anthropic Provider Integration', () => {
     }
 
     // Verify error is shown in error display
-    const errorDisplay = aiPanel.querySelector('.ai-error-display') as HTMLElement
+    const errorDisplay = aiPanel.querySelector('.ai-code-block') as HTMLElement
     
     // Debug: log what we're seeing
     if (!errorDisplay.textContent || !errorDisplay.textContent.toLowerCase().includes('invalid')) {
       console.log('Error display content:', errorDisplay.textContent)
-      console.log('Result display content:', aiPanel.querySelector('.ai-result-display')?.textContent)
+      console.log('Result display content:', aiPanel.querySelector('.ai-code-block')?.textContent)
     }
     
     expect(errorDisplay.textContent.toLowerCase()).toContain('invalid')
     expect(errorDisplay.textContent.toLowerCase()).toContain('fall')
 
     // Verify mock provider was used and generated code is shown
-    const resultDisplay = aiPanel.querySelector('.ai-result-display') as HTMLElement
+    const resultDisplay = aiPanel.querySelector('.ai-code-block') as HTMLElement
     expect(resultDisplay.textContent).toContain('on ')
     expect(resultDisplay.textContent).toContain('end ')
   })
@@ -363,12 +363,12 @@ describe('BYOK: Anthropic Provider Integration', () => {
     }
 
     // Verify error message indicates fallback
-    const errorDisplay = aiPanel.querySelector('.ai-error-display') as HTMLElement
+    const errorDisplay = aiPanel.querySelector('.ai-code-block') as HTMLElement
     // The error will show "not available" or might show fallback notice
     expect(errorDisplay.textContent.toLowerCase()).toMatch(/fall|not available/)
 
     // Verify mock provider was used
-    const resultDisplay = aiPanel.querySelector('.ai-result-display') as HTMLElement
+    const resultDisplay = aiPanel.querySelector('.ai-code-block') as HTMLElement
     expect(resultDisplay.textContent).toContain('on ')
     expect(resultDisplay.textContent).toContain('end ')
   })
