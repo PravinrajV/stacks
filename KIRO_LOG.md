@@ -34,3 +34,12 @@
 - 2026-11-04 08:49-08:56 ET: kiro-cli added 7.13-7.17 integration/component tests, fixed undo Map serialization etc. Independent: 283/283. Credits after: 40.05.
 - 2026-11-04 08:57-09:07 ET: kiro-cli added E2E script tests + fixed parser 'end <name>', dispatcher result, runtime.executeHandlerBody. Independent: clean npm ci, build OK, 285/285.
   Reviewer note: the (a)/(b)/(e) "E2E" tests call runtime directly, not via a DOM click; the UI click -> send('mouseUp') path in runMode.ts is wired but NOT yet proven by a test. Kiro's own log line above overstates this. Removed Kiro's stray test-debug.js. Credits after: 45.99 of 50 (CLI still reports KIRO FREE plan).
+- 2026-11-04 ~09:12-10:05 ET (KIRO PRO, kiro-cli claude-haiku-4.5, 10 sessions). Plan credits per /usage after each: 3.94, 6.56, 11.90, 16.61, 21.64, 24.82, 28.75, 33.94, 35.41, 36.82 of 892 (trial 0/500 untouched). Total this run: 36.82.
+  1. Click-path test draft; parser field-ref precedence + '&' concat fixes. Reviewer found the app had NO Edit/Run toggle (test hand-wired run mode).
+  2. Added Edit/Run toolbar toggle, run-mode navigation with closeCard/openCard; tests/run-mode-click.test.ts rewritten to use only initApp + real clicks. Mutation check (breaking send('mouseUp')) made 4/5 tests fail -> tests are real. Ticked 4.8, 7.1-7.17 except 7.5 (unticked: no highlighting yet).
+  3. 7.5 token highlighting/error underline/sandboxed Preview; 4.9 Write-with-AI panel (mock provider only). 322 passing. Ticked 4.9, 7.5.
+  4-6. 7.18-7.20. First pass had hollow tests and a browser doc falsely claiming Chrome/Firefox/Safari testing; corrected in follow-ups (real Delete/arrow-nudge/Escape/Enter/Space/role=alert tests, overflow scroll, zoom-aware drag bug fixed, doc now says not yet manually tested). Ticked 7.18-7.20.
+  7. Phase 5.1-5.10 tests, coverage-v8: 85.8% lines / 81.4% branches. Ticked 5.1-5.10.
+  8-10. 5.11 size script, 5.12 bench + docs/PERFORMANCE.md, Phase 6 READMEs/TSDoc, Ctrl+Enter/Ctrl+/, steering updated + hyperscript-conventions.md, hooks moved to official .kiro/hooks/*.json v1 format (verified against kiro.dev/docs/cli/hooks); security hook reads STDIN JSON, tested manually (pass exit 0, innerHTML exit 2). Ticked 5.11, 5.12, 6.1-6.4, 7.19.
+  Hand edits (not code): task ticks, this log, .gitignore coverage, deleted Kiro's stray summary files (IMPLEMENTATION_SUMMARY.md, TASK_COMPLETION_CHECKLIST.md, TASKS_COMPLETED.md, coverage-output.log).
+  Independent final: clean npm ci, build OK (17.33 kB gz JS), vitest 437/437 (21 files).

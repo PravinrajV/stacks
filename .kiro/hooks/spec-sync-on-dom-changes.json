@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Spec Sync Reminder on DOM Changes",
+      "trigger": "PostFileSave",
+      "description": "Remind agent to verify .kiro/specs/stacks-core/tasks.md is accurate when DOM layer files are modified",
+      "matcher": "^src/dom/.*\\.ts$",
+      "action": {
+        "type": "agent",
+        "prompt": "A DOM file was just saved (src/dom/). If significant UI changes were made, check if .kiro/specs/stacks-core/tasks.md needs updating. Review related spec tasks to ensure they still match the implementation."
+      }
+    }
+  ]
+}

@@ -4,11 +4,11 @@
     {
       "name": "Security Check on Save",
       "trigger": "PostFileSave",
-      "description": "Scans src/ TypeScript files for unsafe patterns like eval, innerHTML, fetch in interpreter/runtime code",
-      "matcher": "src/.*\\.ts$",
+      "description": "Scan src/ TypeScript files for unsafe patterns like eval, new Function, innerHTML, and fetch",
+      "matcher": "^src/.*\\.ts$",
       "action": {
         "type": "command",
-        "command": "grep -l \"eval\\|innerHTML\\|window\\.location\\|fetch\\|require\" \"$1\" 2>/dev/null && echo \"⚠️  Security check: Found potentially unsafe patterns (eval, innerHTML, fetch, require, window.location) in $1. Verify these are not used in runtime/script context.\" || echo \"✓ Security check passed for $1\"",
+        "command": "node -e \"const stdin = require('fs').readFileSync(0, 'utf-8'); const evt = JSON.parse(stdin); const fs = require('fs'); const content = fs.readFileSync(evt.filePath, 'utf-8'); const patterns = [/eval\\(/g, /new Function/g, /\\.innerHTML\\s*=/g, /fetch\\(/g]; const matches = []; patterns.forEach(p => { let m; while((m = p.exec(content)) !== null) matches.push(m[0]); }); if (matches.length > 0) { console.error('❌ Security violation: Found unsafe patterns in ' + evt.filePath + ': ' + matches.join(', ')); process.exit(2); } console.log('✓ Security check passed for ' + evt.filePath);\"",
         "timeout": 10
       }
     }

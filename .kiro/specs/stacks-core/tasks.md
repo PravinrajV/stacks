@@ -365,11 +365,11 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Bundle Size and Performance
 
-- [ ] **5.11** Measure bundle size (target: <500KB gzipped). *(Ref: Tech constraints)*
+- [x] **5.11** Measure bundle size (target: <500KB gzipped). *(Ref: Tech constraints)*
   - Run: `npm run build` and check dist/ size.
   - If over budget, identify and optimize largest modules.
 
-- [ ] **5.12** Profile runtime performance (ensure handler execution is fast). *(Ref: Tech constraints)*
+- [x] **5.12** Profile runtime performance (ensure handler execution is fast). *(Ref: Tech constraints)*
   - Benchmark: Parse and execute 100 stacks with 50 cards each.
   - Target: <1s total for typical stack operations.
 
@@ -377,18 +377,18 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ## Phase 6: Polish and Documentation
 
-- [ ] **6.1** Add code comments and docstrings to all public interfaces. *(Ref: Documentation)*
+- [x] **6.1** Add code comments and docstrings to all public interfaces. *(Ref: Documentation)*
   - Location: All `src/` modules.
   - Ensure TypeScript JSDoc comments for all exported functions.
 
-- [ ] **6.2** Create module-level README for interpreter, model, and AI components. *(Ref: Documentation)*
+- [x] **6.2** Create module-level README for interpreter, model, and AI components. *(Ref: Documentation)*
   - Location: `src/interpreter/README.md`, `src/model/README.md`, `src/ai/README.md`
 
-- [ ] **6.3** Add syntax highlighting and error underline to script editor. *(Ref: REQ-EH-001)*
+- [x] **6.3** Add syntax highlighting and error underline to script editor. *(Ref: REQ-EH-001)*
   - Location: `src/dom/editor.ts`
   - Highlight keywords, strings, numbers; underline parse errors in red.
 
-- [ ] **6.4** Add keyboard shortcuts for common actions (Cmd+Enter to submit script, Ctrl+/ for comment). *(Ref: UX polish)*
+- [x] **6.4** Add keyboard shortcuts for common actions (Cmd+Enter to submit script, Ctrl+/ for comment). *(Ref: UX polish)*
   - Location: `src/dom/editor.ts`
 
 - [ ] **6.5** Test across browsers (Chrome, Firefox, Safari on desktop). *(Ref: REQ-CE-001)*
@@ -529,7 +529,7 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
   - Add `aria-label`, `aria-describedby` to interactive elements.
   - Tests: Keyboard navigation works, screen reader text present.
 
-- [ ] **7.19** Implement responsive canvas scrolling for large cards. *(Ref: REQ-UI-007)*
+- [x] **7.19** Implement responsive canvas scrolling for large cards. *(Ref: REQ-UI-007)*
   - Location: `src/dom/cardCanvas.ts`
   - Allow pan/zoom if card is larger than viewport.
   - Keyboard: arrow keys to pan, Cmd+scroll to zoom.

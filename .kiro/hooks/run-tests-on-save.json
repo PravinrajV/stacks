@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run Tests on TypeScript Save",
+      "trigger": "PostFileSave",
+      "description": "Automatically run the test suite when TypeScript files under src/ or tests/ are modified",
+      "matcher": "^(src|tests)/.*\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "npx vitest run",
+        "timeout": 120
+      }
+    }
+  ]
+}

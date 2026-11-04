@@ -212,6 +212,11 @@ export class CardCanvas {
     return this.zoomLevel
   }
 
+  setZoomLevel(zoom: number): void {
+    this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, zoom))
+    this.updateCanvasTransform()
+  }
+
   onElementClicked(handler: (elementId: string) => void): void {
     this.onElementClick = handler
   }

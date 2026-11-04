@@ -541,7 +541,6 @@ end mouseUp`
     // This test verifies the zoom-aware drag calculation.
     // The cardCanvas.handleMouseMove() divides delta by zoomLevel.
     // At zoomLevel=2: dx = 20 client pixels / 2 = 10 card units
-    // We directly verify the zoom getter works and test the math principle.
     
     const stack = createStack('stack-1', 'Test Stack')
     const card = createCard('card-1', 'Card 1', null)
@@ -562,7 +561,7 @@ end mouseUp`
     const initialLeft = parseInt(buttonEl.style.left)
     expect(initialLeft).toBe(100)
 
-    // Access cardCanvas via exposed app state
+    // Access cardCanvas via exposed app state to zoom
     let appState = (window as any).__appState
     const cardCanvas = appState?.cardCanvas
     expect(cardCanvas).toBeTruthy()
@@ -570,10 +569,20 @@ end mouseUp`
     // Verify zoom getter works and defaults to 1
     expect(cardCanvas.getZoomLevel()).toBe(1)
 
-    // Test drag at zoom level 1: 20px mouse move = 20 card units
-    cardCanvas.selectElement('btn-1')
+    // Set zoom to exactly 2x
+    cardCanvas.setZoomLevel(2)
     await waitForUIUpdate()
 
+    // Verify we're now at exactly 2x zoom
+    const zoomAfter = cardCanvas.getZoomLevel()
+    expect(zoomAfter).toBe(2)
+
+    // Select the button
+    cardCanvas.selectElement('btn-1')
+    await waitForUIUpdate()
+    buttonEl = document.querySelector('[data-element-id="btn-1"]') as HTMLElement
+
+    // Now test drag: 20px mouse move should equal 10 card units at 2x zoom
     const startEvent = new MouseEvent('mousedown', {
       bubbles: true,
       cancelable: true,
@@ -601,15 +610,11 @@ end mouseUp`
     canvas.dispatchEvent(endEvent)
     await waitForUIUpdate()
 
-    // At 1x zoom, 20 client pixels should move 20 card units
+    // At 2x zoom, 20 client pixels should move 20/2 = 10 card units
     buttonEl = document.querySelector('[data-element-id="btn-1"]') as HTMLElement
     const newLeft = parseInt(buttonEl.style.left)
-    expect(newLeft).toBe(120) // 100 + 20 (20 / 1x zoom)
-    
-    // Verify the zoom calculation principle:
-    // Code uses: dx = clientDelta / zoomLevel
-    // So at 2x zoom, 20 client px would give: 20 / 2 = 10 card units
-    // At 1x zoom, 20 client px gives: 20 / 1 = 20 card units (verified above)
+    // 100 (initial) + 10 (20 client pixels / 2x zoom) = 110
+    expect(newLeft).toBe(110)
   })
 
   it('arrow keys pan canvas when no element selected', async () => {
