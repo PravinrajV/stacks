@@ -14,6 +14,8 @@ import { ButtonComponent } from './components/button'
 import { saveStack, loadStack, loadUndoRedo, saveUndoRedo, exportJSON, importJSON, readJSONFile } from './storage'
 import { Stack, Card, createCard, createStack, Button, Field } from '../model/stack'
 import type { Rect } from '../model/types'
+import { send } from '../interpreter/dispatcher'
+import { createExecutionContext } from '../interpreter/runtime'
 
 export interface AppState {
   stack: Stack
@@ -121,6 +123,15 @@ export class App {
   private selectCard(cardId: string): void {
     this.appState.currentCardId = cardId
     this.appState.selectedElementId = null
+    this.render()
+  }
+
+  private toggleMode(): void {
+    if (this.appState.mode === 'edit') {
+      this.appState.mode = 'run'
+    } else {
+      this.appState.mode = 'edit'
+    }
     this.render()
   }
 
@@ -246,6 +257,30 @@ export class App {
     title.style.fontWeight = 'bold'
     header.appendChild(title)
 
+    // Edit/Run toggle button
+    const modeToggleBtn = createElement('button', {
+      className: 'button mode-toggle'
+    })
+    modeToggleBtn.setAttribute('aria-pressed', this.appState.mode === 'run' ? 'true' : 'false')
+    modeToggleBtn.setAttribute('title', this.appState.mode === 'edit' ? 'Switch to Run Mode' : 'Switch to Edit Mode')
+    modeToggleBtn.setAttribute('aria-label', this.appState.mode === 'edit' ? 'Run Mode' : 'Edit Mode')
+    modeToggleBtn.textContent = this.appState.mode === 'edit' ? 'Run' : 'Edit'
+    
+    addEventListener(modeToggleBtn, 'click', () => {
+      this.toggleMode()
+    })
+    
+    // Allow Space/Enter to toggle when focused
+    addEventListener(modeToggleBtn, 'keydown', (e: Event) => {
+      const keyEvent = e as KeyboardEvent
+      if (keyEvent.code === 'Space' || keyEvent.code === 'Enter') {
+        keyEvent.preventDefault()
+        this.toggleMode()
+      }
+    })
+    
+    header.appendChild(modeToggleBtn)
+
     const exportBtn = new ButtonComponent('Export', () => {
       exportJSON(this.appState.stack, 'my-stack.json')
     })
@@ -284,53 +319,103 @@ export class App {
     const main = createElement('div', { className: 'app-main' })
     app.appendChild(main)
 
-    main.appendChild(this.cardListPanel.getElement())
-    main.appendChild(this.cardCanvas.getElement())
-    main.appendChild(this.elementInspector.getElement())
-    main.appendChild(this.scriptEditor.getElement())
-
-    this.container.appendChild(app)
-
-    // Set up delegated event listener for element selection in canvas
-    const canvasElement = app.querySelector('.card-canvas') as HTMLElement | null
-    if (canvasElement) {
-      addEventListener(canvasElement, 'mousedown', (e: Event) => {
-        const target = (e as MouseEvent).target as HTMLElement
-        const element = target.closest('.card-element') as HTMLElement | null
-        if (element) {
-          const elementId = element.getAttribute('data-element-id')
-          if (elementId) {
-            this.selectElement(elementId)
-          }
-        }
-      })
-    }
-
     // Render current state
     const card = this.appState.stack.cards.find((c) => c.id === this.appState.currentCardId)
-    if (card) {
-      this.cardListPanel.render(this.appState.stack, this.appState.currentCardId)
-      this.cardCanvas.render(card, null)
+    
+    if (this.appState.mode === 'run' && card) {
+      // Run mode: render RunModeViewer
+      if (!this.runModeViewer) {
+        this.runModeViewer = new RunModeViewer()
+        
+        // Wire up navigation
+        this.runModeViewer.onNavigateCard((cardId) => {
+          this.handleRunModeNavigation(cardId)
+        })
+        
+        // Wire up exit
+        this.runModeViewer.onExitRunMode(() => {
+          this.appState.mode = 'edit'
+          this.render()
+        })
+      }
+      
+      this.runModeViewer.render(this.appState.stack, card, null)
+      main.appendChild(this.runModeViewer.getElement())
+    } else {
+      // Edit mode: render normal editor UI
+      main.appendChild(this.cardListPanel.getElement())
+      main.appendChild(this.cardCanvas.getElement())
+      main.appendChild(this.elementInspector.getElement())
+      main.appendChild(this.scriptEditor.getElement())
 
-      // Select first element by default for inspector
-      if (this.appState.selectedElementId === null && card.buttons.length > 0) {
-        this.appState.selectedElementId = card.buttons[0].id
+      // Set up delegated event listener for element selection in canvas
+      const canvasElement = app.querySelector('.card-canvas') as HTMLElement | null
+      if (canvasElement) {
+        addEventListener(canvasElement, 'mousedown', (e: Event) => {
+          const target = (e as MouseEvent).target as HTMLElement
+          const element = target.closest('.card-element') as HTMLElement | null
+          if (element) {
+            const elementId = element.getAttribute('data-element-id')
+            if (elementId) {
+              this.selectElement(elementId)
+            }
+          }
+        })
       }
 
-      if (this.appState.selectedElementId) {
-        const button = card.buttons.find((b) => b.id === this.appState.selectedElementId)
-        if (button) {
-          this.cardCanvas.selectElement(button.id)
-          this.elementInspector.setElement(button)
-          this.scriptEditor.setScript(button.scripts['mouseUp'] || '')
-        } else {
-          const field = card.fields.find((f) => f.id === this.appState.selectedElementId)
-          if (field) {
-            this.cardCanvas.selectElement(field.id)
-            this.elementInspector.setElement(field)
+      if (card) {
+        this.cardListPanel.render(this.appState.stack, this.appState.currentCardId)
+        this.cardCanvas.render(card, null)
+
+        // Select first element by default for inspector
+        if (this.appState.selectedElementId === null && card.buttons.length > 0) {
+          this.appState.selectedElementId = card.buttons[0].id
+        }
+
+        if (this.appState.selectedElementId) {
+          const button = card.buttons.find((b) => b.id === this.appState.selectedElementId)
+          if (button) {
+            this.cardCanvas.selectElement(button.id)
+            this.elementInspector.setElement(button)
+            this.scriptEditor.setScript(button.scripts['mouseUp'] || '')
+          } else {
+            const field = card.fields.find((f) => f.id === this.appState.selectedElementId)
+            if (field) {
+              this.cardCanvas.selectElement(field.id)
+              this.elementInspector.setElement(field)
+            }
           }
         }
       }
+    }
+
+    this.container.appendChild(app)
+  }
+
+  private handleRunModeNavigation(cardId: string): void {
+    // Find old card to send closeCard
+    const oldCard = this.appState.stack.cards.find(c => c.id === this.appState.currentCardId)
+    
+    // Update current card
+    this.appState.currentCardId = cardId
+    
+    // Find new card to send openCard
+    const newCard = this.appState.stack.cards.find(c => c.id === cardId)
+    
+    if (oldCard && newCard && this.runModeViewer) {
+      // Send closeCard to old card
+      send('closeCard', oldCard, createExecutionContext(this.appState.stack, oldCard), this.runModeViewer)
+        .then(() => {
+          // Send openCard to new card
+          return send('openCard', newCard, createExecutionContext(this.appState.stack, newCard), this.runModeViewer)
+        })
+        .then(() => {
+          // Re-render new card
+          this.runModeViewer?.render(this.appState.stack, newCard, null)
+        })
+        .catch((err) => {
+          console.error('Error during card navigation:', err)
+        })
     }
   }
 }

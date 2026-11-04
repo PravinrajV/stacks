@@ -99,6 +99,7 @@ export class RunModeViewer {
       // Make editable
       el.contentEditable = 'true'
       addEventListener(el, 'blur', () => {
+        // Persist changes back to the field model
         field.content = el.textContent || ''
       })
     }
@@ -137,6 +138,7 @@ export class RunModeViewer {
 
     try {
       const context = createExecutionContext(this.stack, this.currentCard)
+      // Pass this RunModeViewer as the uiResponder so navigation can work
       const result = await send('mouseUp', button, context, this)
       if (!result.success && result.error) {
         await this.modal.show(`Error: ${result.error.message || String(result.error)}`)
@@ -157,7 +159,7 @@ export class RunModeViewer {
     }
   }
 
-  async showAnswer(message: string, buttons: string[]): Promise<number> {
+  async showAnswer(message: string, buttons: string[] = ['OK']): Promise<number> {
     return await this.modal.show(message, buttons)
   }
 
@@ -176,6 +178,10 @@ export class RunModeViewer {
     this.onExit = handler
   }
 
+  /**
+   * Called by runtime when a "go" command is executed.
+   * This is invoked from the execution context's uiResponder.
+   */
   handleNavigation(cardId: string): void {
     this.onNavigate?.(cardId)
   }

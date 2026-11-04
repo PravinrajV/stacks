@@ -5,7 +5,7 @@
  * 1. Build stack with buttons and fields
  * 2. Save to localStorage (via storage layer)
  * 3. Call initApp() to initialize the UI
- * 4. Switch to run mode via the actual UI control
+ * 4. Click the real Run toggle button in the toolbar
  * 5. Dispatch real MouseEvent clicks on rendered button elements
  * 6. Verify rendered DOM reflects script execution results
  * 
@@ -34,6 +34,20 @@ function setupDOM(): HTMLElement {
 }
 
 /**
+ * Helper to find the Run/Edit toggle button in the toolbar
+ */
+function findModeToggleButton(): HTMLButtonElement | null {
+  const buttons = document.querySelectorAll('.app-header button')
+  for (const btn of buttons) {
+    const text = btn.textContent?.toLowerCase() || ''
+    if (text === 'run' || text === 'edit') {
+      return btn as HTMLButtonElement
+    }
+  }
+  return null
+}
+
+/**
  * Helper to find a button by label text in run mode
  */
 function findRunButton(label: string): HTMLButtonElement | null {
@@ -47,46 +61,53 @@ function findRunButton(label: string): HTMLButtonElement | null {
 }
 
 /**
- * Helper to get field content in run mode
+ * Helper to get field content in run mode by field ID
  */
-function getRunFieldContent(fieldName: string): string {
-  const fields = document.querySelectorAll('.run-field')
-  for (const field of fields) {
-    const id = field.getAttribute('data-field-id')
-    // Find field by id or by text content matching
-    if (id === fieldName) {
-      return field.textContent || ''
-    }
-  }
-  return ''
+function getRunFieldContent(fieldId: string): string {
+  const field = document.querySelector(`[data-field-id="${fieldId}"]`)
+  return field?.textContent || ''
+}
+
+/**
+ * Helper to check if we're currently in run mode
+ */
+function isInRunMode(): boolean {
+  return !!document.querySelector('.run-mode-viewer')
 }
 
 /**
  * Helper to wait for UI updates
  */
-async function waitForUIUpdate(ms = 50): Promise<void> {
+async function waitForUIUpdate(ms = 100): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 /**
- * Helper to find edit/run mode toggle button
+ * Helper to click the Run button to enter run mode
  */
-function findModeToggleButton(): HTMLButtonElement | null {
-  const buttons = document.querySelectorAll('button')
-  for (const btn of buttons) {
-    const text = btn.textContent?.toLowerCase() || ''
-    if (text.includes('run') || text.includes('edit')) {
-      return btn as HTMLButtonElement
-    }
-  }
-  return null
+async function enterRunMode(): Promise<void> {
+  const btn = findModeToggleButton()
+  expect(btn).toBeTruthy()
+  expect(btn?.textContent?.toLowerCase()).toBe('run')
+  
+  btn!.click()
+  await waitForUIUpdate()
+  
+  expect(isInRunMode()).toBe(true)
 }
 
 /**
- * Helper to check if we're in run mode by looking for run-mode-viewer
+ * Helper to click the Exit button to return to edit mode
  */
-function isInRunMode(): boolean {
-  return !!document.querySelector('.run-mode-viewer')
+async function exitRunMode(): Promise<void> {
+  const exitBtn = document.querySelector('.run-mode-viewer button') as HTMLButtonElement | null
+  expect(exitBtn).toBeTruthy()
+  expect(exitBtn?.textContent).toBe('Exit')
+  
+  exitBtn!.click()
+  await waitForUIUpdate()
+  
+  expect(isInRunMode()).toBe(false)
 }
 
 describe('Run Mode Click Path Integration Tests', () => {
@@ -115,7 +136,7 @@ describe('Run Mode Click Path Integration Tests', () => {
    * Actions:
    * - Save to localStorage
    * - initApp()
-   * - Switch to run mode
+   * - Click Run button
    * - Click button A
    * 
    * Verify:
@@ -148,89 +169,41 @@ end mouseUp`
     initApp()
     await waitForUIUpdate()
 
-    // Verify app rendered
-    const app = document.getElementById('app')
-    expect(app).toBeTruthy()
+    // Verify we're in edit mode initially
+    expect(isInRunMode()).toBe(false)
 
-    // Switch to run mode
-    // Find the mode toggle (in edit mode initially, need to click to enter run mode)
-    const modeBtn = document.querySelector('button[title*="Run"]') || 
-                   document.querySelector('button:contains("Run")') ||
-                   // Fallback: look for a button that might toggle mode
-                   Array.from(document.querySelectorAll('button')).find(
-                     b => b.textContent?.toLowerCase().includes('run') || 
-                          b.textContent?.toLowerCase().includes('mode')
-                   ) as HTMLButtonElement | undefined
+    // Enter run mode
+    await enterRunMode()
 
-    // Actually, looking at app.ts, there's no explicit run mode toggle visible.
-    // The run mode is accessed through the card view. Let me check if there's an edit/run mode switch.
-    // For now, assume we need to look at the app structure more carefully.
-
-    // Actually, from app.ts line 167-168, mode is tracked but not exposed to UI.
-    // We need to find how to trigger run mode. Looking at the code, it seems
-    // the RunModeViewer is only instantiated in render() if mode === 'run'.
-    // But there's no UI to switch mode yet in the current app.ts.
-
-    // For this test, we'll need to manually trigger the mode change through the app's internal state.
-    // However, the requirement says "via the actual UI control".
-    // Let me check if there are any other files that might add this.
-
-    // For now, let's simulate what should happen: render run mode directly
-    // (This is a limitation of the current implementation - no UI mode switcher exists yet)
-
-    // Alternative approach: Access the App instance and switch mode
-    // But that violates "NO direct runtime calls and NO manual model changes"
-
-    // Let's check: maybe the run mode is triggered by double-clicking a card?
-    // Or maybe we need to test through a different path?
-
-    // For now, let's create RunModeViewer directly with the same data,
-    // simulating what would happen if the mode switch existed:
-
-    const { RunModeViewer } = await import('../src/dom/runMode')
-    const runMode = new RunModeViewer()
-    const mainContent = document.querySelector('.app-main')
-    
-    // Clear main content and show run mode instead
-    if (mainContent) {
-      mainContent.innerHTML = ''
-      mainContent.appendChild(runMode.getElement())
-    }
-
-    // Render the card in run mode
-    runMode.render(stack, card1, null)
-    await waitForUIUpdate()
-
-    // Now find and click button A
+    // Click button A
     const buttonAEl = findRunButton('Button A')
     expect(buttonAEl).toBeTruthy()
 
-    // Click button A
     buttonAEl!.click()
     await waitForUIUpdate()
 
     // Verify field x content changed to "hi"
-    const fieldXContent = getRunFieldContent('x')
-    expect(fieldXContent).toBe('hi')
+    const xContent = getRunFieldContent('x')
+    expect(xContent).toBe('hi')
   })
 
   /**
    * Test 2: Navigation - button click with "go next card" script
    * 
    * Setup:
-   * - Card 1 with field "x", Button B (go next card)
-   * - Card 2 with field "y", openCard handler (puts "opened" into field "y")
+   * - Card 1 with Button B (go next card)
+   * - Card 2 with openCard handler (puts "opened" into field "y")
    * 
    * Actions:
    * - Save to localStorage
    * - initApp()
-   * - Switch to run mode showing card 1
+   * - Click Run button
    * - Click button B
    * - App should navigate to card 2
    * - openCard handler should execute
    * 
    * Verify:
-   * - Current card is now card 2
+   * - Card 2 is now displayed
    * - Field "y" shows "opened"
    */
   it('button click with "go next card" navigates and executes openCard handler', async () => {
@@ -239,10 +212,7 @@ end mouseUp`
 
     // Card 1
     const card1 = createCard('card-1', 'Card 1', null)
-    const field1 = createField('field1', 'field1', 'card1')
-    field1.rect = { left: 10, top: 60, right: 200, bottom: 100 }
-    card1.fields.push(field1)
-
+    
     const buttonB = createButton('btn-b', 'Button B')
     buttonB.rect = { left: 10, top: 20, right: 100, bottom: 50 }
     buttonB.scripts['mouseUp'] = `on mouseUp
@@ -254,13 +224,13 @@ end mouseUp`
 
     // Card 2
     const card2 = createCard('card-2', 'Card 2', null)
-    const field2 = createField('field2', 'field2', 'initial')
-    field2.rect = { left: 10, top: 60, right: 200, bottom: 100 }
-    card2.fields.push(field2)
+    const fieldY = createField('y', 'y', 'initial')
+    fieldY.rect = { left: 10, top: 60, right: 200, bottom: 100 }
+    card2.fields.push(fieldY)
 
     // openCard handler on card 2
     card2.scripts['openCard'] = `on openCard
-  put "opened" into field "field2"
+  put "opened" into field "y"
 end openCard`
 
     stack.cards.push(card2)
@@ -272,50 +242,19 @@ end openCard`
     initApp()
     await waitForUIUpdate()
 
-    // Switch to run mode (using RunModeViewer directly as per current limitations)
-    const { RunModeViewer } = await import('../src/dom/runMode')
-    const { send } = await import('../src/interpreter/dispatcher')
-    const { createExecutionContext } = await import('../src/interpreter/runtime')
+    // Enter run mode
+    await enterRunMode()
 
-    const runMode = new RunModeViewer()
-    const mainContent = document.querySelector('.app-main')
-    
-    if (mainContent) {
-      mainContent.innerHTML = ''
-      mainContent.appendChild(runMode.getElement())
-    }
-
-    // Track navigation and handle openCard
-    let currentCard = card1
-    runMode.onNavigateCard((cardId) => {
-      const newCard = stack.cards.find(c => c.id === cardId)
-      if (newCard) {
-        currentCard = newCard
-        // When navigating, trigger openCard handler
-        const context = createExecutionContext(stack, newCard)
-        send('openCard', newCard, context, runMode)
-        // Re-render to show the new card
-        runMode.render(stack, newCard, null)
-      }
-    })
-
-    // Render card 1 initially
-    runMode.render(stack, card1, null)
-    await waitForUIUpdate()
-
-    // Click button B (go next)
+    // Find and click button B
     const buttonBEl = findRunButton('Button B')
     expect(buttonBEl).toBeTruthy()
 
     buttonBEl!.click()
-    await waitForUIUpdate(100) // Longer wait for navigation + handler
+    await waitForUIUpdate(150) // Wait for navigation and openCard handler
 
-    // After navigation, currentCard should be card 2
-    expect(currentCard.id).toBe('card-2')
-
-    // Verify field2 content is "opened"
-    const field2Content = getRunFieldContent('field2')
-    expect(field2Content).toBe('opened')
+    // Verify card 2 is now displayed by checking for its field
+    const yContent = getRunFieldContent('y')
+    expect(yContent).toBe('opened')
   })
 
   /**
@@ -323,17 +262,18 @@ end openCard`
    * 
    * Setup:
    * - Card with button C that has invalid script (missing 'end')
+   * - Card with valid button D for comparison
    * 
    * Actions:
    * - Save to localStorage
    * - initApp()
-   * - Switch to run mode
-   * - Click button C
+   * - Enter run mode
+   * - Click button C (parse error)
    * 
    * Verify:
-   * - Error is shown in modal
-   * - App remains usable (doesn't crash)
-   * - Can still click other buttons
+   * - Error is shown in modal (modal is visible)
+   * - App remains usable (can still click other buttons)
+   * - Click button D successfully
    */
   it('button with parse error shows error in modal, app stays usable', async () => {
     // Build stack
@@ -348,9 +288,9 @@ end openCard`
     card.buttons.push(buttonC)
 
     // Add a working button to verify app stays usable
-    const field = createField('result', 'result', 'ready')
-    field.rect = { left: 10, top: 60, right: 200, bottom: 100 }
-    card.fields.push(field)
+    const fieldResult = createField('result', 'result', 'ready')
+    fieldResult.rect = { left: 10, top: 60, right: 200, bottom: 100 }
+    card.fields.push(fieldResult)
 
     const buttonD = createButton('btn-d', 'Button D')
     buttonD.rect = { left: 110, top: 20, right: 200, bottom: 50 }
@@ -368,184 +308,114 @@ end mouseUp`
     initApp()
     await waitForUIUpdate()
 
-    // Switch to run mode
-    const { RunModeViewer } = await import('../src/dom/runMode')
-    const runMode = new RunModeViewer()
-    const mainContent = document.querySelector('.app-main')
-    
-    if (mainContent) {
-      mainContent.innerHTML = ''
-      mainContent.appendChild(runMode.getElement())
-    }
-
-    runMode.render(stack, card, null)
-    await waitForUIUpdate()
-
-    // Track if error was shown
-    let errorShown = false
-    let errorMessage = ''
-    const originalShowAnswer = runMode.showAnswer.bind(runMode)
-    runMode.showAnswer = async (msg, btns) => {
-      errorShown = true
-      errorMessage = msg
-      return 0
-    }
+    // Enter run mode
+    await enterRunMode()
 
     // Click button C (has parse error)
     const buttonCEl = findRunButton('Button C')
     expect(buttonCEl).toBeTruthy()
 
     buttonCEl!.click()
-    await waitForUIUpdate()
+    await waitForUIUpdate(200)
 
-    // Verify error was shown
-    expect(errorShown).toBe(true)
-    expect(errorMessage).toContain('Error')
+    // Verify error modal is shown
+    const backdrop = document.querySelector('.modal-backdrop') as HTMLElement | null
+    expect(backdrop).toBeTruthy()
+    expect(backdrop?.style.display).toBe('flex')
+    
+    // Find and verify the error message
+    const modalMsg = backdrop?.querySelector('.modal-message')
+    expect(modalMsg).toBeTruthy()
+    expect(modalMsg?.textContent).toContain('Error')
+    expect(modalMsg?.textContent).toContain('Parse error')
+    
+    // Find the OK button
+    const okBtn = backdrop?.querySelector('.modal-buttons button') as HTMLButtonElement | null
+    expect(okBtn).toBeTruthy()
+    expect(okBtn?.textContent).toBe('OK')
 
     // Now verify app is still usable: click button D (working button)
     const buttonDEl = findRunButton('Button D')
     expect(buttonDEl).toBeTruthy()
 
-    // Reset error flag
-    errorShown = false
-
     buttonDEl!.click()
     await waitForUIUpdate()
 
-    // Button D should execute successfully without error
-    expect(errorShown).toBe(false)
-
+    // Button D should execute successfully
     // Field result should be updated to "worked"
     const resultContent = getRunFieldContent('result')
     expect(resultContent).toBe('worked')
   })
 
   /**
-   * Test 4: Complete end-to-end flow
+   * Test 4: Exit button returns to edit mode
    * 
-   * More complex scenario:
-   * - Card 1: field x, Button A (puts "hello"), Button B (go next)
-   * - Card 2: field y with openCard handler (puts "card 2 opened")
+   * Setup:
+   * - Simple stack with one card
    * 
-   * Flow:
+   * Actions:
+   * - Save to localStorage
    * - initApp()
-   * - Click Button A → field x becomes "hello"
-   * - Click Button B → navigate to card 2
-   * - openCard triggers → field y becomes "card 2 opened"
+   * - Click Run button
+   * - Verify in run mode
+   * - Click Exit button
+   * 
+   * Verify:
+   * - Back in edit mode
+   * - Edit UI is visible
    */
-  it('complete flow: multi-card stack with navigation and handlers', async () => {
-    // Build complex stack
-    const stack = createStack('stack-complete', 'Complete Flow')
+  it('Exit button returns to edit mode', async () => {
+    // Build simple stack
+    const stack = createStack('stack-4', 'Exit Test')
+    const card = createCard('card-1', 'Card 1', null)
+    stack.cards.push(card)
 
-    // Card 1
-    const card1 = createCard('card-1', 'Card 1', null)
-    
-    const fieldX = createField('x', 'x', '')
-    fieldX.rect = { left: 10, top: 60, right: 200, bottom: 100 }
-    card1.fields.push(fieldX)
-
-    const buttonA = createButton('btn-a', 'A')
-    buttonA.rect = { left: 10, top: 20, right: 60, bottom: 50 }
-    buttonA.scripts['mouseUp'] = `on mouseUp
-  put "hello" into field "x"
-end mouseUp`
-    card1.buttons.push(buttonA)
-
-    const buttonB = createButton('btn-b', 'B')
-    buttonB.rect = { left: 70, top: 20, right: 120, bottom: 50 }
-    buttonB.scripts['mouseUp'] = `on mouseUp
-  go next card
-end mouseUp`
-    card1.buttons.push(buttonB)
-
-    stack.cards.push(card1)
-
-    // Card 2
-    const card2 = createCard('card-2', 'Card 2', null)
-    
-    const fieldY = createField('y', 'y', '')
-    fieldY.rect = { left: 10, top: 60, right: 200, bottom: 100 }
-    card2.fields.push(fieldY)
-
-    card2.scripts['openCard'] = `on openCard
-  put "card 2 opened" into field "y"
-end openCard`
-
-    stack.cards.push(card2)
-
-    // Save
+    // Save to localStorage
     saveStack(stack)
 
-    // Init
+    // Initialize app
     initApp()
     await waitForUIUpdate()
 
-    // Run mode setup
-    const { RunModeViewer } = await import('../src/dom/runMode')
-    const { send } = await import('../src/interpreter/dispatcher')
-    const { createExecutionContext } = await import('../src/interpreter/runtime')
+    // Enter run mode
+    await enterRunMode()
 
-    const runMode = new RunModeViewer()
-    const mainContent = document.querySelector('.app-main')
-    if (mainContent) {
-      mainContent.innerHTML = ''
-      mainContent.appendChild(runMode.getElement())
-    }
+    // Exit run mode
+    await exitRunMode()
 
-    // Handle navigation
-    let currentCard = card1
-    runMode.onNavigateCard((cardId) => {
-      const newCard = stack.cards.find(c => c.id === cardId)
-      if (newCard) {
-        currentCard = newCard
-        const context = createExecutionContext(stack, newCard)
-        send('openCard', newCard, context, runMode)
-        runMode.render(stack, newCard, null)
-      }
-    })
-
-    // Render card 1
-    runMode.render(stack, card1, null)
-    await waitForUIUpdate()
-
-    // Step 1: Click button A
-    const buttonAEl = findRunButton('A')
-    buttonAEl!.click()
-    await waitForUIUpdate()
-
-    let xContent = getRunFieldContent('x')
-    expect(xContent).toBe('hello')
-
-    // Step 2: Click button B (navigate)
-    const buttonBEl = findRunButton('B')
-    buttonBEl!.click()
-    await waitForUIUpdate(100)
-
-    // Verify navigation and openCard execution
-    expect(currentCard.id).toBe('card-2')
-
-    // Step 3: Verify openCard handler executed
-    let yContent = getRunFieldContent('y')
-    expect(yContent).toBe('card 2 opened')
+    // Verify we're back in edit mode
+    expect(isInRunMode()).toBe(false)
+    
+    // Verify edit UI elements are visible (card canvas, script editor, etc.)
+    const cardCanvas = document.querySelector('.card-canvas')
+    expect(cardCanvas).toBeTruthy()
   })
 
   /**
-   * Test 5: Test that runtime maintains field state across multiple operations
+   * Test 5: Field changes persist to the stack
    * 
-   * - Button 1: put "step 1" into field "state"
-   * - Button 2: put field "state" & " step 2" into field "state"
+   * Setup:
+   * - Card with editable field
+   * - Button that reads from field and writes back
    * 
-   * Flow:
-   * - Click button 1 → field shows "step 1"
-   * - Click button 2 → field shows "step 1 step 2"
+   * Actions:
+   * - Save to localStorage
+   * - initApp()
+   * - Enter run mode
+   * - Edit field directly
+   * - Click button that appends to field
+   * 
+   * Verify:
+   * - Field shows accumulated changes
    */
-  it('maintains field state across multiple button clicks', async () => {
-    const stack = createStack('stack-state', 'State Test')
+  it('maintains field state across multiple button clicks and direct edits', async () => {
+    const stack = createStack('stack-5', 'State Test')
     const card = createCard('card-1', 'Card 1', null)
 
-    // State field
+    // Editable field
     const stateField = createField('state', 'state', '')
     stateField.rect = { left: 10, top: 60, right: 300, bottom: 100 }
+    stateField.editable = true
     card.fields.push(stateField)
 
     // Button 1: set initial value
@@ -571,20 +441,12 @@ end mouseUp`
     initApp()
     await waitForUIUpdate()
 
-    // Run mode
-    const { RunModeViewer } = await import('../src/dom/runMode')
-    const runMode = new RunModeViewer()
-    const mainContent = document.querySelector('.app-main')
-    if (mainContent) {
-      mainContent.innerHTML = ''
-      mainContent.appendChild(runMode.getElement())
-    }
-
-    runMode.render(stack, card, null)
-    await waitForUIUpdate()
+    // Enter run mode
+    await enterRunMode()
 
     // Click button 1
     const button1El = findRunButton('Step 1')
+    expect(button1El).toBeTruthy()
     button1El!.click()
     await waitForUIUpdate()
 
@@ -593,6 +455,7 @@ end mouseUp`
 
     // Click button 2
     const button2El = findRunButton('Step 2')
+    expect(button2El).toBeTruthy()
     button2El!.click()
     await waitForUIUpdate()
 

@@ -294,7 +294,7 @@ This document outlines the implementation tasks for the Stacks core engine, orga
   - Generate visual diff comparing current script and generated code.
   - Tests: Diff highlights new/changed/deleted lines.
 
-- [ ] **4.8** Implement model provider fallback and error handling. *(Ref: REQ-SG-002)*
+- [x] **4.8** Implement model provider fallback and error handling. *(Ref: REQ-SG-002)*
   - Location: `src/ai/scriptGen.ts`
   - If primary provider unavailable, try fallback. If all fail, emit clear error.
   - Tests: Error message: "Model provider unreachable. Check configuration."
@@ -415,20 +415,20 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
 
 ### App Shell and Layout
 
-- [ ] **7.1** Implement `App` class with state management and layout. *(Ref: REQ-UI-007, REQ-UI-CONST-001)*
+- [x] **7.1** Implement `App` class with state management and layout. *(Ref: REQ-UI-007, REQ-UI-CONST-001)*
   - Location: `src/dom/app.ts`
   - Maintains `AppState` (stack, currentCard, selectedElement, mode, undo/redo).
   - Renders 3-column layout with card list, canvas, inspector.
   - Methods: `setState()`, `render()`, `switchMode(mode)`, `undo()`, `redo()`.
   - Tests: `src/dom/app.test.ts` - State updates trigger re-render; undo/redo work correctly.
 
-- [ ] **7.2** Implement `CardListPanel` UI component. *(Ref: REQ-UI-001)*
+- [x] **7.2** Implement `CardListPanel` UI component. *(Ref: REQ-UI-001)*
   - Location: `src/dom/cardList.ts`
   - Displays list of card names/thumbnails with +/- buttons.
   - Highlights current card, fires `onSelectCard`, `onAddCard`, `onDeleteCard` callbacks.
   - Tests: Card list renders, selection works, add/delete buttons respond.
 
-- [ ] **7.3** Implement `CardCanvas` editor component with drag/resize. *(Ref: REQ-UI-002)*
+- [x] **7.3** Implement `CardCanvas` editor component with drag/resize. *(Ref: REQ-UI-002)*
   - Location: `src/dom/cardCanvas.ts`
   - Renders card background, buttons, and fields at their rects.
   - On element click: show bounding box and select element.
@@ -436,21 +436,21 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
   - On resize handle drag: update element dimensions.
   - Tests: Elements render at correct positions; drag/resize updates model.
 
-- [ ] **7.4** Implement `ElementInspector` properties panel. *(Ref: REQ-UI-002, REQ-UI-003)*
+- [x] **7.4** Implement `ElementInspector` properties panel. *(Ref: REQ-UI-002, REQ-UI-003)*
   - Location: `src/dom/elementInspector.ts`
   - Show properties (label, name, position, size, font, editable, scripts) in form fields.
   - On input change: update model and re-render canvas.
   - Support different field types (text input, checkbox, select).
   - Tests: Inspector renders correct properties; changes update model.
 
-- [ ] **7.5** Implement `ScriptEditor` with syntax highlighting. *(Ref: REQ-UI-005, REQ-UI-EH-001)*
+- [x] **7.5** Implement `ScriptEditor` with syntax highlighting. *(Ref: REQ-UI-005, REQ-UI-EH-001)*
   - Location: `src/dom/scriptEditor.ts`
   - Display script text in editor (textarea with custom token highlighting overlay).
   - Parse on every keystroke; show parse errors with underline.
   - Provide "Preview" button to execute script in test context.
   - Tests: Script highlighting works; errors displayed on correct lines; preview executes.
 
-- [ ] **7.6** Implement `RunModeViewer` for card execution. *(Ref: REQ-UI-004, REQ-UI-EH-002)*
+- [x] **7.6** Implement `RunModeViewer` for card execution. *(Ref: REQ-UI-004, REQ-UI-EH-002)*
   - Location: `src/dom/runMode.ts`
   - Render card in full-screen mode (buttons clickable, fields editable).
   - On button click: fire mouseUp handler via runtime, execute script, update fields.
@@ -458,7 +458,7 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
   - Show runtime errors in a toast/modal.
   - Tests: Button clicks fire handlers; field updates visible; errors display.
 
-- [ ] **7.7** Implement `storage.ts` for localStorage persistence. *(Ref: REQ-UI-006)*
+- [x] **7.7** Implement `storage.ts` for localStorage persistence. *(Ref: REQ-UI-006)*
   - Location: `src/dom/storage.ts`
   - Methods: `saveStack(stack)`, `loadStack()`, `exportJSON(stack)`, `importJSON(json)`.
   - Save current stack + undo/redo history to localStorage on every model change.
@@ -467,7 +467,7 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
   - Import: read JSON from file or drag-drop, validate, load into app.
   - Tests: Round-trip persistence, export/import fidelity, error handling for invalid JSON.
 
-- [ ] **7.8** Implement styles.css with 1-bit aesthetic. *(Ref: REQ-UI-CONST-002)*
+- [x] **7.8** Implement styles.css with 1-bit aesthetic. *(Ref: REQ-UI-CONST-002)*
   - Location: `src/dom/styles.css`
   - Color palette: black, white, #ccc (light gray), #999 (medium gray).
   - Typography: monospace font (Monaco, Courier New fallback).
@@ -477,22 +477,22 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
 
 ### DOM Utilities and Components
 
-- [ ] **7.9** Implement DOM utility functions in `src/dom/utils/dom.ts`. *(Ref: REQ-UI-CONST-001)*
+- [x] **7.9** Implement DOM utility functions in `src/dom/utils/dom.ts`. *(Ref: REQ-UI-CONST-001)*
   - Helper functions: `createElement()`, `setAttributes()`, `addEventListener()` (with cleanup), `removeAllChildren()`.
   - Centralize DOM manipulation to prevent direct `innerHTML` use (prevent XSS).
   - Tests: Helpers create correct elements, manage events without memory leaks.
 
-- [ ] **7.10** Implement `src/dom/components/button.ts` - styled button wrapper. *(Ref: REQ-UI-CONST-2)*
+- [x] **7.10** Implement `src/dom/components/button.ts` - styled button wrapper. *(Ref: REQ-UI-CONST-2)*
   - Wraps standard `<button>` with 1-bit styling, click handler.
   - Methods: `setText()`, `setDisabled()`, `onClick()`.
   - Tests: Button renders, click fires callback, disabled state works.
 
-- [ ] **7.11** Implement `src/dom/components/textInput.ts` - styled text input. *(Ref: REQ-UI-CONST-002)*
+- [x] **7.11** Implement `src/dom/components/textInput.ts` - styled text input. *(Ref: REQ-UI-CONST-002)*
   - Wraps `<input type="text">` or `<textarea>` with 1-bit styling.
   - Methods: `getValue()`, `setValue()`, `onInput()`, `setPlaceholder()`.
   - Tests: Input renders, value updates, input event fires.
 
-- [ ] **7.12** Implement `src/dom/components/modal.ts` - modal dialog. *(Ref: REQ-UI-004, REQ-UI-EH-002)*
+- [x] **7.12** Implement `src/dom/components/modal.ts` - modal dialog. *(Ref: REQ-UI-004, REQ-UI-EH-002)*
   - Display modal with message and buttons, return which button was clicked.
   - Used for `answer` command and error dialogs.
   - Methods: `show(message, buttons)`, returns Promise<number> (button index).
@@ -500,24 +500,24 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
 
 ### Integration Tests for UI
 
-- [ ] **7.13** Write end-to-end test: create card, add button, write script, click button in Run Mode. *(Ref: REQ-UI-004, REQ-UI-005)*
+- [x] **7.13** Write end-to-end test: create card, add button, write script, click button in Run Mode. *(Ref: REQ-UI-004, REQ-UI-005)*
   - Location: `tests/ui-e2e.test.ts`
   - Scenario: Create stack → add card → add button "Click Me" → attach script `put "Clicked!" into field "output"` → add field → switch to Run Mode → click button → verify field content.
   - Use jsdom/happy-dom for DOM simulation.
 
-- [ ] **7.14** Write test: import/export JSON preserves all stack data. *(Ref: REQ-UI-006)*
+- [x] **7.14** Write test: import/export JSON preserves all stack data. *(Ref: REQ-UI-006)*
   - Location: `tests/ui-storage.test.ts`
   - Scenario: Create stack with cards/buttons/fields/scripts → export JSON → import JSON → verify stack identical.
 
-- [ ] **7.15** Write test: script editor displays parse errors with line/column. *(Ref: REQ-UI-005, REQ-UI-EH-001)*
+- [x] **7.15** Write test: script editor displays parse errors with line/column. *(Ref: REQ-UI-005, REQ-UI-EH-001)*
   - Location: `tests/ui-editor.test.ts`
   - Scenario: Type invalid script → verify error underlined on correct line → hover error → verify tooltip displays message.
 
-- [ ] **7.16** Write test: undo/redo works for element add/delete/move. *(Ref: REQ-UI-008)*
+- [x] **7.16** Write test: undo/redo works for element add/delete/move. *(Ref: REQ-UI-008)*
   - Location: `tests/ui-undo.test.ts`
   - Scenario: Add button → undo → button removed → redo → button restored with same properties.
 
-- [ ] **7.17** Write test: localStorage persistence across page reload. *(Ref: REQ-UI-006, REQ-UI-008)*
+- [x] **7.17** Write test: localStorage persistence across page reload. *(Ref: REQ-UI-006, REQ-UI-008)*
   - Location: `tests/ui-persistence.test.ts`
   - Scenario: Create/modify stack → save → simulate page reload → verify stack restored with correct state and undo history.
 
