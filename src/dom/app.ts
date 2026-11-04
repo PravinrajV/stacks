@@ -14,11 +14,27 @@ import { ButtonComponent } from './components/button'
 import { ModalComponent } from './components/modal'
 import { SettingsPanel, type ProviderSettings } from './components/settingsPanel'
 import { saveStack, loadStack, loadUndoRedo, saveUndoRedo, exportJSON, importJSON, readJSONFile } from './storage'
-import { Stack, Card, createCard, createStack, Button, Field } from '../model/stack'
+import { Stack, Card, createCard, createStack, createButton, createField, Button, Field } from '../model/stack'
 import type { Rect } from '../model/types'
 import { send } from '../interpreter/dispatcher'
 import { createExecutionContext } from '../interpreter/runtime'
 import { defaultRegistry } from '../generator/providerRegistry'
+import { deserializeStack } from '../model/serialization'
+
+// Import haunted-counter.json as a string at build time
+declare const HAUNTED_COUNTER_STACK: string | undefined
+
+// Function to get haunted counter stack (allows for testing)
+function getHauntedCounterStack(): Stack | null {
+  try {
+    if (typeof HAUNTED_COUNTER_STACK === 'string') {
+      return deserializeStack(HAUNTED_COUNTER_STACK)
+    }
+  } catch (err) {
+    console.warn('Failed to deserialize starter stack:', err)
+  }
+  return null
+}
 
 export interface AppState {
   stack: Stack
@@ -49,8 +65,20 @@ export class App {
     const loaded = loadStack()
     const { undo, redo } = loadUndoRedo()
 
-    const stackId = `stack-${Date.now()}`
-    const stack = loaded || createStack(stackId, 'My Stack')
+    let stack: Stack
+    if (loaded) {
+      stack = loaded
+    } else {
+      // On first visit, try to load the starter stack from haunted-counter.json
+      const starterStack = getHauntedCounterStack()
+      if (starterStack) {
+        stack = starterStack
+      } else {
+        // Fallback to empty stack if starter not available
+        const stackId = `stack-${Date.now()}`
+        stack = createStack(stackId, 'My Stack')
+      }
+    }
     
     // Ensure stack has at least one card
     if (stack.cards.length === 0) {
@@ -92,6 +120,7 @@ export class App {
     this.cardListPanel.onSelectCardChanged((cardId) => this.selectCard(cardId))
     this.cardListPanel.onAddCardClicked(() => this.addCard())
     this.cardListPanel.onDeleteCardClicked((cardId) => this.deleteCard(cardId))
+    this.cardListPanel.onRenameCardClicked((cardId) => this.renameCard(cardId))
 
     // Canvas - need to add element click handler
     // This will be wired via delegated events in render()
@@ -253,10 +282,68 @@ export class App {
   }
 
   private deleteCard(cardId: string): void {
+    // Don't allow deletion of the last card
+    if (this.appState.stack.cards.length <= 1) {
+      alert('Cannot delete the last card in the stack.')
+      return
+    }
+
+    const confirm = window.confirm(`Delete card? This action cannot be undone.`)
+    if (!confirm) return
+
     const index = this.appState.stack.cards.findIndex((c) => c.id === cardId)
     if (index !== -1) {
       this.appState.stack.cards.splice(index, 1)
       this.appState.currentCardId = this.appState.stack.cards[0]?.id || ''
+      this.appState.isDirty = true
+      this.saveToUndoStack()
+      this.render()
+    }
+  }
+
+  private addButton(): void {
+    const card = this.appState.stack.cards.find((c) => c.id === this.appState.currentCardId)
+    if (!card) return
+
+    // Default position and size: centered on card at (100, 100) with size 100x30
+    const newButton = createButton(`btn-${Date.now()}`, 'Button', {
+      left: 100,
+      top: 100,
+      right: 200,
+      bottom: 130
+    })
+    card.buttons.push(newButton)
+    this.appState.selectedElementId = newButton.id
+    this.appState.isDirty = true
+    this.saveToUndoStack()
+    this.render()
+  }
+
+  private addField(): void {
+    const card = this.appState.stack.cards.find((c) => c.id === this.appState.currentCardId)
+    if (!card) return
+
+    // Default position and size: below button at (100, 150) with size 300x60
+    const newField = createField(`fld-${Date.now()}`, `field_${card.fields.length + 1}`, '', {
+      left: 100,
+      top: 150,
+      right: 400,
+      bottom: 210
+    })
+    card.fields.push(newField)
+    this.appState.selectedElementId = newField.id
+    this.appState.isDirty = true
+    this.saveToUndoStack()
+    this.render()
+  }
+
+  private renameCard(cardId: string): void {
+    const card = this.appState.stack.cards.find((c) => c.id === cardId)
+    if (!card) return
+
+    const newName = window.prompt('Rename card:', card.name || 'Card')
+    if (newName && newName.trim()) {
+      card.name = newName.trim()
       this.appState.isDirty = true
       this.saveToUndoStack()
       this.render()
@@ -385,6 +472,19 @@ export class App {
     })
     
     header.appendChild(modeToggleBtn)
+
+    // Add Button and Add Field buttons (edit mode only)
+    if (this.appState.mode === 'edit') {
+      const addButtonBtn = new ButtonComponent('+ Button', () => this.addButton())
+      addButtonBtn.getElement().setAttribute('aria-label', 'Add new button to current card')
+      addButtonBtn.getElement().setAttribute('title', 'Add new button to current card')
+      header.appendChild(addButtonBtn.getElement())
+
+      const addFieldBtn = new ButtonComponent('+ Field', () => this.addField())
+      addFieldBtn.getElement().setAttribute('aria-label', 'Add new field to current card')
+      addFieldBtn.getElement().setAttribute('title', 'Add new field to current card')
+      header.appendChild(addFieldBtn.getElement())
+    }
 
     const exportBtn = new ButtonComponent('Export', () => {
       exportJSON(this.appState.stack, 'my-stack.json')

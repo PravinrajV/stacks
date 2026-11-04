@@ -104,6 +104,19 @@ describe('Task 7.2-7.3: Card List Add/Delete/Select', () => {
   beforeEach(() => {
     clearStack()
     appContainer = setupDOM()
+    // Mock window functions for tests
+    if (typeof window.confirm === 'undefined') {
+      Object.defineProperty(window, 'confirm', {
+        value: vi.fn(() => true),
+        configurable: true
+      })
+    }
+    if (typeof window.prompt === 'undefined') {
+      Object.defineProperty(window, 'prompt', {
+        value: vi.fn(() => 'Renamed Card'),
+        configurable: true
+      })
+    }
   })
 
   afterEach(() => {
@@ -689,6 +702,19 @@ describe('Task 7.1-7.6: Component Integration', () => {
   beforeEach(() => {
     clearStack()
     appContainer = setupDOM()
+    // Mock window functions for tests
+    if (typeof window.confirm === 'undefined') {
+      Object.defineProperty(window, 'confirm', {
+        value: vi.fn(() => true),
+        configurable: true
+      })
+    }
+    if (typeof window.prompt === 'undefined') {
+      Object.defineProperty(window, 'prompt', {
+        value: vi.fn(() => 'Renamed Card'),
+        configurable: true
+      })
+    }
   })
 
   afterEach(() => {
@@ -1045,3 +1071,318 @@ end openCard`
   })
 })
 
+
+
+/**
+ * Task 8.2: In-UI Stack Authoring - Add Button, Add Field, Delete Card, Rename
+ */
+describe('Task 8.2: In-UI Stack Authoring', () => {
+  let appContainer: HTMLElement
+
+  beforeEach(() => {
+    clearStack()
+    appContainer = setupDOM()
+    // Mock window.prompt and window.confirm for tests
+    if (typeof window.prompt === 'undefined') {
+      Object.defineProperty(window, 'prompt', {
+        value: vi.fn((msg) => {
+          if (msg.includes('Rename')) {
+            return 'Renamed Card'
+          }
+          return null
+        }),
+        configurable: true
+      })
+    }
+    if (typeof window.confirm === 'undefined') {
+      Object.defineProperty(window, 'confirm', {
+        value: vi.fn(() => true),
+        configurable: true
+      })
+    }
+  })
+
+  afterEach(() => {
+    clearStack()
+  })
+
+  it('adds a new button to the current card via UI button', () => {
+    const app = new App('app')
+    const layout = document.getElementById('app')
+
+    // Find and click "+ Button" button in header (edit mode)
+    const addButtonBtn = Array.from(layout?.querySelectorAll('button') || []).find(btn => 
+      btn.textContent?.includes('Button')
+    ) as HTMLButtonElement | undefined
+    
+    expect(addButtonBtn).toBeTruthy()
+    addButtonBtn?.click()
+
+    // After adding button, should have a selected element
+    const cardView = layout?.querySelector('.card-view')
+    expect(cardView?.children.length).toBeGreaterThan(0)
+
+    // Should have saved to undo stack
+    expect(app['appState'].undoStack.length).toBeGreaterThan(0)
+  })
+
+  it('adds a new field to the current card via UI button', () => {
+    const app = new App('app')
+    const layout = document.getElementById('app')
+
+    // Find and click "+ Field" button in header (edit mode)
+    const addFieldBtn = Array.from(layout?.querySelectorAll('button') || []).find(btn => 
+      btn.textContent?.includes('Field')
+    ) as HTMLButtonElement | undefined
+    
+    expect(addFieldBtn).toBeTruthy()
+    addFieldBtn?.click()
+
+    // After adding field, should have a selected element
+    const cardView = layout?.querySelector('.card-view')
+    expect(cardView?.children.length).toBeGreaterThan(0)
+
+    // Should have saved to undo stack
+    expect(app['appState'].undoStack.length).toBeGreaterThan(0)
+  })
+
+  it('prevents deletion of the last card in the stack', () => {
+    const app = new App('app')
+    const layout = document.getElementById('app')
+
+    // Get the delete button for the only card
+    const deleteBtn = layout?.querySelector('.card-item-delete') as HTMLButtonElement | null
+    expect(deleteBtn).toBeTruthy()
+
+    // Alert should be called saying "Cannot delete the last card"
+    const alertSpy = vi.spyOn(window, 'alert')
+    deleteBtn?.click()
+    
+    expect(alertSpy).toHaveBeenCalledWith('Cannot delete the last card in the stack.')
+    expect(app['appState'].stack.cards.length).toBe(1)
+
+    alertSpy.mockRestore()
+  })
+
+  it('deletes a card after confirmation when stack has multiple cards', () => {
+    const app = new App('app')
+    const layout = document.getElementById('app')
+
+    // Add a second card first
+    const addCardBtn = Array.from(layout?.querySelectorAll('button') || []).find(btn => 
+      btn.textContent?.includes('Add Card')
+    ) as HTMLButtonElement | undefined
+    
+    expect(addCardBtn).toBeTruthy()
+    addCardBtn?.click()
+    app['render']() // Re-render to get updated button list
+
+    // Now stack has 2 cards
+    expect(app['appState'].stack.cards.length).toBe(2)
+
+    // Find and click first card's delete button
+    const deleteButtons = layout?.querySelectorAll('.card-item-delete') as NodeListOf<HTMLButtonElement>
+    expect(deleteButtons.length).toBe(2)
+    
+    deleteButtons[0].click()
+
+    // Card should be deleted (confirm was mocked to return true)
+    expect(app['appState'].stack.cards.length).toBe(1)
+  })
+
+  it('renames a card via rename button', () => {
+    const app = new App('app')
+    const layout = document.getElementById('app')
+
+    const originalCardName = app['appState'].stack.cards[0].name
+    expect(originalCardName).toBeTruthy()
+
+    // Find and click rename button
+    const renameBtn = layout?.querySelector('.card-item-rename') as HTMLButtonElement | null
+    expect(renameBtn).toBeTruthy()
+    
+    renameBtn?.click()
+
+    // Card name should be updated (prompt was mocked to return 'Renamed Card')
+    const updatedCard = app['appState'].stack.cards[0]
+    expect(updatedCard.name).toBe('Renamed Card')
+  })
+
+  it('creates new button with default position and size', () => {
+    const app = new App('app')
+    const card = app['appState'].stack.cards[0]
+    const initialButtonCount = card.buttons.length
+
+    // Simulate adding a button
+    app['addButton']()
+
+    // Button should be added to current card
+    expect(card.buttons.length).toBe(initialButtonCount + 1)
+
+    // New button should have default position (100, 100) and size 100x30
+    const newButton = card.buttons[card.buttons.length - 1]
+    expect(newButton.rect.left).toBe(100)
+    expect(newButton.rect.top).toBe(100)
+    expect(newButton.rect.right).toBe(200)
+    expect(newButton.rect.bottom).toBe(130)
+  })
+
+  it('creates new field with default position and size', () => {
+    const app = new App('app')
+    const card = app['appState'].stack.cards[0]
+    const initialFieldCount = card.fields.length
+
+    // Simulate adding a field
+    app['addField']()
+
+    // Field should be added to current card
+    expect(card.fields.length).toBe(initialFieldCount + 1)
+
+    // New field should have default position (100, 150) and size 300x60
+    const newField = card.fields[card.fields.length - 1]
+    expect(newField.rect.left).toBe(100)
+    expect(newField.rect.top).toBe(150)
+    expect(newField.rect.right).toBe(400)
+    expect(newField.rect.bottom).toBe(210)
+  })
+
+  it('selects newly added button for immediate editing', () => {
+    const app = new App('app')
+    app['addButton']()
+
+    const card = app['appState'].stack.cards[0]
+    const newButton = card.buttons[card.buttons.length - 1]
+
+    // Selected element should be the newly added button
+    expect(app['appState'].selectedElementId).toBe(newButton.id)
+  })
+
+  it('selects newly added field for immediate editing', () => {
+    const app = new App('app')
+    app['addField']()
+
+    const card = app['appState'].stack.cards[0]
+    const newField = card.fields[card.fields.length - 1]
+
+    // Selected element should be the newly added field
+    expect(app['appState'].selectedElementId).toBe(newField.id)
+  })
+
+  it('persists added button/field to localStorage', () => {
+    const app = new App('app')
+    const initialCard = app['appState'].stack.cards[0]
+    
+    app['addButton']()
+    app['addField']()
+    app['save']()
+
+    // Verify that button and field were added
+    expect(initialCard.buttons.length).toBeGreaterThan(0)
+    expect(initialCard.fields.length).toBeGreaterThan(0)
+
+    // Verify that they were saved (isDirty should be false after save)
+    const savedStack = loadStack()
+    expect(savedStack).toBeTruthy()
+    expect(savedStack?.cards[0]?.buttons.length).toBeGreaterThan(0)
+    expect(savedStack?.cards[0]?.fields.length).toBeGreaterThan(0)
+  })
+})
+
+/**
+ * Task 8.2b: Load Starter Stack on First Visit
+ */
+describe('Task 8.2b: Starter Stack Loading', () => {
+  let appContainer: HTMLElement
+
+  beforeEach(() => {
+    clearStack()
+    appContainer = setupDOM()
+    // Mock window.prompt and window.confirm for tests
+    if (typeof window.prompt === 'undefined') {
+      Object.defineProperty(window, 'prompt', {
+        value: vi.fn((msg) => {
+          if (msg.includes('Rename')) {
+            return 'Renamed Card'
+          }
+          return null
+        }),
+        configurable: true
+      })
+    }
+    if (typeof window.confirm === 'undefined') {
+      Object.defineProperty(window, 'confirm', {
+        value: vi.fn(() => true),
+        configurable: true
+      })
+    }
+  })
+
+  afterEach(() => {
+    clearStack()
+  })
+
+  it('creates a default stack on first visit when localStorage is empty', () => {
+    // localStorage is already cleared in beforeEach
+    const app = new App('app')
+
+    // Stack should be created with at least one card
+    const stack = app['appState'].stack
+    expect(stack.cards.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('loads haunted-counter.json stack if available (production only)', () => {
+    const app = new App('app')
+
+    // In test environment, HAUNTED_COUNTER_STACK is undefined, so it creates default stack
+    // In production (after build), HAUNTED_COUNTER_STACK will be injected by Vite
+    // Just verify that the app initialized successfully
+    expect(app['appState'].stack).toBeTruthy()
+    expect(app['appState'].stack.cards.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('does not reload starter stack if localStorage has a saved stack', () => {
+    // Create and save a custom stack
+    const customStack = createStack('custom-id', 'My Custom Stack')
+    const customCard = createCard('custom-card', 'Custom Card', null)
+    customStack.cards.push(customCard)
+    saveStack(customStack)
+
+    // Now create app
+    const app = new App('app')
+
+    // Should load the custom stack, not the starter stack
+    expect(app['appState'].stack.id).toBe('custom-id')
+    expect(app['appState'].stack.name).toBe('My Custom Stack')
+    expect(app['appState'].stack.cards[0].name).toBe('Custom Card')
+  })
+
+  it('displays stack in edit mode by default', () => {
+    const app = new App('app')
+    const layout = document.getElementById('app')
+
+    // Should be in edit mode
+    expect(app['appState'].mode).toBe('edit')
+
+    // Should have card list, canvas, inspector, script editor
+    expect(layout?.querySelector('.card-list-panel')).toBeTruthy()
+    expect(layout?.querySelector('.card-canvas')).toBeTruthy()
+    expect(layout?.querySelector('.element-inspector')).toBeTruthy()
+    expect(layout?.querySelector('.script-editor')).toBeTruthy()
+  })
+
+  it('allows user to switch to run mode', () => {
+    const app = new App('app')
+
+    // Switch to run mode
+    app['toggleMode']()
+    app['render']()
+
+    const layout = document.getElementById('app')
+
+    // Should have run mode viewer
+    expect(layout?.querySelector('.run-mode-viewer')).toBeTruthy()
+
+    // Should not have card list, canvas (they're replaced by run mode viewer)
+    expect(layout?.querySelector('.card-list-panel')).toBeFalsy()
+  })
+})

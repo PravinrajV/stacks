@@ -239,6 +239,20 @@ body.run-mode {
   white-space: nowrap;
 }
 
+.card-item-rename {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-white);
+  border: var(--border-width) var(--border-style) var(--border-color);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  margin-right: var(--spacing-xs);
+}
+
+.card-item-rename:hover {
+  background-color: var(--color-light-gray);
+}
+
 .card-item-delete {
   padding: var(--spacing-xs) var(--spacing-sm);
   background-color: var(--color-white);

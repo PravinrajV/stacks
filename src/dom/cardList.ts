@@ -14,6 +14,7 @@ export class CardListPanel {
   private onSelectCard: ((cardId: string) => void) | null = null
   private onAddCard: (() => void) | null = null
   private onDeleteCard: ((cardId: string) => void) | null = null
+  private onRenameCard: ((cardId: string) => void) | null = null
 
   constructor() {
     this.element = createElement('div', {
@@ -67,6 +68,18 @@ export class CardListPanel {
       setTextContent(label, card.name || `Card ${card.id}`)
       item.appendChild(label)
 
+      // Rename button
+      const renameBtn = createElement('button', {
+        className: 'card-item-rename'
+      })
+      renameBtn.setAttribute('aria-label', `Rename ${card.name || `Card ${card.id}`}`)
+      setTextContent(renameBtn, '✎')
+      addEventListener(renameBtn, 'click', (e) => {
+        e.stopPropagation()
+        this.onRenameCard?.(card.id)
+      })
+      item.appendChild(renameBtn)
+
       const deleteBtn = createElement('button', {
         className: 'card-item-delete'
       })
@@ -105,5 +118,9 @@ export class CardListPanel {
 
   onDeleteCardClicked(handler: (cardId: string) => void): void {
     this.onDeleteCard = handler
+  }
+
+  onRenameCardClicked(handler: (cardId: string) => void): void {
+    this.onRenameCard = handler
   }
 }

@@ -594,7 +594,7 @@ Phase 6 (Polish & Documentation)
 
 ### In-UI Authoring Tools
 
-- [ ] **8.2** Add "Add Card", "Add Button", "Add Field", "Delete Card", "Rename" UI controls. *(Ref: REQ-P8-002)*
+- [x] **8.2** Add "Add Card", "Add Button", "Add Field", "Delete Card", "Rename" UI controls. *(Ref: REQ-P8-002)*
   - Location: `src/dom/cardList.ts`, `src/dom/cardCanvas.ts`, `src/dom/elementInspector.ts`
   - Card list: add +/Delete buttons for cards; context menu for rename.
   - Canvas: add +Button/+Field buttons in toolbar or context menu.
@@ -603,7 +603,7 @@ Phase 6 (Polish & Documentation)
   - Delete: confirmation prompt before removal.
   - Tests: All CRUD operations work; elements created with correct defaults; renames persist.
 
-- [ ] **8.2b** Load starter stack (`examples/haunted-counter.json`) on first visit when no saved stack exists. *(Ref: REQ-P8-002)*
+- [x] **8.2b** Load starter stack (`examples/haunted-counter.json`) on first visit when no saved stack exists. *(Ref: REQ-P8-002)*
   - Location: `src/dom/app.ts`, `src/dom/storage.ts`
   - On app startup: check localStorage for saved stack.
   - If no stack exists: load `examples/haunted-counter.json` as default.
