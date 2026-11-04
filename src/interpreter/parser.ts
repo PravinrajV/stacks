@@ -739,13 +739,14 @@ export class Parser {
   }
 
   /**
-   * Parse additive operators (+ -).
+   * Parse additive operators (+ - &).
+   * & is string concatenation.
    */
   private parseAdditive(): Expression | ParseError {
     let expr = this.parseMultiplicative()
     if ('type' in expr && expr.type === 'ParseError') return expr
 
-    while (this.match('operator', '+') || this.match('operator', '-')) {
+    while (this.match('operator', '+') || this.match('operator', '-') || this.match('operator', '&')) {
       const op = this.previous().value
       const right = this.parseMultiplicative()
       if ('type' in right && right.type === 'ParseError') return right
@@ -914,7 +915,7 @@ export class Parser {
 
     // field/button access
     if (this.match('keyword', 'FIELD')) {
-      const fieldName = this.parseExpression()
+      const fieldName = this.parsePrimary()
       if ('type' in fieldName && fieldName.type === 'ParseError') return fieldName
       return {
         type: 'FieldAccess',

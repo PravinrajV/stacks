@@ -710,6 +710,9 @@ export class Runtime {
       return { success: true, value: left === right }
     } else if (expr.op === '!=') {
       return { success: true, value: left !== right }
+    } else if (expr.op === '&') {
+      // String concatenation
+      return { success: true, value: String(left) + String(right) }
     }
 
     return {

@@ -140,10 +140,20 @@ export class RunModeViewer {
       const result = await send('mouseUp', button, context, this)
       if (!result.success && result.error) {
         await this.modal.show(`Error: ${result.error.message || String(result.error)}`)
+      } else {
+        // Re-render all fields after successful script execution to reflect model changes
+        this.reRenderAllFields()
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
       await this.modal.show(`Error: ${msg}`)
+    }
+  }
+
+  private reRenderAllFields(): void {
+    if (!this.currentCard) return
+    for (const field of this.currentCard.fields) {
+      this.updateFieldContent(field)
     }
   }
 
