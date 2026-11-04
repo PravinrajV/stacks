@@ -8,14 +8,24 @@
  * - Built-in commands and functions
  * - Timeout and step limit enforcement
  * - Error handling
+ * - Message passing and handler execution
+ * - Sandbox enforcement
  *
- * REQ-HT-003, REQ-HT-005, REQ-HT-006, REQ-EH-002, REQ-EH-003
+ * REQ-HT-003, REQ-HT-005, REQ-HT-006, REQ-EH-002, REQ-EH-003, REQ-HT-004
  */
 
 import { describe, it, expect } from 'vitest'
 import { Parser, PutStatement, IdentifierExpr, LiteralExpr, Program } from './parser'
 import { Lexer } from './lexer'
-import { Runtime, createExecutionContext, executeProgram, ExecutionContext } from './runtime'
+import {
+  Runtime,
+  createExecutionContext,
+  executeProgram,
+  ExecutionContext,
+  MessageDispatcher,
+  dispatchMouseUp,
+  dispatchOpenCard,
+} from './runtime'
 import { Stack, Card, Field, Background, createField, createButton, createCard, createStack } from '../model/stack'
 import { Rect } from '../model/types'
 
@@ -998,5 +1008,443 @@ end repeat`
 
     expect(result.success).toBe(true)
     expect(ctx.localVariables.get('result')).toBe(2)
+  })
+})
+describe('Runtime: Message Dispatcher (REQ-HT-004, 3.15)', () => {
+  it('finds handler on element', () => {
+    const button = {
+      label: 'Click me',
+      rect: { left: 0, top: 0, right: 100, bottom: 40 },
+      scripts: {
+        mouseUp: 'on mouseUp\nput "clicked" into x\nend mouseUp',
+      },
+    }
+
+    const handler = MessageDispatcher.findHandler('mouseUp', button)
+    expect(handler).not.toBeNull()
+    expect(handler?.name).toBe('mouseUp')
+  })
+
+  it('returns null for handler not found', () => {
+    const button = {
+      label: 'Click me',
+      rect: { left: 0, top: 0, right: 100, bottom: 40 },
+      scripts: {},
+    }
+
+    const handler = MessageDispatcher.findHandler('mouseUp', button)
+    expect(handler).toBeNull()
+  })
+
+  it('finds handler with on prefix', () => {
+    const button = {
+      label: 'Click me',
+      rect: { left: 0, top: 0, right: 100, bottom: 40 },
+      scripts: {
+        'on mouseUp': 'on mouseUp\nput "clicked" into x\nend mouseUp',
+      },
+    }
+
+    const handler = MessageDispatcher.findHandler('mouseUp', button)
+    expect(handler).not.toBeNull()
+  })
+})
+
+describe('Runtime: Handler Lookup (REQ-HT-004, 3.16)', () => {
+  it('finds handler on button', () => {
+    const button = {
+      id: 'btn1',
+      label: 'Click',
+      rect: { left: 0, top: 0, right: 100, bottom: 40 },
+      scripts: {
+        mouseUp: 'on mouseUp\nput "button click" into x\nend mouseUp',
+      },
+    }
+
+    const handler = MessageDispatcher.findHandler('mouseUp', button)
+    expect(handler).not.toBeNull()
+    expect(handler?.name).toBe('mouseUp')
+  })
+
+  it('finds handler on card', () => {
+    const { stack, card } = createTestCard()
+    card.scripts.openCard = 'on openCard\nput "card open" into x\nend openCard'
+
+    const handler = MessageDispatcher.findHandler('openCard', card)
+    expect(handler).not.toBeNull()
+    expect(handler?.name).toBe('openCard')
+  })
+
+  it('finds handler on background', () => {
+    const background: Background = {
+      id: 'bg1',
+      name: 'Main Background',
+      buttons: [],
+      fields: [],
+      scripts: {
+        mouseUp: 'on mouseUp\nput "background click" into x\nend mouseUp',
+      },
+    }
+
+    const handler = MessageDispatcher.findHandler('mouseUp', background)
+    expect(handler).not.toBeNull()
+    expect(handler?.name).toBe('mouseUp')
+  })
+
+  it('finds handler on stack', () => {
+    const { stack } = createTestCard()
+    stack.scripts = {
+      openCard: 'on openCard\nput "stack open" into x\nend openCard',
+    }
+
+    const handler = MessageDispatcher.findHandler('openCard', stack)
+    expect(handler).not.toBeNull()
+    expect(handler?.name).toBe('openCard')
+  })
+})
+
+describe('Runtime: Handler Invocation (REQ-HT-004, 3.17)', () => {
+  it('invokes handler with fresh local scope', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+
+    // Parse simple statements without handler wrapper
+    const code = 'put 42 into localVar'
+    const programAst = parseCode(code)
+    const handler = {
+      name: 'testHandler',
+      source: code,
+      ast: programAst.statements,
+    }
+
+    const result = MessageDispatcher.invokeHandler(handler, ctx)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('handler can access card variables', () => {
+    const { stack, card } = createTestCard()
+    card.variables.set('cardVar', 'card-value')
+
+    const ctx = createExecutionContext(stack, card)
+
+    const code = 'put "test-value" into result'
+    const programAst = parseCode(code)
+    const handler = {
+      name: 'testHandler',
+      source: code,
+      ast: programAst.statements,
+    }
+
+    const result = MessageDispatcher.invokeHandler(handler, ctx)
+    expect(result.success).toBe(true)
+  })
+
+  it('handler can access stack variables', () => {
+    const { stack, card } = createTestCard()
+    stack.variables.set('stackVar', 'stack-value')
+
+    const ctx = createExecutionContext(stack, card)
+
+    const code = 'put "test-value" into result'
+    const programAst = parseCode(code)
+    const handler = {
+      name: 'testHandler',
+      source: code,
+      ast: programAst.statements,
+    }
+
+    const result = MessageDispatcher.invokeHandler(handler, ctx)
+    expect(result.success).toBe(true)
+  })
+
+  it('handler invocation creates fresh local scope', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    ctx.localVariables.set('x', 'parent-value')
+
+    const code = 'put 42 into x'
+    const programAst = parseCode(code)
+    const handler = {
+      name: 'testHandler',
+      source: code,
+      ast: programAst.statements,
+    }
+
+    MessageDispatcher.invokeHandler(handler, ctx)
+
+    // Parent context's local variable should still be 'parent-value'
+    expect(ctx.localVariables.get('x')).toBe('parent-value')
+  })
+})
+
+describe('Runtime: OpenCard Message (REQ-HT-004, 3.18)', () => {
+  it('dispatches openCard message on navigation', () => {
+    const { stack } = createTestCard()
+    const card1: Card = {
+      id: 'card1',
+      backgroundId: null,
+      name: 'Card 1',
+      buttons: [],
+      fields: [],
+      scripts: {
+        openCard: 'on openCard\nput "opened card 1" into x\nend openCard',
+      },
+      variables: new Map(),
+    }
+    const card2: Card = {
+      id: 'card2',
+      backgroundId: null,
+      name: 'Card 2',
+      buttons: [],
+      fields: [],
+      scripts: {
+        openCard: 'on openCard\nput "opened card 2" into y\nend openCard',
+      },
+      variables: new Map(),
+    }
+    stack.cards = [card1, card2]
+
+    const ctx = createExecutionContext(stack, card1)
+    const result = dispatchOpenCard(card2, ctx)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('openCard handler can modify card state', () => {
+    const { stack, card } = createTestCard()
+    const field = createField('f1', 'title', '')
+    card.fields.push(field)
+    card.scripts.openCard = 'on openCard\nput "Welcome" into field "title"\nend openCard'
+
+    const ctx = createExecutionContext(stack, card)
+    const result = dispatchOpenCard(card, ctx)
+
+    expect(result.success).toBe(true)
+    expect(field.content).toBe('Welcome')
+  })
+
+  it('openCard propagates through hierarchy (card -> background -> stack)', () => {
+    const { stack, card } = createTestCard()
+    const bg: Background = {
+      id: 'bg1',
+      name: 'BG',
+      buttons: [],
+      fields: [],
+      scripts: {
+        openCard: 'on openCard\nput "bg handler" into bgResult\nend openCard',
+      },
+    }
+    stack.backgrounds = [bg]
+    card.backgroundId = bg.id
+    card.scripts.openCard = 'on openCard\nput "card handler" into cardResult\nend openCard'
+
+    const ctx = createExecutionContext(stack, card)
+    const result = dispatchOpenCard(card, ctx)
+
+    expect(result.success).toBe(true)
+  })
+})
+
+describe('Runtime: MouseUp Message (REQ-HT-004, 3.19)', () => {
+  it('dispatches mouseUp message on button click', () => {
+    const { stack, card } = createTestCard()
+    const button = {
+      id: 'btn1',
+      label: 'Click',
+      rect: { left: 0, top: 0, right: 100, bottom: 40 },
+      scripts: {
+        mouseUp: 'on mouseUp\nput "clicked" into result\nend mouseUp',
+      },
+    }
+
+    const ctx = createExecutionContext(stack, card)
+    const result = dispatchMouseUp(button, ctx)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('mouseUp handler can modify card state', () => {
+    const { stack, card } = createTestCard()
+    const field = createField('f1', 'output', '')
+    card.fields.push(field)
+
+    const button = {
+      id: 'btn1',
+      label: 'Click',
+      rect: { left: 0, top: 0, right: 100, bottom: 40 },
+      scripts: {
+        mouseUp: 'on mouseUp\nput "Button clicked!" into field "output"\nend mouseUp',
+      },
+    }
+
+    const ctx = createExecutionContext(stack, card)
+    const result = dispatchMouseUp(button, ctx)
+
+    expect(result.success).toBe(true)
+    expect(field.content).toBe('Button clicked!')
+  })
+
+  it('mouseUp propagates through hierarchy (button -> card -> background -> stack)', () => {
+    const { stack, card } = createTestCard()
+    const bg: Background = {
+      id: 'bg1',
+      name: 'BG',
+      buttons: [],
+      fields: [],
+      scripts: {
+        mouseUp: 'on mouseUp\nput "bg handler" into bgResult\nend mouseUp',
+      },
+    }
+    stack.backgrounds = [bg]
+    card.backgroundId = bg.id
+    card.scripts.mouseUp = 'on mouseUp\nput "card handler" into cardResult\nend mouseUp'
+
+    const button = {
+      id: 'btn1',
+      label: 'Click',
+      rect: { left: 0, top: 0, right: 100, bottom: 40 },
+      scripts: {
+        mouseUp: 'on mouseUp\nput "button handler" into buttonResult\nend mouseUp',
+      },
+    }
+
+    const ctx = createExecutionContext(stack, card)
+    const result = dispatchMouseUp(button, ctx)
+
+    expect(result.success).toBe(true)
+  })
+})
+
+describe('Runtime: Sandbox Enforcement - Fetch/XMLHttpRequest/Eval (REQ-EH-003, 3.20)', () => {
+  it('blocks fetch function call', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put fetch("http://example.com") into result`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.type).toBe('SandboxViolation')
+      expect(result.error.message).toContain('Operation not allowed in scripts')
+      expect(result.error.message).toContain('fetch')
+    }
+  })
+
+  it('blocks XMLHttpRequest function call', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put xmlhttprequest() into result`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.type).toBe('SandboxViolation')
+      expect(result.error.message).toContain('Operation not allowed in scripts')
+    }
+  })
+
+  it('blocks eval function call', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put eval("1 + 1") into result`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.type).toBe('SandboxViolation')
+      expect(result.error.message).toContain('Operation not allowed in scripts')
+      expect(result.error.message).toContain('eval')
+    }
+  })
+
+  it('records sandbox violations in context', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put fetch("http://test") into x`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    expect(ctx.sandboxViolations.length).toBeGreaterThan(0)
+    expect(ctx.sandboxViolations).toContain('fetch')
+  })
+})
+
+describe('Runtime: Sandbox Enforcement - Restricted Globals (REQ-EH-003, 3.21)', () => {
+  it('blocks access to window global', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put window into result`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.type).toBe('SandboxViolation')
+      expect(result.error.message).toContain('Sandbox violation')
+      expect(result.error.message).toContain('window')
+    }
+  })
+
+  it('blocks access to document global', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put document into result`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.type).toBe('SandboxViolation')
+      expect(result.error.message).toContain('Sandbox violation')
+      expect(result.error.message).toContain('document')
+    }
+  })
+
+  it('blocks access to localStorage global', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put localStorage into result`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.type).toBe('SandboxViolation')
+      expect(result.error.message).toContain('Sandbox violation')
+      expect(result.error.message).toContain('localstorage')
+    }
+  })
+
+  it('records sandbox violations when accessing restricted globals', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put window into x`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    expect(ctx.sandboxViolations.length).toBeGreaterThan(0)
+    expect(ctx.sandboxViolations).toContain('window')
   })
 })

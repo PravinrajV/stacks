@@ -63,6 +63,7 @@ export interface Stack {
   version: string
   backgrounds: Background[]
   cards: Card[]
+  scripts?: { [handlerName: string]: string }
   variables: Map<string, any>
 }
 

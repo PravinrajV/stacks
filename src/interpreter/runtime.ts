@@ -35,6 +35,8 @@ import {
   LiteralExpr,
   IdentifierExpr,
 } from './parser'
+import { Lexer } from './lexer'
+import { Parser } from './parser'
 
 /**
  * Execution Context: maintains state during script execution.
@@ -134,9 +136,10 @@ export class Runtime {
 
   /**
    * Execute a single statement.
+   * Made public for MessageDispatcher to use.
    * REQ-HT-003, REQ-HT-005
    */
-  private executeStatement(stmt: Statement): ExecutionResult {
+  executeStatement(stmt: Statement): ExecutionResult {
     // Check timeout and step limit.
     this.context.stepCount++
     const stmtAny = stmt as any
@@ -494,7 +497,11 @@ export class Runtime {
 
     // Switch context to new card
     this.context.currentCard = targetCard
-    // TODO: Emit openCard message to new card handler
+
+    // Emit openCard message to new card
+    // REQ-HT-004, 3.18
+    const openCardResult = MessageDispatcher.send('openCard', targetCard, this.context)
+    if (!openCardResult.success) return openCardResult
 
     return { success: true, value: undefined }
   }
@@ -543,7 +550,7 @@ export class Runtime {
 
   /**
    * Evaluate an expression.
-   * REQ-HT-003, REQ-HT-005, 3.4
+   * REQ-HT-003, REQ-HT-005, 3.4, 3.21
    */
   evaluateExpression(expr: Expression): ExecutionResult {
     if (expr.type === 'Literal') {
@@ -551,6 +558,23 @@ export class Runtime {
       return { success: true, value: litExpr.value }
     } else if (expr.type === 'Identifier') {
       const idExpr = expr as IdentifierExpr
+      const varName = idExpr.name.toLowerCase()
+
+      // Sandbox: block access to restricted globals
+      // REQ-EH-003, 3.21
+      if (varName === 'window' || varName === 'document' || varName === 'localstorage') {
+        this.context.sandboxViolations.push(varName)
+        return {
+          success: false,
+          error: {
+            type: 'SandboxViolation',
+            message: `Sandbox violation: cannot access ${varName}`,
+            line: expr.line,
+            column: expr.column,
+          },
+        }
+      }
+
       const result = this.getVariable('local', idExpr.name)
       if (result.success) {
         return result
@@ -697,10 +721,38 @@ export class Runtime {
 
   /**
    * Evaluate function call.
-   * REQ-HT-005
+   * REQ-HT-005, 3.20
    */
   private evaluateFunctionCall(expr: FunctionCallExpr): ExecutionResult {
     const funcName = expr.name.toLowerCase()
+
+    // Sandbox: block dangerous functions
+    // REQ-EH-003, 3.20
+    if (funcName === 'fetch' || funcName === 'xmlhttprequest') {
+      this.context.sandboxViolations.push(funcName)
+      return {
+        success: false,
+        error: {
+          type: 'SandboxViolation',
+          message: `Operation not allowed in scripts: ${funcName}`,
+          line: expr.line,
+          column: expr.column,
+        },
+      }
+    }
+
+    if (funcName === 'eval') {
+      this.context.sandboxViolations.push('eval')
+      return {
+        success: false,
+        error: {
+          type: 'SandboxViolation',
+          message: 'Operation not allowed in scripts: eval',
+          line: expr.line,
+          column: expr.column,
+        },
+      }
+    }
 
     // Math functions
     if (funcName === 'add') {
@@ -1207,4 +1259,231 @@ export function executeProgram(program: Program, stack: Stack, currentCard: Card
   const context = createExecutionContext(stack, currentCard)
   const runtime = new Runtime(context)
   return runtime.execute(program)
+}
+
+/**
+ * Handler interface for message passing.
+ * REQ-HT-004
+ */
+export interface Handler {
+  name: string
+  source: string
+  ast: Statement[]
+}
+
+/**
+ * Message Dispatcher: routes messages through element hierarchy.
+ * REQ-HT-004, 3.15, 3.16, 3.17, 3.18, 3.19
+ */
+export class MessageDispatcher {
+  /**
+   * Send a message to a target element, propagating through hierarchy:
+   * element → card → background → stack.
+   * REQ-HT-004, 3.15
+   */
+  static send(
+    messageName: string,
+    targetElement: any,
+    context: ExecutionContext,
+  ): ExecutionResult {
+    const scope: Array<{ element: any; type: string }> = []
+
+    // Determine hierarchy based on target type
+    if (targetElement.type === 'button' || (targetElement.label !== undefined && targetElement.rect !== undefined)) {
+      // Target is a button
+      scope.push({ element: targetElement, type: 'button' })
+      scope.push({ element: context.currentCard, type: 'card' })
+
+      // Add background if card has one
+      if (context.currentCard.backgroundId) {
+        const bg = context.stack.backgrounds.find((b) => b.id === context.currentCard.backgroundId)
+        if (bg) scope.push({ element: bg, type: 'background' })
+      }
+
+      scope.push({ element: context.stack, type: 'stack' })
+    } else if (targetElement === context.currentCard || targetElement.id === context.currentCard.id) {
+      // Target is a card
+      scope.push({ element: context.currentCard, type: 'card' })
+
+      // Add background if card has one
+      if (context.currentCard.backgroundId) {
+        const bg = context.stack.backgrounds.find((b) => b.id === context.currentCard.backgroundId)
+        if (bg) scope.push({ element: bg, type: 'background' })
+      }
+
+      scope.push({ element: context.stack, type: 'stack' })
+    } else {
+      // Direct element
+      scope.push({ element: targetElement, type: 'unknown' })
+      scope.push({ element: context.currentCard, type: 'card' })
+
+      if (context.currentCard.backgroundId) {
+        const bg = context.stack.backgrounds.find((b) => b.id === context.currentCard.backgroundId)
+        if (bg) scope.push({ element: bg, type: 'background' })
+      }
+
+      scope.push({ element: context.stack, type: 'stack' })
+    }
+
+    // Walk hierarchy and invoke handlers
+    for (const { element, type } of scope) {
+      const handler = MessageDispatcher.findHandler(messageName, element)
+      if (handler) {
+        const result = MessageDispatcher.invokeHandler(handler, context)
+        if (!result.success) return result
+        // Handler executed; continue to next in hierarchy
+      }
+    }
+
+    return { success: true, value: undefined }
+  }
+
+  /**
+   * Find handler by name on element/card/background/stack.
+   * REQ-HT-004, 3.16
+   */
+  static findHandler(handlerName: string, element: any): Handler | null {
+    if (!element || !element.scripts) return null
+
+    // Try exact match (no "on" prefix)
+    const source = element.scripts[handlerName]
+    if (source) {
+      return MessageDispatcher.parseHandler(handlerName, source)
+    }
+
+    // Try with "on" prefix
+    const onPrefixSource = element.scripts[`on ${handlerName}`]
+    if (onPrefixSource) {
+      return MessageDispatcher.parseHandler(handlerName, onPrefixSource)
+    }
+
+    return null
+  }
+
+  /**
+   * Parse handler source into AST statements.
+   */
+  private static parseHandler(handlerName: string, source: string): Handler | null {
+    try {
+      let toparse = source
+
+      // If source already starts with "on", parse it as-is
+      if (toparse.trim().toLowerCase().startsWith('on ')) {
+        const lexer = new Lexer(toparse)
+        const tokensOrError = lexer.tokenize()
+        if ('type' in tokensOrError && tokensOrError.type === 'LexError') {
+          return null
+        }
+
+        const parser = new Parser(tokensOrError as any[])
+        const ast = parser.parse()
+        if ('type' in ast && ast.type === 'ParseError') {
+          return null
+        }
+
+        const program = ast as Program
+
+        // Find the handler in the program
+        for (const handler of program.handlers) {
+          if (handler.name.toLowerCase() === handlerName.toLowerCase()) {
+            return {
+              name: handlerName,
+              source,
+              ast: handler.body,
+            }
+          }
+        }
+
+        // If no named handler found, treat all statements as handler body
+        return {
+          name: handlerName,
+          source,
+          ast: program.statements,
+        }
+      } else {
+        // Source doesn't have handler wrapper; treat as plain statements
+        // Wrap in a handler for parsing
+        toparse = `on ${handlerName}\n${source}\nend ${handlerName}`
+
+        const lexer = new Lexer(toparse)
+        const tokensOrError = lexer.tokenize()
+        if ('type' in tokensOrError && tokensOrError.type === 'LexError') {
+          return null
+        }
+
+        const parser = new Parser(tokensOrError as any[])
+        const ast = parser.parse()
+        if ('type' in ast && ast.type === 'ParseError') {
+          return null
+        }
+
+        const program = ast as Program
+
+        // Get the statements from the handler
+        if (program.handlers.length > 0) {
+          return {
+            name: handlerName,
+            source,
+            ast: program.handlers[0].body,
+          }
+        }
+
+        return {
+          name: handlerName,
+          source,
+          ast: program.statements,
+        }
+      }
+    } catch (e) {
+      console.error(`Failed to parse handler ${handlerName}:`, e)
+      return null
+    }
+  }
+
+  /**
+   * Invoke handler with new execution context.
+   * REQ-HT-004, 3.17
+   */
+  static invokeHandler(handler: Handler, parentContext: ExecutionContext): ExecutionResult {
+    // Create new context with fresh local scope but inherited card/stack variables
+    const freshContext: ExecutionContext = {
+      stack: parentContext.stack,
+      currentCard: parentContext.currentCard,
+      localVariables: new Map(), // Fresh local scope
+      callStack: [...parentContext.callStack, handler.name],
+      stepCount: parentContext.stepCount,
+      startTime: parentContext.startTime,
+      sandboxViolations: parentContext.sandboxViolations,
+    }
+
+    const runtime = new Runtime(freshContext)
+
+    // Execute handler statements
+    for (const stmt of handler.ast) {
+      const result = runtime.executeStatement(stmt as Statement)
+      if (!result.success) return result
+    }
+
+    // Update parent context with any sandbox violations that occurred
+    parentContext.sandboxViolations = freshContext.sandboxViolations
+    parentContext.stepCount = freshContext.stepCount
+
+    return { success: true, value: undefined }
+  }
+}
+
+/**
+ * Convenience function to dispatch mouseUp message on a button.
+ * REQ-HT-004, 3.19
+ */
+export function dispatchMouseUp(button: any, context: ExecutionContext): ExecutionResult {
+  return MessageDispatcher.send('mouseUp', button, context)
+}
+
+/**
+ * Convenience function to dispatch openCard message on a card.
+ * REQ-HT-004, 3.18
+ */
+export function dispatchOpenCard(card: Card, context: ExecutionContext): ExecutionResult {
+  return MessageDispatcher.send('openCard', card, context)
 }

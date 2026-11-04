@@ -18,3 +18,7 @@
 - Independent verification: clean npm ci, build OK, vitest 174/174 passing (9 files). No eval/new Function/fetch in src.
 - Hand edits (not code): ticked 3.1-3.14 in tasks.md after verification.
 - Credits after session: 20.97 of 50.
+- 2026-11-04 ~01:12 ET: kiro-cli (haiku-4.5) implemented Phase 3b (tasks 3.15-3.21): message dispatch, handler lookup/invocation, openCard/mouseUp, sandbox (fetch/XHR/eval/window/document/localStorage blocked). Unedited by hand.
+- Independent verification: clean npm ci, build OK, vitest 199/199 passing (9 files). No eval/new Function/fetch in src.
+- Hand edits (not code): ticked 3.15-3.21 in tasks.md.
+- Credits after session: 24.58 of 50.

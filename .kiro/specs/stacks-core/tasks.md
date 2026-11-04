@@ -212,41 +212,41 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Message Passing and Handler Execution
 
-- [ ] **3.15** Implement message dispatcher (send message to element hierarchy). *(Ref: REQ-HT-004)*
+- [x] **3.15** Implement message dispatcher (send message to element hierarchy). *(Ref: REQ-HT-004)*
   - Location: `src/interpreter/runtime.ts` or `src/dispatcher.ts`
   - Method: `send(messageName, target, context): void`
   - Hierarchy: element → card → background → stack.
   - Tests: Message propagates through hierarchy, handler lookup works at each level.
 
-- [ ] **3.16** Implement handler lookup (find handler by name on element/card/background/stack). *(Ref: REQ-HT-004)*
+- [x] **3.16** Implement handler lookup (find handler by name on element/card/background/stack). *(Ref: REQ-HT-004)*
   - Location: `src/interpreter/runtime.ts`
   - Method: `findHandler(name, scope): Handler | null`
   - Tests: Handler found on correct scope, not found returns null.
 
-- [ ] **3.17** Implement handler invocation (invoke handler with new execution context). *(Ref: REQ-HT-004)*
+- [x] **3.17** Implement handler invocation (invoke handler with new execution context). *(Ref: REQ-HT-004)*
   - Location: `src/interpreter/runtime.ts`
   - Method: `invokeHandler(handler, context): void`
   - Create new local scope for handler, inherit card/stack variables.
   - Tests: Handler variables local, card/stack variables accessible.
 
-- [ ] **3.18** Implement openCard message (fired when card is displayed). *(Ref: REQ-HT-004, REQ-CE-001)*
+- [x] **3.18** Implement openCard message (fired when card is displayed). *(Ref: REQ-HT-004, REQ-CE-001)*
   - Location: `src/interpreter/runtime.ts`
   - Send openCard to card, then background, then stack when card navigation completes.
   - Tests: openCard handlers execute in order, can update fields.
 
-- [ ] **3.19** Implement mouseUp message (fired when button is clicked). *(Ref: REQ-HT-004, REQ-CE-001)*
+- [x] **3.19** Implement mouseUp message (fired when button is clicked). *(Ref: REQ-HT-004, REQ-CE-001)*
   - Location: `src/interpreter/runtime.ts`
   - Send mouseUp to button, then card, then background, then stack.
   - Tests: Handler on button executes first; if absent, handler on card executes, etc.
 
 ### Sandbox Enforcement
 
-- [ ] **3.20** Implement sandbox: block fetch, XMLHttpRequest, eval. *(Ref: REQ-EH-003)*
+- [x] **3.20** Implement sandbox: block fetch, XMLHttpRequest, eval. *(Ref: REQ-EH-003)*
   - Location: `src/interpreter/sandbox.ts`
   - When these are called, raise "Operation not allowed in scripts" error.
   - Tests: Each blocked operation raises error, execution continues.
 
-- [ ] **3.21** Implement sandbox: block access to restricted globals (window, document, localStorage). *(Ref: REQ-EH-003)*
+- [x] **3.21** Implement sandbox: block access to restricted globals (window, document, localStorage). *(Ref: REQ-EH-003)*
   - Location: `src/interpreter/sandbox.ts`
   - When accessed, raise "Sandbox violation" error.
   - Tests: Cannot access window properties from script.
