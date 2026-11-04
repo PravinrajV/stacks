@@ -1303,3 +1303,519 @@ class MockProvider implements ModelProvider {
 - Instructions: manually test on each browser, record pass/fail/notes.
 - Known limitations: e.g., "Safari: touch events not tested" or "IE: not supported."
 
+
+
+---
+
+## Phase 9: Haunted Premium UI – Design and Architecture
+
+### Overview
+
+Phase 9 introduces a polished, Kiroween-themed dark aesthetic while maintaining the Classic 1-bit theme as an opt-in alternative. The design emphasizes cohesion, accessibility, performance, and smooth micro-interactions without external dependencies.
+
+### Design System
+
+#### Color Palette
+
+**Haunted Theme (Default)**
+- **Background**: Deep near-black/indigo (`#0f0f1e` or similar)
+- **Surface (Glass)**: Semi-transparent (`rgba(255, 255, 255, 0.05)` or similar for backdrop blur effect)
+- **Primary Accent**: Glowing purple (`#a855f7`)
+- **Secondary Accent**: Pumpkin orange (`#f97316`)
+- **Text Primary**: Light (`#f5f5f5`)
+- **Text Secondary**: Muted light (`#a0a0a0`)
+- **Border**: Subtle light with opacity (`rgba(255, 255, 255, 0.1)`)
+- **Shadow**: Soft, dark (`rgba(0, 0, 0, 0.3)`)
+
+**Classic Theme (Optional)**
+- Black, white, gray only (REQ-P8-003: inherited from Phase 8)
+- No glass effects, soft shadows, or modern styling
+- Retains 1-bit aesthetic
+
+#### Typography
+
+**Headings and Card Titles**: Pixel/Monospace Face
+- System stack: Monaco → Courier New → monospace
+- OR: Committed OFL-licensed pixel font (e.g., "Press Start 2P" or "JetBrains Mono")
+- Font size: 12px–16px (pixel-friendly)
+- Weight: 400 (no bold)
+
+**UI Text**: System-ui Stack
+- System stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif
+- Font size: 13px–14px
+- Weight: 400 (regular), 500 (semi-bold for buttons)
+
+#### Shadows and Glass Effects
+
+**Glass Morphism**:
+```css
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+```
+
+**Hover/Active States**:
+- Hover: Slight increase in background opacity + shadow intensity (transition: 150ms ease-out)
+- Active/Pressed: Scale-down 2% + shadow decrease (transition: 50ms ease-out)
+
+### Layout and Spacing
+
+#### Toolbar
+- Height: 44px (iOS standard)
+- Padding: 8px horizontal, centered vertically
+- Icons: 24px × 24px (inline SVG)
+- Icon gap: 4px
+- Tooltips: Position above icons on hover (14px font, Haunted theme styling)
+
+#### Panels (Card List, Inspector, Script Editor)
+- Border: 1px glass morphism border
+- Padding: 12px
+- Gap between sections: 8px
+- Background: Glass panel color
+
+#### Card Canvas
+- Fixed aspect ratio: 512×342 (classic HyperCard)
+- Centered in viewport
+- Scale to fit with max 90% viewport width/height
+- Gutter: 20px around card for controls
+
+### Animations and Transitions
+
+**Prefers-Reduced-Motion Support**:
+```css
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
+}
+```
+
+**Card Navigation Transition**:
+- Fade out + Fade in (200–250ms cubic-bezier(0.25, 0.46, 0.45, 0.94))
+- OR: Flip on Y-axis (300ms) for more dramatic effect
+- Ensure final state is fully interactive upon completion
+
+**Mode Switch (Edit ↔ Run)**:
+- Scale + Fade (150–200ms ease-out)
+- Card grows to fill space in Run Mode; shrinks in Edit Mode
+
+**Button/Element Hover**:
+- Scale: 1 → 1.05 (very subtle)
+- Opacity/Shadow: +5–10% (transition: 100ms ease-out)
+
+**Button Press**:
+- Scale: 1.05 → 0.98 (down press feedback)
+- Shadow: decrease (transition: 50ms ease-in)
+- Completion: 100ms total
+- Return to hover state on release
+
+**Modal Fade-In**:
+- Opacity: 0 → 1 (100–150ms ease-out)
+- Backdrop: Fade in simultaneously
+- Scale: 0.95 → 1.0 (optional, subtle pop)
+
+### Theme Toggle Implementation
+
+#### Storage
+```typescript
+// localStorage
+localStorage.setItem("stacks_theme", "haunted" | "classic");
+```
+
+#### CSS Class Strategy
+```html
+<!-- Root element -->
+<body class="theme-haunted">
+  <!-- or -->
+  <body class="theme-classic">
+```
+
+#### CSS Variables (for Haunted theme)
+```css
+:root[data-theme="haunted"] {
+  --bg-primary: #0f0f1e;
+  --bg-secondary: rgba(255, 255, 255, 0.05);
+  --color-primary: #f5f5f5;
+  --color-secondary: #a0a0a0;
+  --accent-purple: #a855f7;
+  --accent-orange: #f97316;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="classic"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0f0f0;
+  --color-primary: #000000;
+  --color-secondary: #666666;
+  --accent-purple: #000000;
+  --accent-orange: #000000;
+  --border-color: #000000;
+  --shadow: none;
+}
+```
+
+#### Toggle Button in Toolbar
+```typescript
+// In toolbar or settings
+const themeToggle = createButton({
+  icon: sunIcon(), // or moonIcon() depending on current theme
+  tooltip: "Toggle Theme (Haunted / Classic)",
+  onClick: () => toggleTheme()
+});
+
+function toggleTheme() {
+  const current = localStorage.getItem("stacks_theme") || "haunted";
+  const next = current === "haunted" ? "classic" : "haunted";
+  localStorage.setItem("stacks_theme", next);
+  document.documentElement.setAttribute("data-theme", next);
+  // Re-render components as needed
+}
+```
+
+### SVG Icons (Inline)
+
+All icons are defined as inline SVG functions to avoid CDN requests:
+
+```typescript
+// src/dom/icons.ts
+export function addCardIcon(): SVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", "24");
+  svg.setAttribute("height", "24");
+  svg.setAttribute("fill", "currentColor");
+  
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z");
+  svg.appendChild(path);
+  
+  return svg;
+}
+
+export function undoIcon(): SVGElement { /* ... */ }
+export function redoIcon(): SVGElement { /* ... */ }
+export function deleteIcon(): SVGElement { /* ... */ }
+export function saveIcon(): SVGElement { /* ... */ }
+export function exportIcon(): SVGElement { /* ... */ }
+export function importIcon(): SVGElement { /* ... */ }
+export function runIcon(): SVGElement { /* ... */ }
+export function themeIcon(theme: "sun" | "moon"): SVGElement { /* ... */ }
+```
+
+Icons are colored via CSS `currentColor` property, inheriting text color from parent theme.
+
+### Script Editor Dark Theme
+
+```css
+.script-editor[data-theme="haunted"] {
+  background: #1a1a2e;
+  color: #f5f5f5;
+}
+
+.script-editor[data-theme="haunted"] .token-keyword {
+  color: #a855f7; /* purple */
+}
+
+.script-editor[data-theme="haunted"] .token-string {
+  color: #f97316; /* orange */
+}
+
+.script-editor[data-theme="haunted"] .token-number {
+  color: #06b6d4; /* cyan */
+}
+
+.script-editor[data-theme="haunted"] .token-comment {
+  color: #6b7280; /* gray */
+}
+
+.script-editor[data-theme="haunted"] .error-line {
+  background: rgba(239, 68, 68, 0.1); /* red tint */
+  border-left: 3px solid #ef4444;
+}
+
+.script-editor[data-theme="classic"] {
+  /* Revert to Phase 8 1-bit styling */
+  background: #ffffff;
+  color: #000000;
+}
+
+.script-editor[data-theme="classic"] .token-keyword {
+  color: #000000;
+  font-weight: bold;
+}
+
+.script-editor[data-theme="classic"] .token-string {
+  color: #333333;
+}
+
+.script-editor[data-theme="classic"] .error-line {
+  background: #f0f0f0;
+  border-left: 3px solid #ff0000;
+}
+```
+
+### Styled Dialogs
+
+Replace `window.alert()`, `window.confirm()`, `window.prompt()` with custom modals:
+
+```typescript
+// src/dom/components/styledDialogs.ts
+
+interface DialogOptions {
+  title?: string;
+  message: string;
+  buttons?: string[];
+  type?: "info" | "warning" | "error" | "confirm";
+  theme?: "haunted" | "classic";
+}
+
+export async function showAlert(options: DialogOptions): Promise<void> {
+  // Render modal, await button click or dismiss
+}
+
+export async function showConfirm(options: DialogOptions): Promise<boolean> {
+  // Render modal with Yes/No, return boolean
+}
+
+export async function showPrompt(options: DialogOptions & { defaultValue?: string }): Promise<string | null> {
+  // Render modal with text input, return string or null
+}
+
+export async function showRename(currentName: string, theme: "haunted" | "classic"): Promise<string | null> {
+  // Specialized rename dialog with pre-filled value
+}
+```
+
+### AI Panel Styling
+
+```html
+<div class="ai-panel" data-theme="haunted">
+  <header>
+    <h2>Generate Script</h2>
+    <button class="close-btn">✕</button>
+  </header>
+  
+  <div class="ai-input">
+    <textarea placeholder="Describe what you want the script to do..."></textarea>
+    <button class="generate-btn">Generate</button>
+  </div>
+  
+  <div class="ai-preview">
+    <!-- Side-by-side diff will render here -->
+  </div>
+  
+  <footer>
+    <button class="reject-btn">Reject</button>
+    <button class="accept-btn primary">Accept</button>
+  </footer>
+</div>
+```
+
+```css
+.ai-panel[data-theme="haunted"] {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.ai-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ai-preview .line-removed {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.ai-preview .line-added {
+  background: rgba(34, 197, 94, 0.2);
+}
+```
+
+### Empty State / Welcome Screen
+
+```html
+<div class="welcome-screen" data-theme="haunted">
+  <div class="welcome-container">
+    <h1>Welcome to Stacks</h1>
+    <p>A visual programming environment inspired by HyperCard.</p>
+    
+    <div class="welcome-features">
+      <div class="feature">
+        <div class="feature-icon">🃏</div>
+        <p>Create interactive stacks of cards with buttons and fields.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">✍️</div>
+        <p>Write scripts in HyperTalk-style syntax.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🤖</div>
+        <p>Use AI to generate scripts from English descriptions.</p>
+      </div>
+    </div>
+    
+    <div class="welcome-actions">
+      <button class="btn-primary" onclick="createNewStack()">Create New Stack</button>
+      <button class="btn-secondary" onclick="loadExample()">Load Example Stack</button>
+    </div>
+  </div>
+</div>
+```
+
+```css
+.welcome-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--bg-primary), rgba(168, 85, 247, 0.1));
+}
+
+.welcome-container {
+  text-align: center;
+  max-width: 600px;
+  padding: 40px;
+}
+
+.welcome-container h1 {
+  font-size: 32px;
+  font-family: var(--font-display);
+  margin-bottom: 12px;
+  color: var(--color-primary);
+}
+
+.welcome-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 40px 0;
+}
+
+.feature-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: var(--accent-purple);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 6px;
+  transition: all 150ms ease-out;
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(168, 85, 247, 0.3);
+}
+```
+
+### Contrast and Accessibility Verification
+
+**WCAG AA Requirements**:
+- Normal text (< 18px): 4.5:1 contrast ratio
+- Large text (≥ 18px): 3:1 contrast ratio
+- UI components (buttons, inputs): 3:1 contrast ratio
+
+**Verification Matrix**:
+
+| Element | Haunted Theme | Classic Theme | Ratio |
+|---------|---------------|---------------|-------|
+| Text on background | #f5f5f5 on #0f0f1e | #000000 on #ffffff | 12:1 ✓ |
+| Button text | #ffffff on #a855f7 | #000000 on white | 7.5:1 ✓ |
+| Secondary text | #a0a0a0 on #0f0f1e | #666666 on #ffffff | 5.2:1 ✓ |
+| Accent text | #f97316 on #0f0f1e | #000000 on white | 8.1:1 ✓ |
+| Focus ring | #a855f7 | #000000 | 4.5:1 min ✓ |
+
+### Performance Optimization
+
+#### Critical Path Rendering
+1. Base theme CSS (variables, glass effects): ~2 kB
+2. Layout CSS (grid, flexbox, panels): ~3 kB
+3. Fonts (embedded or system stack): 0–5 kB (if OFL embedded)
+4. Icons (SVG functions): ~3 kB
+
+**Target**: 8–13 kB CSS total (gzipped ~2–4 kB)
+
+#### JavaScript Optimization
+1. Theme toggle logic: ~500 bytes
+2. Modal/dialog components: ~2 kB
+3. Animation/transition triggers: ~1 kB
+
+**Target**: ~4 kB JS (gzipped ~1–2 kB)
+
+#### Deferrable/Optional
+- Complex animations: disable in prefers-reduced-motion
+- AI panel (defer loading until user requests): ~2 kB
+- Extra polish (micro-interactions): ~1 kB
+
+**Total Budget**: CSS + JS + embedded fonts (gzipped) ≤ 40 kB
+- Expected: 15–25 kB (leaving margin for unforeseen additions)
+
+### Component Structure and Reusability
+
+#### Themed Components
+```typescript
+// src/dom/components/themedButton.ts
+interface ThemedButtonProps {
+  icon?: SVGElement;
+  label?: string;
+  tooltip?: string;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: "primary" | "secondary" | "danger";
+  theme?: "haunted" | "classic";
+}
+
+export function createThemedButton(props: ThemedButtonProps): HTMLElement {
+  const button = document.createElement("button");
+  button.className = `btn btn-${props.variant || "secondary"} theme-${props.theme || "haunted"}`;
+  // ... setup
+  return button;
+}
+```
+
+#### Themed Panels
+```typescript
+// src/dom/components/themedPanel.ts
+interface ThemedPanelProps {
+  title?: string;
+  theme?: "haunted" | "classic";
+  children?: HTMLElement[];
+}
+
+export function createThemedPanel(props: ThemedPanelProps): HTMLElement {
+  const panel = document.createElement("div");
+  panel.className = `panel glass-morphism theme-${props.theme || "haunted"}`;
+  // ... setup
+  return panel;
+}
+```
+
+### Class Names and Data-Attributes (Preserved from Phase 8)
+
+To maintain test compatibility:
+- Keep existing class names (e.g., `card-canvas`, `element-inspector`, `script-editor`)
+- Preserve data-attributes (e.g., `data-button-id`, `data-field-id`, `data-card-id`)
+- Add new theme-specific classes without renaming old ones:
+  - `class="card-canvas theme-haunted"` (not `class="card-canvas-haunted"`)
+  - `data-theme="haunted"` on root or specific containers
+

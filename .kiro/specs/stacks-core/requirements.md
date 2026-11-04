@@ -589,3 +589,187 @@ As a maintainer, I want accurate documentation so that users understand what is 
 - WHEN the checklist is used, A TESTER SHALL verify: layout rendering, button/field interaction, script execution, localStorage persistence, modal dialogs, and error messages.
 - IF bugs are found in specific browsers, THEY SHALL be documented with workarounds or noted as known limitations.
 
+
+
+## Phase 9: Haunted Premium UI
+
+### REQ-P9-001: Haunted Theme Foundation
+
+**User Story**
+As a user, I want the Stacks app to have a modern, Kiroween-themed dark aesthetic so that the experience feels polished, inviting, and thematically cohesive with the HyperCard revival concept.
+
+**Acceptance Criteria**
+- WHEN the app loads, THE SYSTEM SHALL render with a Haunted dark theme as the default (deep near-black/indigo background with subtle radial glow).
+- WHEN Haunted theme colors are used, THE SYSTEM SHALL apply glowing purple (#a855f7-ish) and pumpkin-orange (#f97316-ish) accents throughout the UI.
+- WHEN cards, panels, and buttons are rendered, THE SYSTEM SHALL use glass-morphism effects with soft shadows (no harsh outlines).
+- WHEN text is rendered, THE SYSTEM SHALL ensure all text meets WCAG AA contrast requirements (4.5:1 for normal text).
+- WHEN focus is applied to interactive elements, THE SYSTEM SHALL display visible focus rings that are compliant with WCAG AA.
+- IF the user has `prefers-reduced-motion` enabled, THE SYSTEM SHALL disable all animations and transitions.
+
+---
+
+### REQ-P9-002: Typography and Fonts
+
+**User Story**
+As a designer, I want a cohesive typography system using system fonts and optionally an OFL-licensed font so that the UI feels refined without external CDN dependencies or copyright issues.
+
+**Acceptance Criteria**
+- WHEN display text (headings, card titles) is rendered, THE SYSTEM SHALL use a pixel/monospace typeface (e.g., system stacks like Monaco, or an OFL-licensed pixel font committed to the repository).
+- WHEN UI text (buttons, labels, inspector) is rendered, THE SYSTEM SHALL use system-ui or a system font stack (e.g., -apple-system, BlinkMacSystemFont, Segoe UI fallback).
+- WHEN fonts are loaded, THE SYSTEM SHALL NOT make network requests to CDNs (Google Fonts, Adobe Fonts, etc.).
+- WHEN an OFL-licensed font is used, THE SYSTEM SHALL commit its license file to the repository and display attribution in the app footer or documentation.
+- IF a font file is embedded, THE SYSTEM SHALL ensure the total CSS+JS+font-file gzipped size is within the 40 kB budget.
+
+---
+
+### REQ-P9-003: Theme Toggle and Persistence
+
+**User Story**
+As a creator, I want to toggle between Haunted (dark) and Classic (1-bit) themes so that I can choose my preferred aesthetic, with my choice persisted across sessions.
+
+**Acceptance Criteria**
+- WHEN the app loads, THE SYSTEM SHALL check localStorage for a saved theme preference.
+- IF no preference is saved, THE SYSTEM SHALL default to Haunted theme.
+- WHEN a theme toggle button is clicked, THE SYSTEM SHALL switch the active theme (Haunted ↔ Classic) and re-render the entire UI.
+- WHEN the theme is changed, THE SYSTEM SHALL save the selection to localStorage and persist it across page reloads.
+- WHEN Classic theme is active, THE SYSTEM SHALL restore the 1-bit card look (REQ-P8-003: black, white, gray only, no rounded corners or shadows).
+- WHEN Haunted theme is active, THE SYSTEM SHALL apply dark theme colors, glass panels, and smooth transitions.
+
+---
+
+### REQ-P9-004: Polished Toolbar with Inline SVG Icons
+
+**User Story**
+As a user, I want a cohesive toolbar with polished inline SVG icons and tooltips so that the UI is discoverable and actions are clear.
+
+**Acceptance Criteria**
+- WHEN the app is rendered, THE SYSTEM SHALL display a toolbar with icon buttons (Add Card, Add Button, Add Field, Delete, Undo, Redo, Run Mode, Save, Export, Import, Theme Toggle).
+- WHEN icons are rendered, THE SYSTEM SHALL use inline SVG (no icon font or external image files) so that icons scale smoothly and respect theme colors.
+- WHEN an icon button is hovered, THE SYSTEM SHALL show a tooltip with the action name and keyboard shortcut (e.g., "Undo (Ctrl+Z)").
+- WHEN an icon button is clicked, THE SYSTEM SHALL trigger its associated action and show visual feedback (highlight, invert, slight scale change).
+- WHEN an icon button is disabled (e.g., undo when undo stack is empty), THE SYSTEM SHALL render it with reduced opacity and no hover effect.
+
+---
+
+### REQ-P9-005: Glass-Morphism Panels and Micro-Interactions
+
+**User Story**
+As a designer, I want cards, panels, and UI containers to use glass-morphism effects with soft shadows and smooth micro-interactions so that the interface feels modern and responsive.
+
+**Acceptance Criteria**
+- WHEN panels (card list, inspector, script editor) are rendered, THE SYSTEM SHALL apply a semi-transparent background with backdrop blur and a subtle box-shadow.
+- WHEN an element (button, field, panel) is hovered, THE SYSTEM SHALL show a smooth scale or brightness transition (e.g., 3–5ms ease-out).
+- WHEN an element is pressed/clicked, THE SYSTEM SHALL provide tactile feedback (slight scale down, color shift) that completes instantly (50–100ms).
+- WHEN a dialog or modal appears, THE SYSTEM SHALL fade in with a subtle scale animation (100–150ms ease-out).
+- WHEN animations are disabled (prefers-reduced-motion), THE SYSTEM SHALL skip all transitions but maintain visual state changes (colors, scale).
+
+---
+
+### REQ-P9-006: Animated Card Transitions
+
+**User Story**
+As a user, I want card navigation and mode switches to include subtle, polished animations so that the interface feels fluid and state changes are clear.
+
+**Acceptance Criteria**
+- WHEN a user navigates to a different card (via go statement or card list click), THE SYSTEM SHALL animate the transition with a fade or flip effect (200–300ms).
+- WHEN switching between Edit Mode and Run Mode, THE SYSTEM SHALL fade or scale the card and refresh the UI (150–200ms).
+- WHEN the animated transition completes, THE SYSTEM SHALL ensure the final card is fully rendered and interactive.
+- WHEN prefers-reduced-motion is enabled, THE SYSTEM SHALL disable animations but still update the card instantly.
+- IF a transition is interrupted (user clicks during animation), THE SYSTEM SHALL complete to the final state without stalling.
+
+---
+
+### REQ-P9-007: Dark Script Editor with Token Colors
+
+**User Story**
+As a script author, I want the script editor to use a dark theme with distinct token colors so that code is easy to read and syntax errors stand out.
+
+**Acceptance Criteria**
+- WHEN the script editor is rendered in Haunted theme, THE SYSTEM SHALL use a dark background (#1a1a2e or similar) with light text.
+- WHEN syntax is highlighted, THE SYSTEM SHALL use distinct colors for keywords (purple), strings (orange), numbers (cyan), comments (gray), operators (light gray).
+- WHEN a parse or runtime error occurs, THE SYSTEM SHALL highlight the error line with a subtle red tint or underline and display the error message prominently.
+- WHEN the Classic theme is active, THE SYSTEM SHALL revert to 1-bit black-on-white highlighting.
+
+---
+
+### REQ-P9-008: Refined AI Panel
+
+**User Story**
+As a creator, I want an AI script generation panel that is polished and integrated seamlessly so that it guides me through generating and accepting code.
+
+**Acceptance Criteria**
+- WHEN the AI panel is displayed, THE SYSTEM SHALL show a text input for entering a description, a "Generate" button, and a preview area.
+- WHEN code is generated, THE SYSTEM SHALL display a side-by-side diff showing the old and new code with color-coded additions/removals.
+- WHEN a user accepts the generated code, THE SYSTEM SHALL transition smoothly (fade or slide) to update the editor and close the panel.
+- WHEN a user rejects the code, THE SYSTEM SHALL clear the preview and allow a new description to be entered.
+- WHEN the AI panel is active, THE SYSTEM SHALL maintain theme consistency (Haunted or Classic) throughout.
+
+---
+
+### REQ-P9-009: Welcoming Start/Empty State
+
+**User Story**
+As a new user, I want a welcoming, clear empty state when starting Stacks so that I understand the purpose and know how to get started.
+
+**Acceptance Criteria**
+- WHEN the app loads with no saved stack, THE SYSTEM SHALL display a welcome screen (not a blank canvas).
+- WHEN the welcome screen is shown, THE SYSTEM SHALL include a brief welcome message, a preview of what Stacks is, and a "Create First Stack" or "Load Example" button.
+- WHEN the user clicks a button, THE SYSTEM SHALL either create a new empty stack or load the haunted-counter example.
+- WHEN a stack is loaded, THE SYSTEM SHALL transition smoothly (fade-in) to the main editor.
+- WHEN the welcome screen is displayed, IT SHALL maintain theme consistency and use polished styling.
+
+---
+
+### REQ-P9-010: Styled Dialogs Replacing Native Prompts
+
+**User Story**
+As a user, I want custom, styled dialogs for confirmations, renames, and user input so that all UI is cohesive and themed (no browser native prompts).
+
+**Acceptance Criteria**
+- WHEN the app needs confirmation (e.g., delete card), THE SYSTEM SHALL display a custom styled modal (not native window.confirm).
+- WHEN the app needs text input (e.g., rename card), THE SYSTEM SHALL display a custom modal with a text input field (not native window.prompt).
+- WHEN the `answer` command is used in a script, THE SYSTEM SHALL display a styled modal matching the current theme (not a native alert).
+- WHEN any modal is displayed, THE SYSTEM SHALL apply the Haunted or Classic theme styling and include smooth transitions.
+- WHEN a user clicks a button or presses Enter/Escape in a modal, THE SYSTEM SHALL close the modal and return the appropriate value.
+
+---
+
+### REQ-P9-011: No External Network Requests
+
+**User Story**
+As a developer, I want to ensure the app is fully self-contained and respects user privacy so that no external network requests are made for resources.
+
+**Acceptance Criteria**
+- WHEN the app loads, THE SYSTEM SHALL NOT make requests to CDNs, Google Fonts, analytics, or any external services (except when explicitly configured model providers like Claude API).
+- WHEN fonts, icons, or stylesheets are needed, THE SYSTEM SHALL use only locally embedded or system-provided resources.
+- WHEN a model provider is used (e.g., Claude API), THE SYSTEM SHALL only make requests if explicitly configured by the user and for that specific provider.
+- IF an external request is attempted, THE SYSTEM SHALL log a warning and continue operation without blocking.
+
+---
+
+### REQ-P9-012: CSS and JS Gzipped Budget
+
+**User Story**
+As a developer, I want the UI to stay within performance targets so that the app loads quickly and remains lightweight.
+
+**Acceptance Criteria**
+- WHEN the app is built, THE SYSTEM SHALL ensure the total CSS + JS + embedded font files (gzipped) is below 40 kB.
+- WHEN styles and icons are added, THE SYSTEM SHALL optimize and prioritize based on critical path rendering (fonts, core layout, theme).
+- WHEN bundle size is measured, IT SHALL be reported in build output and documentation (docs/PERFORMANCE.md).
+- IF bundle size exceeds 40 kB, THE SYSTEM SHALL identify and remove or defer non-critical features.
+
+---
+
+### REQ-P9-013: Test Coverage Constraints and Accessibility
+
+**User Story**
+As a maintainer, I want comprehensive tests for theme switching, animations, contrast, and accessibility so that the UI remains robust and inclusive.
+
+**Acceptance Criteria**
+- WHEN tests are run, THE SYSTEM SHALL verify that theme toggle persists to localStorage and loads on app startup.
+- WHEN prefers-reduced-motion is detected, THE SYSTEM SHALL disable animations and verify layout/functionality is unaffected.
+- WHEN contrast is checked, ALL text colors SHALL meet WCAG AA standards (4.5:1 for normal text, 3:1 for large text).
+- WHEN focus rings are tested, THEY SHALL be visible on all interactive elements (buttons, inputs, fields) in both themes.
+- WHEN a test removes a theme CSS variable or animation, THE SYSTEM SHALL fail (no silent fallback to broken state).
+- WHEN existing tests run, THEY SHALL continue to pass (class names and data-attributes used by old tests remain unchanged).
+

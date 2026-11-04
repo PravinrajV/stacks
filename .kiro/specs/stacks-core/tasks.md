@@ -665,3 +665,227 @@ Phase 6 (Polish & Documentation)
   - Tech stack: verify TypeScript, Vite, Vitest, happy-dom, vanilla DOM are accurately listed.
   - Cross-browser checklist: template for testers to verify Chrome, Firefox, Safari, Edge (layout, interaction, scripts, localStorage, modals, errors).
   - Tests: README accuracy verified (no promised unimplemented features).
+
+
+---
+
+## Phase 9: Haunted Premium UI
+
+### Theme System and Token Foundation
+
+- [ ] **9.1.1** Define theme color variables and CSS system. *(Ref: REQ-P9-001, REQ-P9-002, REQ-P9-003)*
+  - Location: `src/dom/styles.css`
+  - Define CSS custom properties for Haunted theme (colors, shadows, borders, fonts).
+  - Define CSS custom properties for Classic theme (overrides).
+  - Implement `[data-theme="haunted"]` and `[data-theme="classic"]` selectors.
+  - Tests: Verify CSS variables are accessible, color values correct, contrast meets WCAG AA (4.5:1 for text).
+
+- [ ] **9.1.2** Implement theme toggle logic and localStorage persistence. *(Ref: REQ-P9-003)*
+  - Location: `src/dom/app.ts`
+  - Add `toggleTheme()` method to App class.
+  - Read/write theme preference to localStorage on load and toggle.
+  - Default to Haunted theme if no preference saved.
+  - Update `document.documentElement.setAttribute("data-theme", theme)` on toggle.
+  - Tests: Verify theme persists across page reload, toggle works, both themes render correctly.
+
+- [ ] **9.1.3** Create theme token documentation and usage guide. *(Ref: Design: Theme System)*
+  - Location: `docs/THEME.md`
+  - Document color palette (Haunted and Classic).
+  - Document typography system (display vs. UI fonts).
+  - Document spacing, shadows, and glass-morphism values.
+  - Provide CSS variable reference.
+
+---
+
+### Toolbar with Icons and Micro-Interactions
+
+- [ ] **9.2.1** Implement inline SVG icon library. *(Ref: REQ-P9-004)*
+  - Location: `src/dom/icons.ts`
+  - Create SVG functions for: Add Card, Add Button, Add Field, Delete, Undo, Redo, Run, Save, Export, Import, Theme Toggle.
+  - Icons use `currentColor` to inherit theme colors.
+  - Each function returns SVGElement (no external icon fonts or CDN).
+  - Tests: All icons render, SVG structure valid, scale smoothly at different sizes.
+
+- [ ] **9.2.2** Implement polished toolbar component with button layout. *(Ref: REQ-P9-004)*
+  - Location: `src/dom/components/toolbar.ts`
+  - Create toolbar container with icon buttons.
+  - Support grouping (navigation, editing, view mode, file actions, theme).
+  - Buttons themed with Haunted/Classic colors and hover effects.
+  - Tests: Toolbar renders, buttons are clickable, theme switching applies to toolbar.
+
+- [ ] **9.2.3** Implement tooltip system for toolbar buttons. *(Ref: REQ-P9-004)*
+  - Location: `src/dom/components/tooltip.ts`
+  - On button hover, show tooltip with action name and keyboard shortcut.
+  - Tooltip positioned above button, themed (glass morphism in Haunted).
+  - Fade in/out (100ms) with slight delay (300ms) on hover.
+  - Tests: Tooltips display on hover, disappear on mouse leave, show correct text and shortcuts.
+
+- [ ] **9.2.4** Implement micro-interactions for buttons (scale, shadow, color transitions). *(Ref: REQ-P9-005)*
+  - Location: `src/dom/styles.css`
+  - Hover: scale 1 → 1.05, shadow increase (100–150ms ease-out).
+  - Press: scale 1.05 → 0.98, shadow decrease (50ms ease-in).
+  - Transition completion: 100ms total (return to hover state on release).
+  - Tests: Micro-interactions smooth, no jank, prefers-reduced-motion disables transitions.
+
+---
+
+### Dark Panels and Inspector Theming
+
+- [ ] **9.3.1** Apply glass-morphism styling to panels (card list, inspector, script editor). *(Ref: REQ-P9-005)*
+  - Location: `src/dom/styles.css`
+  - Update `.card-list`, `.element-inspector`, `.script-editor` with glass background, backdrop blur, soft shadow.
+  - Haunted theme: semi-transparent white background with blur, light border.
+  - Classic theme: solid white/gray with 1px border (no blur).
+  - Tests: Panels render with correct styling in both themes, readability maintained.
+
+- [ ] **9.3.2** Implement dark script editor theme with token colors. *(Ref: REQ-P9-007)*
+  - Location: `src/dom/scriptEditor.ts` and `src/dom/styles.css`
+  - Dark background (#1a1a2e) in Haunted theme.
+  - Token colors: keywords (purple), strings (orange), numbers (cyan), comments (gray).
+  - Error highlighting: red tint on error line.
+  - Tests: Syntax highlighting visible in both themes, error lines clearly marked.
+
+- [ ] **9.3.3** Update element inspector styling for dark theme. *(Ref: REQ-P9-005)*
+  - Location: `src/dom/elementInspector.ts` and `src/dom/styles.css`
+  - Glass panel background in Haunted theme.
+  - Form inputs: themed with dark background, light text, proper contrast.
+  - Labels and sections: organized visually with subtle separation.
+  - Tests: Inspector readable in both themes, form inputs functional.
+
+- [ ] **9.3.4** Update card list styling for dark theme. *(Ref: REQ-P9-005)*
+  - Location: `src/dom/cardList.ts` and `src/dom/styles.css`
+  - Glass panel background in Haunted theme.
+  - Card list items: hover effect with subtle highlight.
+  - Add/delete buttons: themed toolbar buttons with tooltips.
+  - Tests: Card list readable, items selectable, buttons respond.
+
+---
+
+### Card and Mode Transition Animations
+
+- [ ] **9.4.1** Implement card navigation animation (fade + optional flip). *(Ref: REQ-P9-006)*
+  - Location: `src/dom/cardCanvas.ts`
+  - When card changes (via go or card list click), fade out current card and fade in new card.
+  - Transition duration: 200–250ms cubic-bezier(0.25, 0.46, 0.45, 0.94).
+  - Ensure final card fully interactive upon completion.
+  - Tests: Navigation transitions smoothly, card content updates correctly, clicks work after transition.
+
+- [ ] **9.4.2** Implement Edit ↔ Run mode switch animation. *(Ref: REQ-P9-006)*
+  - Location: `src/dom/app.ts` and `src/dom/runMode.ts`
+  - Scale + fade transition when switching modes (150–200ms ease-out).
+  - Run mode: card scales up to fill canvas area.
+  - Edit mode: card scales down to editor size.
+  - Tests: Mode transitions smooth, UI updates correctly, all elements visible post-transition.
+
+- [ ] **9.4.3** Implement prefers-reduced-motion media query handling. *(Ref: REQ-P9-001, REQ-P9-006)*
+  - Location: `src/dom/styles.css`
+  - All animations and transitions set to 0s when prefers-reduced-motion is active.
+  - Visual state changes still apply (colors, positions), just no animation duration.
+  - Tests: Animations disabled when prefers-reduced-motion is set, layout/functionality unchanged.
+
+- [ ] **9.4.4** Test animation interruption and completion edge cases. *(Ref: REQ-P9-006)*
+  - Location: `tests/animation.test.ts`
+  - Scenario: User clicks during card transition → verify final state reached, no stalling.
+  - Scenario: Rapid mode switches → verify no animation queue buildup.
+  - Tests: Animations interrupt gracefully, no race conditions.
+
+---
+
+### Start Screen and Styled Dialogs
+
+- [ ] **9.5.1** Implement welcome screen for empty state. *(Ref: REQ-P9-009)*
+  - Location: `src/dom/welcomeScreen.ts`
+  - Display when app loads with no saved stack.
+  - Show welcome message, brief description, feature list (cards, scripts, AI).
+  - Buttons: "Create New Stack" and "Load Example Stack".
+  - Transition: fade-in with theme colors.
+  - Tests: Welcome screen displays on app start, buttons functional, creates/loads stack correctly.
+
+- [ ] **9.5.2** Implement styled alert dialog replacing window.alert(). *(Ref: REQ-P9-010)*
+  - Location: `src/dom/components/styledDialogs.ts`
+  - Custom modal with title, message, and button.
+  - Themed (Haunted or Classic).
+  - Fade-in transition (100–150ms), fade-out on dismiss.
+  - Tests: Alert displays with correct text, button triggers callback, themed correctly.
+
+- [ ] **9.5.3** Implement styled confirm dialog replacing window.confirm(). *(Ref: REQ-P9-010)*
+  - Location: `src/dom/components/styledDialogs.ts`
+  - Custom modal with message and two buttons (e.g., "Delete" and "Cancel").
+  - Returns boolean (true for confirm, false for cancel).
+  - Themed (Haunted or Classic).
+  - Tests: Confirm dialog displays, returns correct value on button click.
+
+- [ ] **9.5.4** Implement styled text input (rename) dialog replacing window.prompt(). *(Ref: REQ-P9-010)*
+  - Location: `src/dom/components/styledDialogs.ts`
+  - Custom modal with text input, pre-filled with current value.
+  - Buttons: "Save" and "Cancel".
+  - Returns string or null.
+  - Themed (Haunted or Classic).
+  - Tests: Prompt dialog displays with pre-filled text, returns value or null.
+
+- [ ] **9.5.5** Replace native prompt/confirm/alert calls throughout app with styled versions. *(Ref: REQ-P9-010)*
+  - Location: `src/dom/app.ts`, `src/dom/runMode.ts`, and other components
+  - Search for `window.alert()`, `window.confirm()`, `window.prompt()` calls.
+  - Replace with styled dialog functions.
+  - Tests: All dialogs use styled versions, no native dialogs appear.
+
+- [ ] **9.5.6** Implement refined AI panel with diff preview and accept/reject flow. *(Ref: REQ-P9-008)*
+  - Location: `src/dom/components/aiPanel.ts`
+  - Text input for description, "Generate" button.
+  - Diff preview: side-by-side old/new code with color-coded changes.
+  - "Accept" and "Reject" buttons.
+  - Themed (Haunted or Classic).
+  - Tests: Panel displays, diff preview correct, accept/reject buttons work, transitions smooth.
+
+---
+
+### Contrast, Accessibility, and Testing
+
+- [ ] **9.6.1** Verify WCAG AA contrast for all theme colors. *(Ref: REQ-P9-001, REQ-P9-013)*
+  - Location: `tests/contrast.test.ts`
+  - Test all text/background color combinations in both themes.
+  - Verify normal text ≥ 4.5:1, large text ≥ 3:1, UI components ≥ 3:1.
+  - Generate contrast report in test output or docs.
+  - Tests: All combinations pass WCAG AA, report generated.
+
+- [ ] **9.6.2** Test focus rings and keyboard navigation in both themes. *(Ref: REQ-P9-001, REQ-P9-013)*
+  - Location: `tests/focus.test.ts`
+  - Verify visible focus rings on all interactive elements (buttons, inputs, fields).
+  - Verify focus ring contrast ≥ 3:1 (or better).
+  - Test Tab navigation through UI elements in both themes.
+  - Tests: Focus rings visible, Tab navigation works, focus order logical.
+
+- [ ] **9.6.3** Test prefers-reduced-motion behavior. *(Ref: REQ-P9-001, REQ-P9-013)*
+  - Location: `tests/reduced-motion.test.ts`
+  - Simulate `prefers-reduced-motion: reduce` media query.
+  - Verify animations disabled (transition duration 0s).
+  - Verify visual state changes still apply (no broken layout).
+  - Tests: Animations disabled, layout intact, functionality unchanged.
+
+- [ ] **9.6.4** Test no external network requests and static resources only. *(Ref: REQ-P9-011)*
+  - Location: `tests/network.test.ts`
+  - Intercept fetch/XHR calls during app load and interaction.
+  - Verify no requests to Google Fonts, CDNs, analytics, etc.
+  - Allow only explicitly configured model provider endpoints (e.g., Claude API).
+  - Tests: No external requests detected (except model provider if configured).
+
+- [ ] **9.6.5** Verify bundle size (CSS + JS + fonts gzipped ≤ 40 kB). *(Ref: REQ-P9-012)*
+  - Location: Build output and `npm run size` command
+  - Run `npm run build` and measure gzipped size.
+  - Break down by file (CSS, JS, fonts).
+  - Report in build output and docs/PERFORMANCE.md.
+  - Tests: Total size ≤ 40 kB, report generated and committed.
+
+- [ ] **9.6.6** Test theme persistence across page reload. *(Ref: REQ-P9-003)*
+  - Location: `tests/theme-persistence.test.ts`
+  - Set theme to Haunted → simulate page reload → verify Haunted theme loads.
+  - Set theme to Classic → simulate page reload → verify Classic theme loads.
+  - Tests: Theme persisted correctly, localStorage working.
+
+- [ ] **9.6.7** Test class name and data-attribute compatibility with Phase 8 tests. *(Ref: REQ-P9-013)*
+  - Location: `tests/backwards-compat.test.ts`
+  - Verify existing test selectors (e.g., `.card-canvas`, `[data-button-id]`) still work.
+  - Verify no class/attribute renames or removals.
+  - Run full test suite; ensure all old tests pass.
+  - Tests: All Phase 8 tests pass unchanged.
+
