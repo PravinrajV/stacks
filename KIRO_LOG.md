@@ -45,3 +45,4 @@
   Independent final: clean npm ci, build OK (17.33 kB gz JS), vitest 437/437 (21 files).
 - 2026-11-04 ~09:55-11:30 ET: kiro-cli (haiku-4.5) 4.2 AnthropicProvider + 4.3 OllamaProvider (BYOK, key in memory+sessionStorage only), settings panel, wiring into app. Reviewer found: panel not wired (fixed), tests mocking providers instead of fetch (rejected, rewritten), isAvailable() sending a billable request without the CORS header before every generation (fixed: no network call). One session killed by box overload, rerun. Final tests mock only fetch (+console spies for leak check). Credits after: 65.51 of 892 plan.
   Hand edits: LICENSE (MIT), ticks 4.2/4.3, removed stale Kiro IMPLEMENTATION.md (superseded by README). Independent: build OK, vitest 555/555.
+- 2026-11-04 ~11:45 ET: pushed to https://github.com/PravinrajV/stacks (public, MIT detected); deployed dist to Cloudflare Pages project 'stacks' -> https://stacks-6go.pages.dev (HTTP 200).
