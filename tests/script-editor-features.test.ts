@@ -597,6 +597,21 @@ describe('Task 4.9: AI Generation Panel', () => {
 
     fetchSpy.mockRestore()
   })
+
+  it('Task 8.6: displays offline demo mode notice in AI panel', () => {
+    const aiBtn = container.querySelector('.editor-header button:last-child') as HTMLButtonElement
+    aiBtn.click()
+
+    const panel = container.querySelector('.ai-panel') as HTMLElement
+    const offlineNotice = panel?.querySelector('.ai-offline-notice') as HTMLElement
+
+    expect(offlineNotice).toBeTruthy()
+    expect(offlineNotice.textContent).toContain('Offline demo mode')
+    expect(offlineNotice.textContent).toContain('built-in templates')
+    expect(offlineNotice.textContent).toContain('no AI calls')
+    expect(offlineNotice.textContent).toContain('Anthropic key')
+    expect(offlineNotice.textContent).toContain('Ollama')
+  })
 })
 
 /**

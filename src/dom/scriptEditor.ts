@@ -455,6 +455,23 @@ export class ScriptEditor {
     setTextContent(header, 'Generate with AI')
     this.aiPanel.appendChild(header)
 
+    // Task 8.6: Offline demo mode notice (visible when mock provider is active)
+    const offlineNotice = createElement('div', {
+      className: 'ai-offline-notice'
+    })
+    offlineNotice.style.backgroundColor = '#ffffcc'
+    offlineNotice.style.border = '1px solid #cccc00'
+    offlineNotice.style.padding = 'var(--spacing-xs)'
+    offlineNotice.style.fontSize = '9px'
+    offlineNotice.style.lineHeight = '1.3'
+    offlineNotice.style.color = 'var(--color-black)'
+    offlineNotice.style.fontFamily = 'var(--font-mono)'
+    setTextContent(
+      offlineNotice,
+      'Offline demo mode: built-in templates, no AI calls. For real AI, add your own Anthropic key or a local Ollama in AI Settings.'
+    )
+    this.aiPanel.appendChild(offlineNotice)
+
     // Prompt input
     const promptLabel = createElement('div')
     promptLabel.style.fontSize = '11px'

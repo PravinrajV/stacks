@@ -647,7 +647,7 @@ Phase 6 (Polish & Documentation)
 
 ### Offline Mock AI Provider
 
-- [ ] **8.6** Implement offline mock AI provider with sensible templates for common requests. *(Ref: REQ-P8-006)*
+- [x] **8.6** Implement offline mock AI provider with sensible templates for common requests. *(Ref: REQ-P8-006)*
   - Location: `src/generator/mockProvider.ts`
   - Detect API key absence; use MockProvider as fallback.
   - Template patterns: "click"/"alert" → `on mouseUp: answer "Hello"`; "count"/"increment" → increment card variable; "next"/"previous card" → `go next/previous card`; "show"/"hide" → placeholder; "put"/"text" → `put value into field`.
