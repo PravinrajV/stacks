@@ -270,3 +270,207 @@ As a developer, I want unit tests for the model, parser, and runtime so that I c
 - WHEN a test fails, THE SYSTEM SHALL report the expected vs. actual value.
 - WHEN a handler execution test runs, THE SYSTEM SHALL verify scoping, message passing, and handler lookup work correctly.
 
+---
+
+## UI Layer: Stack Editor and Card Viewer
+
+### REQ-UI-001: Stack Editor (Card List and Management)
+
+**User Story**
+As a creator, I want a visual editor where I can see a list of cards in a stack, add new cards, reorder them, and delete cards so that I can organize my content.
+
+**Acceptance Criteria**
+- WHEN the app loads, THE SYSTEM SHALL display a left sidebar with a card list showing all cards in the current stack.
+- WHEN a card in the list is clicked, THE SYSTEM SHALL highlight it and display its content in the main editor view.
+- WHEN the "Add Card" button is clicked, THE SYSTEM SHALL create a new card, add it to the stack, and display it in the editor.
+- WHEN a card in the list is right-clicked (or "Delete" button pressed), THE SYSTEM SHALL prompt for confirmation and remove the card.
+- WHEN a card is deleted, THE SYSTEM SHALL update the card list and navigate to the previous or next card if applicable.
+- IF the stack has no cards, THE SYSTEM SHALL show a "Create First Card" message and allow creation via button click.
+
+---
+
+### REQ-UI-002: Card View and Element Placement
+
+**User Story**
+As a creator, I want to place buttons and fields on a card using a visual editor so that I can design the layout and appearance.
+
+**Acceptance Criteria**
+- WHEN a card is displayed, THE SYSTEM SHALL render all buttons and fields at their specified rect positions and sizes.
+- WHEN the "Add Button" or "Add Field" button is clicked in the editor, THE SYSTEM SHALL create a new element with default size/position and allow drag/resize.
+- WHEN an element is selected, THE SYSTEM SHALL show a bounding box and resize handles for repositioning.
+- WHEN an element is dragged, THE SYSTEM SHALL update its rect position in real-time and reflect in the model.
+- WHEN an element is resized, THE SYSTEM SHALL update its rect dimensions and reflect in the model.
+- WHEN an element is double-clicked, THE SYSTEM SHALL show an inspector panel with properties (label, font, style, editable, scripts).
+- WHEN a property is changed in the inspector, THE SYSTEM SHALL update the element and re-render immediately.
+
+---
+
+### REQ-UI-003: Button and Field Editor
+
+**User Story**
+As a creator, I want to edit button labels, field text, and attach scripts to buttons and fields so that I can define interactivity.
+
+**Acceptance Criteria**
+- WHEN a button is selected, THE SYSTEM SHALL show its label in the inspector and allow editing.
+- WHEN a button's label is changed, THE SYSTEM SHALL update the button's display immediately.
+- WHEN a button is selected, THE SYSTEM SHALL show a "mouseUp" script field in the inspector.
+- WHEN a field is selected, THE SYSTEM SHALL show its name, current content, font, font size, and text style (bold, italic, underline) in the inspector.
+- WHEN a field's properties are edited, THE SYSTEM SHALL update the field and re-render.
+- WHEN a field is marked as editable, THE SYSTEM SHALL allow the user to type into it during card view.
+- IF a field is not editable, THE SYSTEM SHALL display it as read-only text.
+
+---
+
+### REQ-UI-004: Card Run Mode and Interactivity
+
+**User Story**
+As a user, I want to interact with a card (click buttons, type in fields) and see the results of attached scripts in real-time.
+
+**Acceptance Criteria**
+- WHEN the editor switches to "Run Mode" (or a Play button is clicked), THE SYSTEM SHALL render the card as if a user is viewing it.
+- WHEN a button is clicked in Run Mode, THE SYSTEM SHALL fire its mouseUp handler and execute any attached script.
+- WHEN a script updates a field (e.g., `put "result" into field X`), THE SYSTEM SHALL update that field's content in real-time.
+- WHEN a script calls `answer`, THE SYSTEM SHALL show a modal dialog with the message and buttons.
+- WHEN a script calls `go`, THE SYSTEM SHALL navigate to the target card and fire its openCard handler.
+- IF a script has a parse or runtime error, THE SYSTEM SHALL display an error message in the UI without crashing.
+- WHEN Run Mode is exited, THE SYSTEM SHALL revert to Edit Mode and restore element selection/editing capabilities.
+
+---
+
+### REQ-UI-005: HyperTalk Script Editor
+
+**User Story**
+As a creator, I want a dedicated script editor where I can write HyperTalk code with syntax highlighting, error reporting, and live preview so that I can debug scripts quickly.
+
+**Acceptance Criteria**
+- WHEN a button or field is selected and its script is opened, THE SYSTEM SHALL display the script editor with syntax highlighting.
+- WHEN HyperTalk keywords are typed, THE SYSTEM SHALL highlight them (if, put, get, go, answer, on, end, etc.) in a distinct color.
+- WHEN the script is modified, THE SYSTEM SHALL parse it in real-time and display errors on the error line (underlined in red).
+- WHEN an error is found, THE SYSTEM SHALL show the error message (e.g., "Expected 'end if' at line 3") in the editor.
+- WHEN the script is valid, THE SYSTEM SHALL display a green checkmark or "valid script" indicator.
+- WHEN a "Preview" or "Run" button is clicked, THE SYSTEM SHALL execute the script in a test context (e.g., simulating a button click) and show the result.
+- IF the script generates output (field updates, dialog), THE SYSTEM SHALL display it in the preview pane.
+
+---
+
+### REQ-UI-006: Save and Load Stacks
+
+**User Story**
+As a creator, I want to save my stack to localStorage so that it persists between sessions, and export it as JSON so that I can share or version-control it.
+
+**Acceptance Criteria**
+- WHEN "Save" (Cmd+S or button) is pressed, THE SYSTEM SHALL serialize the current stack to JSON and store it in localStorage with an auto-generated ID.
+- WHEN the app loads, THE SYSTEM SHALL check localStorage and restore the last-saved stack automatically.
+- WHEN "Export" is clicked, THE SYSTEM SHALL download the stack as a `.json` file (e.g., `stack-name.json`).
+- WHEN "Import" (or drag-drop a JSON file) is used, THE SYSTEM SHALL parse the JSON, validate it, and load the stack into the editor.
+- IF the JSON is invalid, THE SYSTEM SHALL display an error message with the line and column of the error.
+- WHEN a stack is exported and re-imported, THE SYSTEM SHALL preserve all cards, buttons, fields, scripts, and variables exactly.
+
+---
+
+### REQ-UI-007: App Layout and Navigation
+
+**User Story**
+As a user, I want a clear, intuitive app layout where I can see the card list, editor canvas, inspector, and script editor all at once so that I can work efficiently.
+
+**Acceptance Criteria**
+- WHEN the app loads, THE SYSTEM SHALL display a layout with:
+  - Left sidebar: card list with add/delete buttons.
+  - Center: card editor canvas showing the current card with buttons and fields.
+  - Right sidebar: element inspector with properties (label, position, size, scripts).
+  - Bottom (or pop-out): script editor when a script is selected.
+- WHEN the window is resized, THE SYSTEM SHALL adjust layout responsively (no layout breaks).
+- WHEN a sidebar is collapsed, THE SYSTEM SHALL expand the center canvas to fill available space.
+- WHEN a card is large or zoomed, THE SYSTEM SHALL allow scrolling/panning in the canvas.
+
+---
+
+### REQ-UI-008: Undo/Redo and Draft Preservation
+
+**User Story**
+As a creator, I want undo/redo so that I can quickly revert changes, and drafts should be preserved across sessions.
+
+**Acceptance Criteria**
+- WHEN an element is added, deleted, moved, or resized, THE SYSTEM SHALL record the action in an undo stack.
+- WHEN "Undo" (Cmd+Z) is pressed, THE SYSTEM SHALL revert to the previous state.
+- WHEN "Redo" (Cmd+Shift+Z) is pressed, THE SYSTEM SHALL restore the next state in the redo stack.
+- WHEN the app closes, THE SYSTEM SHALL save the current stack and undo/redo state to localStorage.
+- WHEN the app reopens, THE SYSTEM SHALL restore the stack and undo/redo history.
+
+---
+
+## Error Handling for UI
+
+### REQ-UI-EH-001: Parse Error Display in Script Editor
+
+**User Story**
+As a script author, I want parse errors to be highlighted in the script editor with line/column info so that I can quickly identify and fix syntax mistakes.
+
+**Acceptance Criteria**
+- WHEN a parse error occurs, THE SYSTEM SHALL underline the error line in red.
+- WHEN the error line is hovered, THE SYSTEM SHALL show a tooltip with the error message (e.g., "Expected 'end if' at line 3, column 5").
+- WHEN multiple errors exist, THE SYSTEM SHALL highlight all of them and allow navigation between errors.
+
+---
+
+### REQ-UI-EH-002: Runtime Error Display
+
+**User Story**
+As a user, I want runtime errors to be displayed in a non-intrusive way so that I know what went wrong without the app crashing.
+
+**Acceptance Criteria**
+- WHEN a runtime error occurs during script execution, THE SYSTEM SHALL display an error toast or modal with the error message.
+- WHEN the error is dismissed, THE SYSTEM SHALL allow continued interaction with the app.
+- WHEN an error occurs, THE SYSTEM SHALL log it to console for debugging.
+
+---
+
+### REQ-UI-EH-003: Invalid JSON on Import
+
+**User Story**
+As a user, I want clear error messages when importing an invalid JSON file so that I can fix it or try a different file.
+
+**Acceptance Criteria**
+- WHEN JSON import fails, THE SYSTEM SHALL display: "Invalid stack JSON at line X, column Y: <message>".
+- WHEN the import dialog is open, THE SYSTEM SHALL allow the user to select a different file or cancel.
+
+---
+
+## Constraints for UI Layer
+
+### REQ-UI-CONST-001: No External DOM Frameworks
+
+**User Story**
+As a developer, I want to build the UI using vanilla DOM and TypeScript only so that bundle size stays small and complexity is minimized.
+
+**Acceptance Criteria**
+- WHEN the UI is built, THE SYSTEM SHALL use only standard DOM APIs (document.createElement, addEventListener, innerHTML, etc.).
+- THE SYSTEM SHALL NOT use React, Vue, Svelte, or similar frameworks.
+- THE SYSTEM SHALL use CSS for styling (no Tailwind, Material UI, or CSS-in-JS frameworks).
+- WHEN CSS is written, IT SHALL be plain CSS (possibly with CSS variables for theming).
+
+---
+
+### REQ-UI-CONST-002: 1-Bit Aesthetic
+
+**User Story**
+As a designer, I want the UI to match the System 7 / 1-bit Mac aesthetic so that it feels nostalgic and cohesive.
+
+**Acceptance Criteria**
+- WHEN the app is rendered, THE SYSTEM SHALL use only black, white, and gray colors.
+- WHEN UI elements are drawn, THE SYSTEM SHALL use simple borders, no gradients.
+- WHEN fonts are chosen, THE SYSTEM SHALL prefer monospace (e.g., Monaco) or system fonts (Chicago, Geneva on Mac).
+- THE SYSTEM SHALL use pixel-art-friendly imagery (1-bit icon set, if used).
+
+---
+
+### REQ-UI-CONST-003: No Runtime Eval or Dynamic Code Execution
+
+**User Story**
+As a security constraint, I want the UI layer to never use eval or new Function so that user-generated scripts cannot escape the sandbox.
+
+**Acceptance Criteria**
+- THE SYSTEM SHALL NOT use eval(), Function(), setTimeout(string), or any form of dynamic code evaluation.
+- WHEN scripts are executed, THE SYSTEM SHALL use the HyperTalk interpreter (parser + runtime) only.
+- IF a user writes a custom script, IT SHALL be parsed and validated before execution.
+

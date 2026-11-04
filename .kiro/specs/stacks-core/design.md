@@ -505,7 +505,444 @@ npm run test:property
 
 ---
 
-## Interface Boundaries
+## UI Layer: Architecture and Component Design
+
+### Overview
+
+The UI layer bridges the user-facing editor and the core engine. It is built with vanilla DOM (no frameworks), CSS for styling, and TypeScript for state management.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ User (clicking buttons, typing scripts)                 │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│ UI Layer (src/dom/)                                     │
+│ - App container (layout, state machine)                 │
+│ - Card list panel (sidebar with card CRUD)             │
+│ - Card canvas (visual editor with drag/resize)         │
+│ - Element inspector (properties panel)                 │
+│ - Script editor (syntax highlighting, error display)   │
+│ - Storage manager (localStorage, JSON import/export)   │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│ Core Engine (src/model/, src/interpreter/)             │
+│ - Stack/Card/Button/Field model                        │
+│ - Parser and Runtime                                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### UI Module Structure
+
+```
+src/dom/
+├── app.ts                  # Main app controller, state machine, layout
+├── styles.css              # Global 1-bit aesthetic CSS
+├── cardList.ts             # Card list panel UI component
+├── cardCanvas.ts           # Card editor canvas (drag/resize elements)
+├── elementInspector.ts     # Properties panel for selected element
+├── scriptEditor.ts         # Script editor with syntax highlighting & error display
+├── runMode.ts              # Card viewer for executing scripts (Run Mode)
+├── storage.ts              # localStorage and JSON import/export
+├── components/             # Reusable DOM components
+│   ├── button.ts           # Styled button wrapper
+│   ├── textInput.ts        # Styled text input
+│   ├── modal.ts            # Modal dialog component
+│   └── icons.ts            # 1-bit icon rendering
+└── utils/
+    ├── dom.ts              # DOM utility functions (createElement helpers, event delegation)
+    ├── rect.ts             # Rectangle utilities (intersection, contain, etc.)
+    └── css.ts              # Dynamic class/style management
+```
+
+### State Management
+
+The app maintains a single state tree at the top level (App class in `app.ts`):
+
+```typescript
+interface AppState {
+  stack: Stack;                    // Current stack model
+  currentCardId: string;           // ID of card being edited
+  selectedElementId: string | null; // ID of selected button/field
+  mode: "edit" | "run";            // Edit Mode or Run Mode
+  undoStack: Stack[];              // For undo/redo
+  redoStack: Stack[];
+  isDirty: boolean;                // Has unsaved changes
+}
+```
+
+#### State Flow
+
+1. **User Action** (e.g., click button, type in field) → Event handler fires
+2. **Model Update** (e.g., update card.buttons[0].label) → Update AppState
+3. **Re-render** (e.g., call cardCanvas.render(card)) → DOM reflects new state
+
+#### Component Hierarchy
+
+- **App**: Top-level state holder, layout container
+  - **CardListPanel**: Displays card list, "Add Card" button, delete buttons
+    - *No local state; receives `stack`, `currentCardId`, `onSelectCard`, `onAddCard`, `onDeleteCard` props*
+  - **CardCanvas**: Main editor view for card layout
+    - *Local state: selected element, drag state*
+    - *Receives `card`, `onElementClick`, `onElementDrag`, `onElementResize` props*
+  - **ElementInspector**: Properties panel for selected element
+    - *Local state: form field values for element properties*
+    - *Receives `element`, `onPropertyChange` props*
+  - **ScriptEditor**: Script editor for selected element's handler
+    - *Local state: script text, parse error*
+    - *Receives `handler`, `onScriptChange`, `onScriptRun` props*
+  - **RunModeViewer**: Full-screen card viewer (only in Run Mode)
+    - *Local state: execution context, modal dialogs*
+    - *Receives `card`, `onNavigate`, `onExit` props*
+
+### Component Interfaces
+
+#### CardCanvas
+
+```typescript
+interface CardCanvas {
+  render(card: Card, background: Background | null): void;
+  // Renders card with buttons and fields at their rects
+  
+  setSelectedElement(element: Button | Field | null): void;
+  // Highlight selected element with bounding box
+  
+  getSelectedElement(): Button | Field | null;
+}
+```
+
+#### ScriptEditor
+
+```typescript
+interface ScriptEditor {
+  setScript(handlerName: string, source: string): void;
+  // Display script in editor, tokenize/highlight
+  
+  getScript(): string;
+  // Get current script text
+  
+  getError(): ParseError | RuntimeError | null;
+  // Get parse/runtime error (if any)
+  
+  runPreview(context: ExecutionContext): void;
+  // Execute script in test context, show result
+}
+```
+
+#### ElementInspector
+
+```typescript
+interface ElementInspector {
+  setElement(element: Button | Field): void;
+  // Display element properties in form fields
+  
+  getElement(): Button | Field;
+  // Get currently edited element with updates from form
+  
+  onChange(handler: (element: Button | Field) => void): void;
+  // Subscribe to property changes
+}
+```
+
+#### RunModeViewer
+
+```typescript
+interface RunModeViewer {
+  render(card: Card, background: Background | null): void;
+  // Render card in interactive mode
+  
+  simulateButtonClick(button: Button): Promise<void>;
+  // Fire mouseUp handler, execute script, update UI
+  
+  simulateFieldEdit(field: Field, newContent: string): Promise<void>;
+  // Update field, trigger any change handlers
+}
+```
+
+### Integration: UI → Interpreter
+
+When a button is clicked in Run Mode:
+
+1. **Click Event** → `RunModeViewer` captures click
+2. **Message Dispatch** → `runtime.send("mouseUp", button, executionContext)`
+3. **Handler Execution** → Parser + runtime execute `on mouseUp { ... }` script
+4. **Field Update** → Script calls `put "result" into field X`
+5. **UI Sync** → Runtime notifies UI of field update; `RunModeViewer.setFieldContent(field)` re-renders
+6. **User Sees Result** → Field text changes on screen
+
+```typescript
+// Example in RunModeViewer
+private async onButtonClick(button: Button): Promise<void> {
+  try {
+    const context = new ExecutionContext(this.stack, this.currentCard);
+    await this.runtime.send("mouseUp", button, context);
+    
+    // After execution, re-render affected fields
+    for (const field of this.currentCard.fields) {
+      this.updateFieldDisplay(field);
+    }
+  } catch (error) {
+    this.showErrorModal(error.message);
+  }
+}
+```
+
+### Storage and Persistence
+
+#### localStorage Workflow
+
+```typescript
+// Save
+const json = stack.toJSON();
+localStorage.setItem("stacks_current", json);
+localStorage.setItem("stacks_undo_history", JSON.stringify(undoStack));
+
+// Load
+const json = localStorage.getItem("stacks_current");
+if (json) {
+  const stack = Stack.fromJSON(json);
+  appState.stack = stack;
+}
+```
+
+#### JSON Export/Import
+
+```typescript
+// Export
+const element = document.createElement("a");
+element.href = "data:application/json;base64," + btoa(JSON.stringify(stack));
+element.download = "my-stack.json";
+element.click();
+
+// Import
+input.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const json = JSON.parse(e.target.result);
+    appState.stack = Stack.fromJSON(json);
+    appState.isDirty = true;
+    render();
+  };
+  reader.readAsText(file);
+});
+```
+
+### Script Editor: Syntax Highlighting
+
+The script editor uses a simple token-based approach (no external highlighter):
+
+```typescript
+// In ScriptEditor.render()
+const tokens = lexer.tokenize(scriptSource);
+for (const token of tokens) {
+  const span = document.createElement("span");
+  span.classList.add(`token-${token.type}`); // token-keyword, token-string, etc.
+  span.textContent = token.value;
+  editorContainer.appendChild(span);
+}
+```
+
+CSS for highlighting:
+
+```css
+.token-keyword { color: black; font-weight: bold; }
+.token-string  { color: #666; }
+.token-number  { color: #333; }
+.token-comment { color: #999; }
+.error-line    { background-color: #f0f0f0; border-left: 3px solid red; }
+```
+
+### Error Display
+
+#### Parse Errors in Script Editor
+
+When a user types in the script editor, parse errors are shown inline:
+
+```typescript
+// In ScriptEditor.onChange()
+const tokens = lexer.tokenize(this.scriptText);
+const parseResult = parser.parse(tokens);
+
+if (parseResult.error) {
+  this.errorLine = parseResult.error.line;
+  this.errorMessage = parseResult.error.message;
+  this.highlightErrorLine();
+} else {
+  this.clearError();
+}
+```
+
+#### Runtime Errors in Run Mode
+
+When a script is executed in Run Mode and fails, a modal is shown:
+
+```typescript
+// In RunModeViewer.onButtonClick()
+try {
+  await this.runtime.send("mouseUp", button, context);
+} catch (error) {
+  this.showErrorModal(`Error: ${error.message}`);
+}
+```
+
+### Responsive Layout with CSS Grid
+
+```css
+body {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  grid-template-rows: 40px 1fr 200px;
+  height: 100vh;
+  gap: 1px;
+  background: #ccc;
+}
+
+.card-list   { grid-column: 1; grid-row: 1 / 3; }
+.card-canvas { grid-column: 2; grid-row: 1 / 3; }
+.inspector   { grid-column: 3; grid-row: 1 / 2; }
+.script-editor { grid-column: 2 / 4; grid-row: 3; }
+```
+
+Collapsible sidebars adjust grid columns on resize or user collapse action.
+
+---
+
+## Interface Boundaries (Updated for UI)
+
+### UI → Model
+
+```typescript
+// UI reads from model
+interface ModelRead {
+  stack: Stack;
+  card: Card;
+  buttons: Button[];
+  fields: Field[];
+  getVariable(scope: "card" | "stack", name: string): any;
+}
+
+// UI writes to model
+interface ModelWrite {
+  addCard(stack: Stack): Card;
+  deleteCard(stack: Stack, cardId: string): void;
+  addButton(card: Card, label: string): Button;
+  addField(card: Card, name: string): Field;
+  updateButton(button: Button, updates: Partial<Button>): void;
+  updateField(field: Field, updates: Partial<Field>): void;
+  updateScript(element: Button | Field, handlerName: string, source: string): void;
+}
+```
+
+### UI → Interpreter
+
+```typescript
+interface RuntimeControl {
+  parseScript(source: string): { ast: ASTNode[] } | { error: ParseError };
+  executeScript(source: string, handler: string, context: ExecutionContext): Promise<void>;
+  send(message: string, target: Button | Field, context: ExecutionContext): Promise<void>;
+}
+```
+
+---
+
+## Testing Strategy for UI (Updated)
+
+### DOM Testing with jsdom/happy-dom via Vitest
+
+Since the UI uses vanilla DOM, tests will use `jsdom` or `happy-dom` to simulate a browser environment:
+
+```typescript
+// Example test in src/dom/cardCanvas.test.ts
+import { JSDOM } from "jsdom";
+import { describe, it, expect, beforeEach } from "vitest";
+import { CardCanvas } from "./cardCanvas";
+import { Card, Button } from "../model/stack";
+
+describe("CardCanvas", () => {
+  let canvas: CardCanvas;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    const dom = new JSDOM('<!DOCTYPE html><div id="app"></div>');
+    container = dom.window.document.getElementById("app")!;
+    canvas = new CardCanvas(container);
+  });
+
+  it("renders buttons at their rect positions", () => {
+    const card = new Card("c1", "bg1", "Test Card", [], [], {});
+    const button = new Button("b1", "Click Me", { left: 10, top: 20, right: 100, bottom: 50 });
+    card.buttons = [button];
+
+    canvas.render(card, null);
+
+    const buttonEl = container.querySelector("[data-button-id='b1']") as HTMLElement;
+    expect(buttonEl).toBeTruthy();
+    expect(buttonEl.style.left).toBe("10px");
+    expect(buttonEl.style.top).toBe("20px");
+  });
+
+  it("allows dragging elements", async () => {
+    // Test drag/resize interaction
+  });
+});
+```
+
+### Integration Tests for UI ↔ Interpreter
+
+```typescript
+// Example in tests/ui-interpreter.test.ts
+describe("UI → Interpreter Integration", () => {
+  it("executes button click handler and updates field", async () => {
+    const stack = createTestStack();
+    const card = stack.cards[0];
+    const button = card.buttons[0];
+    const field = card.fields[0];
+
+    button.scripts["mouseUp"] = 'put "clicked" into field "output"';
+
+    const runtime = new Runtime(stack, card);
+    await runtime.send("mouseUp", button, new ExecutionContext(stack, card));
+
+    expect(field.content).toBe("clicked");
+  });
+
+  it("displays parse error in script editor when code is invalid", () => {
+    const editor = new ScriptEditor(container);
+    editor.setScript("mouseUp", "if x = 5"); // Missing 'end if'
+
+    const error = editor.getError();
+    expect(error).toBeTruthy();
+    expect(error.message).toContain("Expected 'end if'");
+  });
+
+  it("imports and exports stack JSON preserves all data", () => {
+    const originalStack = createTestStack();
+    const json = originalStack.toJSON();
+    const restoredStack = Stack.fromJSON(json);
+
+    expect(JSON.stringify(restoredStack)).toBe(JSON.stringify(originalStack));
+  });
+});
+```
+
+---
+
+## Performance Considerations for UI
+
+- **Rendering**: Use element reuse when possible. Don't recreate DOM on every state change; use innerHTML for full redraws only for small containers.
+- **Event Delegation**: Use event bubbling and a single listener on parent containers instead of individual listeners on many elements.
+- **Script Parsing**: Cache parsed AST for scripts to avoid re-parsing on every mode switch.
+- **Large Stacks**: If a stack has 100+ cards, consider virtual scrolling in the card list.
+
+---
+
+## Extensibility for UI
+
+- **Custom Button Styles**: Register new button style types (e.g., "rounded", "gradient") and add corresponding CSS.
+- **Drag/Resize Handlers**: Allow plugins to register custom drag/resize behavior for elements.
+- **Storage Backends**: Implement additional storage providers (IndexedDB, cloud sync) by extending the storage interface.
 
 ### Card Engine → Renderer
 
