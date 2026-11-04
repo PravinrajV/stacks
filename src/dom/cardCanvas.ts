@@ -47,6 +47,9 @@ export class CardCanvas {
   private onElementClick: ((elementId: string) => void) | null = null
   private onElementMove: ((elementId: string, rect: Rect) => void) | null = null
   private onElementResize: ((elementId: string, rect: Rect) => void) | null = null
+  private lastCardId: string | null = null
+  private isAnimating: boolean = false
+  private fadeCompleteTimeout: ReturnType<typeof setTimeout> | null = null
 
   constructor() {
     // Create outer container (scrollable, positioned)
@@ -129,6 +132,40 @@ export class CardCanvas {
   }
 
   render(card: Card, background: Background | null): void {
+    const cardChanged = this.lastCardId !== card.id && this.lastCardId !== null
+    this.lastCardId = card.id
+
+    // Remove any active animations before starting new ones
+    this.cardView.classList.remove('card-flip-in', 'card-flip-out', 'card-fade-in', 'card-fade-out')
+
+    if (cardChanged && !this.isAnimating) {
+      // Trigger fade-out animation on card change
+      this.isAnimating = true
+      this.cardView.classList.add('card-fade-out')
+
+      // When fade-out completes, render new card and fade in
+      const transitionDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 320
+      this.fadeCompleteTimeout = setTimeout(() => {
+        // Check if animation was interrupted
+        if (this.isAnimating) {
+          this.renderCardContent(card, background)
+          this.cardView.classList.remove('card-fade-out')
+          this.cardView.classList.add('card-fade-in')
+
+          // Clear animation state when fade-in completes
+          setTimeout(() => {
+            this.cardView.classList.remove('card-fade-in')
+            this.isAnimating = false
+          }, transitionDuration)
+        }
+      }, transitionDuration)
+    } else {
+      // No animation for first card or if already animating
+      this.renderCardContent(card, background)
+    }
+  }
+
+  private renderCardContent(card: Card, background: Background | null): void {
     removeAllChildren(this.cardView)
 
     // Render background elements first
@@ -476,5 +513,23 @@ export class CardCanvas {
   private handleMouseUp(): void {
     this.panState.isPanning = false
     this.dragState = null
+  }
+
+  destroy(): void {
+    // Clean up any pending animation timeouts
+    if (this.fadeCompleteTimeout !== null) {
+      clearTimeout(this.fadeCompleteTimeout)
+      this.fadeCompleteTimeout = null
+    }
+
+    // Stop ResizeObserver
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+    }
+
+    // Remove from DOM
+    if (this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element)
+    }
   }
 }

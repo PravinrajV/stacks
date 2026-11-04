@@ -21,6 +21,7 @@ import { createExecutionContext, Runtime } from '../interpreter/runtime'
 import { generateScript } from '../generator/scriptGen'
 import { MockModelProvider } from '../generator/mockProvider'
 import { defaultRegistry } from '../generator/providerRegistry'
+import { StyledAlert } from './components/styledDialogs'
 import type { ModelProvider } from '../generator/modelProvider'
 import type { DiffLine } from '../generator/scriptGen'
 
@@ -368,18 +369,21 @@ export class ScriptEditor {
    */
   private showPreview(): void {
     if (!this.currentStack || !this.currentCard) {
-      alert('No card context available for preview')
+      const alert = new StyledAlert()
+      alert.show('No card context available for preview', 'Cannot Preview')
       return
     }
 
     if (this.error) {
-      alert(`Cannot preview: ${this.error.message}`)
+      const alert = new StyledAlert()
+      alert.show(`Cannot preview: ${this.error.message}`, 'Preview Error')
       return
     }
 
     const script = this.textarea.value
     if (!script.trim()) {
-      alert('No script to preview')
+      const alert = new StyledAlert()
+      alert.show('No script to preview', 'Empty Script')
       return
     }
 
@@ -398,7 +402,8 @@ export class ScriptEditor {
     // Find corresponding card in copy
     const cardCopy = stackCopy.cards.find((c: any) => c.id === this.currentCard!.id)
     if (!cardCopy) {
-      alert('Card not found in stack copy')
+      const alert = new StyledAlert()
+      alert.show('Card not found in stack copy', 'Preview Error')
       return
     }
 
@@ -407,13 +412,15 @@ export class ScriptEditor {
       const source = script
       const tokensResult = tokenize(source)
       if (!Array.isArray(tokensResult)) {
-        alert(`Tokenization error: ${tokensResult.message}`)
+        const alert = new StyledAlert()
+        alert.show(`Tokenization error: ${tokensResult.message}`, 'Preview Error')
         return
       }
 
       const parseResult = parse(tokensResult)
       if ('type' in parseResult && parseResult.type === 'ParseError') {
-        alert(`Parse error: ${parseResult.message}`)
+        const alert = new StyledAlert()
+        alert.show(`Parse error: ${parseResult.message}`, 'Preview Error')
         return
       }
 
@@ -424,7 +431,8 @@ export class ScriptEditor {
       const execResult = runtime.execute(parseResult)
       if (!execResult.success) {
         const error = execResult.error as any
-        alert(`Execution error: ${error?.message || 'Unknown error'}`)
+        const alert = new StyledAlert()
+        alert.show(`Execution error: ${error?.message || 'Unknown error'}`, 'Preview Error')
         return
       }
 
@@ -435,7 +443,8 @@ export class ScriptEditor {
         const handlerResult = runtime.executeHandlerBody(firstHandler.name)
         if (!handlerResult.success) {
           const error = handlerResult.error as any
-          alert(`Handler execution error: ${error?.message || 'Unknown error'}`)
+          const alert = new StyledAlert()
+          alert.show(`Handler execution error: ${error?.message || 'Unknown error'}`, 'Preview Error')
           return
         }
       }
@@ -446,9 +455,11 @@ export class ScriptEditor {
         .join('\n')
 
       const message = `Preview executed successfully!\n\nField updates:\n${fieldUpdates || '(no fields updated)'}`
-      alert(message)
+      const alert = new StyledAlert()
+      alert.show(message, 'Preview Result')
     } catch (err) {
-      alert(`Preview error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      const alert = new StyledAlert()
+      alert.show(`Preview error: ${err instanceof Error ? err.message : 'Unknown error'}`, 'Preview Error')
     }
   }
 
@@ -622,7 +633,8 @@ export class ScriptEditor {
 
     const prompt = this.aiPromptInput.value.trim()
     if (!prompt) {
-      alert('Please enter a description')
+      const alert = new StyledAlert()
+      alert.show('Please enter a description', 'Empty Prompt')
       return
     }
 

@@ -590,7 +590,8 @@ export class App {
           const json = await readJSONFile(file)
           const result = importJSON(json)
           if ('error' in result) {
-            alert(`Import failed: ${result.error}`)
+            const alertDialog = new StyledAlert()
+            alertDialog.show(`Import failed: ${result.error}`, 'Import Error')
           } else {
             this.appState.stack = result.stack
             this.appState.currentCardId = this.appState.stack.cards[0]?.id || ''
