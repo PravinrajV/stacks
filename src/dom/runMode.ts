@@ -6,6 +6,7 @@
 
 import { createElement, setTextContent, setStyles, removeAllChildren, addEventListener } from './utils/dom'
 import { rectWidth, rectHeight } from './utils/rect'
+import { computeFit } from './utils/fit'
 import type { Card, Button, Field, Background } from '../model/stack'
 import type { Stack } from '../model/stack'
 import { ModalComponent } from './components/modal'
@@ -21,6 +22,10 @@ export class RunModeViewer {
   private currentCard: Card | null = null
   private onNavigate: ((cardId: string) => void) | null = null
   private onExit: (() => void) | null = null
+  private scale: number = 1  // Responsive scale factor
+  private fitLeft: number = 0  // Centering offset
+  private fitTop: number = 0   // Centering offset
+  private resizeObserver: ResizeObserver | null = null
 
   constructor() {
     this.element = createElement('div', {
@@ -58,10 +63,48 @@ export class RunModeViewer {
 
     this.modal = new ModalComponent()
     this.element.appendChild(this.modal.getElement())
+
+    // Set up ResizeObserver to recompute scale when container resizes
+    this.resizeObserver = new ResizeObserver(() => {
+      this.updateCardFit()
+    })
+    this.resizeObserver.observe(this.cardCanvas)
   }
 
   getElement(): HTMLElement {
     return this.element
+  }
+
+  /**
+   * Calculate responsive scale and centering to fit card in container.
+   */
+  private updateCardFit(): void {
+    const containerRect = this.cardCanvas.getBoundingClientRect()
+    const containerWidth = containerRect.width
+    const containerHeight = containerRect.height
+
+    if (containerWidth <= 0 || containerHeight <= 0) {
+      // Container not yet laid out, skip update
+      return
+    }
+
+    // Compute fit and centering parameters
+    const { scale, left, top } = computeFit(containerWidth, containerHeight)
+    this.scale = Math.max(0.1, scale)
+    this.fitLeft = left
+    this.fitTop = top
+
+    // Apply transform to card view
+    this.updateCardTransform()
+  }
+
+  /**
+   * Apply transform to center and scale the card.
+   */
+  private updateCardTransform(): void {
+    const transform = `translate(${this.fitLeft}px, ${this.fitTop}px) scale(${this.scale})`
+    this.cardView.style.transform = transform
+    this.cardView.style.transformOrigin = 'top left'
   }
 
   render(stack: Stack, card: Card, background: Background | null): void {
@@ -86,6 +129,17 @@ export class RunModeViewer {
     }
     for (const button of card.buttons) {
       this.renderButton(button)
+    }
+
+    // Measure container and apply fit after layout
+    // Use requestAnimationFrame to ensure layout has been computed
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => {
+        this.updateCardFit()
+      })
+    } else {
+      // Fallback for test environments
+      this.updateCardFit()
     }
   }
 
@@ -206,6 +260,28 @@ export class RunModeViewer {
    */
   handleNavigation(cardId: string): void {
     this.onNavigate?.(cardId)
+  }
+
+  /**
+   * For testing: recalculate fit based on current container size.
+   * Normally called automatically by ResizeObserver.
+   */
+  testUpdateFit(): void {
+    this.updateCardFit()
+  }
+
+  /**
+   * For testing: get current scale factor.
+   */
+  testGetScale(): number {
+    return this.scale
+  }
+
+  /**
+   * For testing: get current fit offsets.
+   */
+  testGetFitOffsets(): { left: number; top: number } {
+    return { left: this.fitLeft, top: this.fitTop }
   }
 }
 
