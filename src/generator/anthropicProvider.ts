@@ -91,39 +91,8 @@ export class AnthropicProvider extends ModelProvider {
   }
   
   async isAvailable(): Promise<boolean> {
-    // Check if API key is configured
-    if (!this.apiKey) {
-      return false
-    }
-    
-    // Test connectivity with a minimal request
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout for availability check
-      
-      const response = await fetch(this.apiBaseUrl, {
-        method: 'POST',
-        headers: {
-          'x-api-key': this.apiKey,
-          'anthropic-version': this.apiVersion,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: this.model,
-          max_tokens: 10,
-          messages: [{ role: 'user', content: 'ping' }]
-        }),
-        signal: controller.signal
-      })
-      
-      clearTimeout(timeoutId)
-      
-      // Any response that isn't a network error means the service is reachable
-      return response.status !== 0
-    } catch (err) {
-      // Network error, timeout, or invalid key
-      return false
-    }
+    // Only check if API key is set; no network call to avoid cost and CORS issues
+    return !!this.apiKey
   }
   
   async generate(request: ScriptGenRequest): Promise<ScriptGenResponse> {
@@ -149,10 +118,10 @@ Never include explanations or anything except the code.`
     // Build user message from request
     const userMessage = this.buildUserMessage(request)
     
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout)
+    
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), this.timeout)
-      
       const response = await fetch(this.apiBaseUrl, {
         method: 'POST',
         headers: {
@@ -191,6 +160,8 @@ Never include explanations or anything except the code.`
         confidence: 0.85
       }
     } catch (err) {
+      clearTimeout(timeoutId)
+      
       if (err instanceof Error && err.name === 'AbortError') {
         throw new Error('Request timeout: Anthropic API took too long to respond')
       }
@@ -222,19 +193,22 @@ Never include explanations or anything except the code.`
     if (status === 401) {
       return {
         code: '',
-        explanation: 'API key is invalid or expired. Please check your Anthropic API key in settings.'
+        explanation: 'API key is invalid or expired. Please check your Anthropic API key in settings.',
+        confidence: 0
       }
     }
     if (status === 429) {
       return {
         code: '',
-        explanation: 'Rate limited. Too many requests to Anthropic API. Please wait and try again.'
+        explanation: 'Rate limited. Too many requests to Anthropic API. Please wait and try again.',
+        confidence: 0
       }
     }
     if (status >= 500) {
       return {
         code: '',
-        explanation: 'Anthropic API server error. Please try again later.'
+        explanation: 'Anthropic API server error. Please try again later.',
+        confidence: 0
       }
     }
     
@@ -244,12 +218,14 @@ Never include explanations or anything except the code.`
       const message = errorData.error?.message || 'Unknown error'
       return {
         code: '',
-        explanation: `API error: ${message}`
+        explanation: `API error: ${message}`,
+        confidence: 0
       }
     } catch {
       return {
         code: '',
-        explanation: `API error: HTTP ${status}`
+        explanation: `API error: HTTP ${status}`,
+        confidence: 0
       }
     }
   }

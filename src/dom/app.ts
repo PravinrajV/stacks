@@ -542,10 +542,13 @@ export class App {
       const anthropic = defaultRegistry.getAnthropicProvider()
       const ollama = defaultRegistry.getOllamaProvider()
       
+      // Show "key set" indicator without exposing the key
+      const anthropicKeyStatus = anthropic.getApiKey() ? '✓ key set' : ''
+      
       this.settingsPanel.setSettings({
         provider: 'mock',
         anthropicModel: anthropic.getModel(),
-        anthropicKey: anthropic.getApiKey() === '***' ? '' : '',
+        anthropicKey: anthropicKeyStatus,
         ollamaBaseUrl: ollama.getBaseUrl(),
         ollamaModel: ollama.getModel()
       })

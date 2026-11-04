@@ -19,6 +19,9 @@ const originalFetch = global.fetch
 const mockFetch = vi.fn()
 
 beforeEach(() => {
+  vi.clearAllMocks()
+  mockFetch.mockClear()
+  mockFetch.mockReset()
   global.fetch = mockFetch as any
   // Clear sessionStorage
   sessionStorage.clear()
@@ -123,48 +126,54 @@ describe('Task 4.2: AnthropicProvider', () => {
       expect(mockFetch).not.toHaveBeenCalled()
     })
 
-    it('should call fetch with correct headers for availability check', async () => {
+    it('should check only API key availability, no network call', async () => {
       mockFetch.mockResolvedValueOnce({
         status: 200,
         ok: true
       })
 
       const provider = new AnthropicProvider()
+      
+      // Without key
+      expect(await provider.isAvailable()).toBe(false)
+      expect(mockFetch).not.toHaveBeenCalled()
+      
+      // With key
       provider.setApiKey('sk-ant-test123')
+      expect(await provider.isAvailable()).toBe(true)
       
-      await provider.isAvailable()
-      
-      expect(mockFetch).toHaveBeenCalledOnce()
-      const call = mockFetch.mock.calls[0]
-      expect(call[0]).toBe('https://api.anthropic.com/v1/messages')
-      expect(call[1]).toHaveProperty('headers')
-      const headers = call[1].headers as Record<string, string>
-      expect(headers['x-api-key']).toBe('sk-ant-test123')
-      expect(headers['anthropic-version']).toBe('2023-06-01')
+      // Still no fetch call
+      expect(mockFetch).not.toHaveBeenCalled()
     })
 
-    it('should return false on network error', async () => {
+    it('should return false without API key', async () => {
+      const provider = new AnthropicProvider()
+      const available = await provider.isAvailable()
+      expect(available).toBe(false)
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
+
+    it('should return true with API key (no network call made)', async () => {
+      const provider = new AnthropicProvider()
+      provider.setApiKey('sk-ant-test123')
+      
+      const available = await provider.isAvailable()
+      
+      expect(available).toBe(true)
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
+
+    it('should not make network call even on error config', async () => {
+      // Setup mock as if network would fail
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
       const provider = new AnthropicProvider()
       provider.setApiKey('sk-ant-test123')
       
+      // isAvailable should not call fetch
       const available = await provider.isAvailable()
-      
-      expect(available).toBe(false)
-    })
-
-    it('should timeout availability check after 5 seconds', async () => {
-      const abortError = new Error('Aborted')
-      abortError.name = 'AbortError'
-      mockFetch.mockRejectedValueOnce(abortError)
-
-      const provider = new AnthropicProvider()
-      provider.setApiKey('sk-ant-test123')
-      
-      const available = await provider.isAvailable()
-      
-      expect(available).toBe(false)
+      expect(available).toBe(true)
+      expect(mockFetch).not.toHaveBeenCalled()
     })
   })
 
