@@ -20,6 +20,22 @@ export class CardCanvas {
     startRect: Rect
     mode: 'move' | 'resize'
   } | null = null
+  private panState: {
+    isPanning: boolean
+    startX: number
+    startY: number
+    offsetX: number
+    offsetY: number
+  } = {
+    isPanning: false,
+    startX: 0,
+    startY: 0,
+    offsetX: 0,
+    offsetY: 0
+  }
+  private zoomLevel: number = 1
+  private minZoom: number = 0.25
+  private maxZoom: number = 4
   private onElementClick: ((elementId: string) => void) | null = null
   private onElementMove: ((elementId: string, rect: Rect) => void) | null = null
   private onElementResize: ((elementId: string, rect: Rect) => void) | null = null
@@ -28,14 +44,21 @@ export class CardCanvas {
     this.element = createElement('div', {
       className: 'card-canvas'
     })
+    this.element.setAttribute('aria-label', 'Card canvas - click elements to select, drag to move. Use Ctrl+scroll to zoom, arrow keys to pan')
+    this.element.setAttribute('role', 'region')
 
     this.cardView = createElement('div', {
       className: 'card-view'
     })
+    this.cardView.setAttribute('role', 'img')
+    this.cardView.setAttribute('aria-label', 'Card editing canvas')
     this.element.appendChild(this.cardView)
 
     addEventListener(this.element, 'mousemove', (e) => this.handleMouseMove(e as MouseEvent))
     addEventListener(this.element, 'mouseup', () => this.handleMouseUp())
+    addEventListener(this.element, 'mousedown', (e) => this.handleCanvasMouseDown(e as MouseEvent))
+    addEventListener(this.element, 'wheel', (e) => this.handleWheel(e as WheelEvent), { passive: false })
+    addEventListener(this.element, 'keydown', (e) => this.handleKeyDown(e as KeyboardEvent))
   }
 
   getElement(): HTMLElement {
@@ -99,7 +122,10 @@ export class CardCanvas {
 
     setAttributes(el, {
       'data-element-id': id,
-      'data-element-type': type
+      'data-element-type': type,
+      'role': type === 'button' ? 'button' : 'textbox',
+      'aria-label': `${type === 'button' ? 'Button' : 'Field'}: ${label || 'untitled'}`,
+      'tabindex': '0'
     })
 
     setStyles(el, {
@@ -142,7 +168,125 @@ export class CardCanvas {
     }
   }
 
+  selectElement(elementId: string): void {
+    // Clear previous selection
+    const prevSelected = this.cardView.querySelector('.card-element.selected')
+    if (prevSelected) {
+      prevSelected.classList.remove('selected')
+      // Remove resize handle
+      const handle = prevSelected.querySelector('.resize-handle')
+      if (handle) {
+        prevSelected.removeChild(handle)
+      }
+    }
+
+    // Select new
+    this.selectedElementId = elementId
+    const selected = this.cardView.querySelector(`[data-element-id="${elementId}"]`) as HTMLElement
+    if (selected) {
+      selected.classList.add('selected')
+
+      // Add resize handle
+      const handle = createElement('div', { className: 'resize-handle' })
+      selected.appendChild(handle)
+    }
+  }
+
+  getSelectedElement(): string | null {
+    return this.selectedElementId
+  }
+
+  onElementClicked(handler: (elementId: string) => void): void {
+    this.onElementClick = handler
+  }
+
+  onElementMoved(handler: (elementId: string, rect: Rect) => void): void {
+    this.onElementMove = handler
+  }
+
+  onElementResized(handler: (elementId: string, rect: Rect) => void): void {
+    this.onElementResize = handler
+  }
+
+  private handleCanvasMouseDown(e: MouseEvent): void {
+    // Only pan if middle-mouse button or Shift+Left-click
+    const isMiddleClick = e.button === 1
+    const isShiftClick = e.shiftKey && e.button === 0
+    
+    if (!isMiddleClick && !isShiftClick) return
+
+    // Don't pan if clicking on an element
+    const target = e.target as HTMLElement
+    if (target.closest('.card-element')) return
+
+    e.preventDefault()
+    this.panState.isPanning = true
+    this.panState.startX = e.clientX
+    this.panState.startY = e.clientY
+  }
+
+  private handleWheel(e: WheelEvent): void {
+    // Only zoom if Ctrl (or Cmd on Mac) is pressed
+    if (!(e.ctrlKey || e.metaKey)) return
+
+    e.preventDefault()
+
+    // Zoom based on wheel direction
+    const delta = e.deltaY < 0 ? 1.1 : 0.9
+    const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel * delta))
+    
+    if (newZoom !== this.zoomLevel) {
+      this.zoomLevel = newZoom
+      this.updateCanvasTransform()
+    }
+  }
+
+  private handleKeyDown(e: KeyboardEvent): void {
+    // Arrow keys to pan
+    const panStep = 20
+    let moved = false
+
+    if (e.key === 'ArrowUp' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault()
+      this.panState.offsetY += panStep
+      moved = true
+    } else if (e.key === 'ArrowDown' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault()
+      this.panState.offsetY -= panStep
+      moved = true
+    } else if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault()
+      this.panState.offsetX += panStep
+      moved = true
+    } else if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault()
+      this.panState.offsetX -= panStep
+      moved = true
+    }
+
+    if (moved) {
+      this.updateCanvasTransform()
+    }
+  }
+
+  private updateCanvasTransform(): void {
+    const transform = `translate(${this.panState.offsetX}px, ${this.panState.offsetY}px) scale(${this.zoomLevel})`
+    this.cardView.style.transform = transform
+    this.cardView.style.transformOrigin = 'top left'
+  }
+
   private handleMouseMove(e: MouseEvent): void {
+    if (this.panState.isPanning) {
+      const dx = e.clientX - this.panState.startX
+      const dy = e.clientY - this.panState.startY
+      this.panState.offsetX += dx
+      this.panState.offsetY += dy
+      this.panState.startX = e.clientX
+      this.panState.startY = e.clientY
+      this.updateCanvasTransform()
+      return
+    }
+
     if (!this.dragState) return
 
     const dx = e.clientX - this.dragState.startX
@@ -183,46 +327,7 @@ export class CardCanvas {
   }
 
   private handleMouseUp(): void {
+    this.panState.isPanning = false
     this.dragState = null
-  }
-
-  selectElement(elementId: string): void {
-    // Clear previous selection
-    const prevSelected = this.cardView.querySelector('.card-element.selected')
-    if (prevSelected) {
-      prevSelected.classList.remove('selected')
-      // Remove resize handle
-      const handle = prevSelected.querySelector('.resize-handle')
-      if (handle) {
-        prevSelected.removeChild(handle)
-      }
-    }
-
-    // Select new
-    this.selectedElementId = elementId
-    const selected = this.cardView.querySelector(`[data-element-id="${elementId}"]`) as HTMLElement
-    if (selected) {
-      selected.classList.add('selected')
-
-      // Add resize handle
-      const handle = createElement('div', { className: 'resize-handle' })
-      selected.appendChild(handle)
-    }
-  }
-
-  getSelectedElement(): string | null {
-    return this.selectedElementId
-  }
-
-  onElementClicked(handler: (elementId: string) => void): void {
-    this.onElementClick = handler
-  }
-
-  onElementMoved(handler: (elementId: string, rect: Rect) => void): void {
-    this.onElementMove = handler
-  }
-
-  onElementResized(handler: (elementId: string, rect: Rect) => void): void {
-    this.onElementResize = handler
   }
 }

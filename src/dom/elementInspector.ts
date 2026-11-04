@@ -15,6 +15,8 @@ export class ElementInspector {
     this.element = createElement('div', {
       className: 'element-inspector'
     })
+    this.element.setAttribute('aria-label', 'Element properties inspector')
+    this.element.setAttribute('role', 'region')
   }
 
   getElement(): HTMLElement {
@@ -41,6 +43,8 @@ export class ElementInspector {
     // Title
     const type = 'label' in el ? 'Button' : 'Field'
     const title = createElement('div')
+    title.setAttribute('role', 'heading')
+    title.setAttribute('aria-level', '2')
     title.style.fontWeight = 'bold'
     setTextContent(title, `${type} Properties`)
     this.element.appendChild(title)
@@ -105,11 +109,15 @@ export class ElementInspector {
   private addTextInput(label: string, value: string, onChange: (value: string) => void): void {
     const section = createElement('div', { className: 'inspector-section' })
 
+    const labelId = `label-${Math.random().toString(36).substr(2, 9)}`
     const labelEl = createElement('label', { className: 'inspector-label' })
+    labelEl.setAttribute('for', labelId)
     setTextContent(labelEl, label)
     section.appendChild(labelEl)
 
     const input = new TextInputComponent('input', { value })
+    input.getElement().setAttribute('id', labelId)
+    input.getElement().setAttribute('aria-labelledby', labelId)
     input.onChange((val) => {
       onChange(val)
     })
@@ -121,11 +129,15 @@ export class ElementInspector {
   private addNumberInput(label: string, value: number, onChange: (value: number) => void): void {
     const section = createElement('div', { className: 'inspector-section' })
 
+    const labelId = `label-${Math.random().toString(36).substr(2, 9)}`
     const labelEl = createElement('label', { className: 'inspector-label' })
+    labelEl.setAttribute('for', labelId)
     setTextContent(labelEl, label)
     section.appendChild(labelEl)
 
     const input = new TextInputComponent('input', { value: String(value) })
+    input.getElement().setAttribute('id', labelId)
+    input.getElement().setAttribute('aria-labelledby', labelId)
     input.onChange((val) => {
       const num = parseInt(val, 10)
       if (!isNaN(num)) {
@@ -140,15 +152,19 @@ export class ElementInspector {
   private addCheckbox(label: string, value: boolean, onChange: (value: boolean) => void): void {
     const section = createElement('div', { className: 'inspector-section' })
 
+    const labelId = `label-${Math.random().toString(36).substr(2, 9)}`
     const labelEl = createElement('label', { className: 'inspector-label' })
+    labelEl.setAttribute('for', labelId)
     setTextContent(labelEl, label)
     section.appendChild(labelEl)
 
     const checkbox = createElement('input', {
       attributes: {
-        type: 'checkbox'
+        type: 'checkbox',
+        id: labelId
       }
     }) as HTMLInputElement
+    checkbox.setAttribute('aria-labelledby', labelId)
     checkbox.checked = value
     checkbox.addEventListener('change', () => onChange(checkbox.checked))
     section.appendChild(checkbox)

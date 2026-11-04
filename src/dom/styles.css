@@ -593,3 +593,32 @@ textarea:focus {
     grid-row: 3;
   }
 }
+
+
+/* ===== Focus Styles for Keyboard Navigation ===== */
+
+*:focus-visible {
+  outline: 2px solid var(--color-dark-gray);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-black);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-dark-gray);
+  outline-offset: 1px;
+}
+
+.card-item:focus-visible {
+  outline: 2px solid var(--color-dark-gray);
+  outline-offset: -2px;
+}
+
+.card-element:focus-visible {
+  outline: 2px solid var(--color-dark-gray);
+  outline-offset: -2px;
+}
