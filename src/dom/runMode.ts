@@ -7,6 +7,7 @@
 import { createElement, setTextContent, setStyles, removeAllChildren, addEventListener } from './utils/dom'
 import { rectWidth, rectHeight } from './utils/rect'
 import { computeFit } from './utils/fit'
+import { createGhostIcon } from './icons'
 import type { Card, Button, Field, Background } from '../model/stack'
 import type { Stack } from '../model/stack'
 import { ModalComponent } from './components/modal'
@@ -32,12 +33,21 @@ export class RunModeViewer {
       className: 'run-mode-viewer'
     })
 
-    const header = createElement('div', { className: 'editor-header' })
-    const title = createElement('div', { className: 'editor-title' })
-    setTextContent(title, 'Run Mode')
-    header.appendChild(title)
+    // Create floating glass header pill
+    const header = createElement('div', { className: 'run-mode-header' })
+    
+    // Ghost icon
+    const ghostIcon = createGhostIcon()
+    ghostIcon.setAttribute('width', '20')
+    ghostIcon.setAttribute('height', '20')
+    ghostIcon.classList.add('run-mode-header-ghost')
+    header.appendChild(ghostIcon)
 
-    const exitBtn = createElement('button', { className: 'button' })
+    const label = createElement('div', { className: 'run-mode-header-label' })
+    setTextContent(label, 'Running')
+    header.appendChild(label)
+
+    const exitBtn = createElement('button', { className: 'run-mode-header-exit' })
     setTextContent(exitBtn, 'Exit')
     addEventListener(exitBtn, 'click', () => this.onExit?.())
     header.appendChild(exitBtn)
@@ -57,6 +67,13 @@ export class RunModeViewer {
     })
     this.cardView.setAttribute('role', 'img')
     this.cardView.setAttribute('aria-label', 'Card')
+
+    setStyles(this.cardView, {
+      position: 'absolute',
+      left: '0',
+      top: '0',
+      margin: '0'
+    })
 
     this.cardCanvas.appendChild(this.cardView)
     this.element.appendChild(this.cardCanvas)
@@ -79,20 +96,27 @@ export class RunModeViewer {
    * Calculate responsive scale and centering to fit card in container.
    */
   private updateCardFit(): void {
-    const containerRect = this.cardCanvas.getBoundingClientRect()
-    const containerWidth = containerRect.width
-    const containerHeight = containerRect.height
+    const cardCanvas = this.cardCanvas as HTMLElement
+    const containerWidth = cardCanvas.clientWidth
+    const containerHeight = cardCanvas.clientHeight
 
     if (containerWidth <= 0 || containerHeight <= 0) {
       // Container not yet laid out, skip update
       return
     }
 
-    // Compute fit and centering parameters
-    const { scale, left, top } = computeFit(containerWidth, containerHeight)
+    // Subtract padding to get inner size for computeFit
+    const PADDING = 24
+    const innerWidth = Math.max(0, containerWidth - PADDING * 2)
+    const innerHeight = Math.max(0, containerHeight - PADDING * 2)
+
+    // Compute fit for inner size
+    const { scale, left, top } = computeFit(innerWidth, innerHeight)
     this.scale = Math.max(0.1, scale)
-    this.fitLeft = left
-    this.fitTop = top
+    
+    // Add padding to the offsets to position the card within the padded container
+    this.fitLeft = left + PADDING
+    this.fitTop = top + PADDING
 
     // Apply transform to card view
     this.updateCardTransform()

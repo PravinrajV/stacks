@@ -20,7 +20,7 @@ import { send } from '../interpreter/dispatcher'
 import { createExecutionContext } from '../interpreter/runtime'
 import { defaultRegistry } from '../generator/providerRegistry'
 import { deserializeStack } from '../model/serialization'
-import { createSunIcon, createMoonIcon, createGhostIcon } from './icons'
+import { createSunIcon, createMoonIcon, createGhostIcon, createPlayIcon, createPlusIcon } from './icons'
 
 // Import haunted-counter.json as a string at build time
 declare const HAUNTED_COUNTER_STACK: string | undefined
@@ -481,7 +481,17 @@ export class App {
     modeToggleBtn.setAttribute('aria-pressed', this.appState.mode === 'run' ? 'true' : 'false')
     modeToggleBtn.setAttribute('title', this.appState.mode === 'edit' ? 'Switch to Run Mode (Ctrl/Cmd+R)' : 'Switch to Edit Mode (Ctrl/Cmd+E)')
     modeToggleBtn.setAttribute('aria-label', this.appState.mode === 'edit' ? 'Switch to Run Mode' : 'Switch to Edit Mode')
-    modeToggleBtn.textContent = this.appState.mode === 'edit' ? 'Run' : 'Edit'
+    
+    if (this.appState.mode === 'edit') {
+      const playIcon = createPlayIcon()
+      playIcon.setAttribute('width', '16')
+      playIcon.setAttribute('height', '16')
+      modeToggleBtn.appendChild(playIcon)
+    }
+    
+    const modeLabel = document.createElement('span')
+    modeLabel.textContent = this.appState.mode === 'edit' ? 'Run' : 'Edit'
+    modeToggleBtn.appendChild(modeLabel)
     
     addEventListener(modeToggleBtn, 'click', () => {
       this.toggleMode()
@@ -500,12 +510,12 @@ export class App {
 
     // Add Button and Add Field buttons (edit mode only)
     if (this.appState.mode === 'edit') {
-      const addButtonBtn = new ButtonComponent('+ Button', () => this.addButton())
+      const addButtonBtn = new ButtonComponent('Button', () => this.addButton(), createPlusIcon())
       addButtonBtn.getElement().setAttribute('aria-label', 'Add new button to current card')
       addButtonBtn.getElement().setAttribute('title', 'Add new button to current card')
       header.appendChild(addButtonBtn.getElement())
 
-      const addFieldBtn = new ButtonComponent('+ Field', () => this.addField())
+      const addFieldBtn = new ButtonComponent('Field', () => this.addField(), createPlusIcon())
       addFieldBtn.getElement().setAttribute('aria-label', 'Add new field to current card')
       addFieldBtn.getElement().setAttribute('title', 'Add new field to current card')
       header.appendChild(addFieldBtn.getElement())

@@ -202,6 +202,7 @@ body.run-mode {
   font-weight: bold;
   font-size: 14px;
   color: var(--color-text-primary);
+  height: 48px;
 }
 
 .app-header-title {
@@ -248,43 +249,44 @@ body.run-mode {
 }
 
 .app-header button {
-  border: none;
-  border-right: 1px var(--border-style) var(--color-border);
+  border: 1px var(--border-style) var(--color-border);
   padding: var(--spacing-xs) var(--spacing-md);
   background-color: var(--color-bg-tertiary);
   color: var(--color-text-primary);
   font-weight: normal;
-  border-radius: 0;
-  margin: 0;
+  border-radius: 20px;
+  margin: 0 var(--spacing-xs);
   font-family: var(--font-mono);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   transition: all var(--transition-duration);
-  font-size: 12px;
-}
-
-.app-header button:last-child {
-  border-right: none;
+  font-size: 13px;
 }
 
 .app-header button:hover {
-  background-color: var(--color-accent-hover);
-  color: var(--color-text-primary);
-  transform: translateY(-2px);
+  background-color: rgba(168, 85, 247, 0.2);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
 }
 
 .app-header button:active {
-  background-color: var(--color-accent-active);
+  background-color: var(--color-accent);
   color: var(--color-bg-primary);
-  transform: scale(0.97);
+}
+
+.app-header button.active {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
 }
 
 .app-header button svg {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+  color: currentColor;
 }
 
 .theme-toggle {
@@ -452,9 +454,20 @@ body.run-mode {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  background-color: #f0f0f0;
-  padding: 0;
+  padding: 24px;
   min-height: 0;
+}
+
+[data-theme="haunted"] .canvas-container {
+  background: 
+    radial-gradient(circle, rgba(168, 85, 247, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  background-color: #0b0614;
+}
+
+[data-theme="classic"] .canvas-container {
+  background-color: #f0f0f0;
 }
 
 /* Card view container - fixed logical dimensions, scales via transform */
@@ -468,9 +481,12 @@ body.run-mode {
   background-color: #ebe7de;
   border: 3px var(--border-style) #000000;
   position: relative;
-  box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
   transform-origin: top left;
   /* Scale and zoom applied via inline style: translate(...) scale(...) */
+}
+
+[data-theme="haunted"] .card-view {
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.4), inset 0 0 0 1px rgba(249, 115, 22, 0.3);
 }
 
 [data-theme="classic"] .card-view {
@@ -513,7 +529,7 @@ body.run-mode {
 
 .card-field {
   background-color: #ffffff;
-  border: 2px var(--border-style) #000000;
+  border: 1.5px var(--border-style) #000000;
   padding: var(--spacing-xs);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -584,6 +600,26 @@ body.run-mode {
   color: var(--color-text-primary);
 }
 
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.editor-tab-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-accent);
+}
+
 .editor-title {
   font-weight: bold;
   flex: 1;
@@ -598,6 +634,7 @@ body.run-mode {
 .editor-textarea {
   flex: 1;
   padding: var(--spacing-sm);
+  padding-left: 40px;
   border: 1px var(--border-style) var(--color-border);
   border-radius: var(--glass-radius);
   font-family: var(--font-mono);
@@ -607,16 +644,36 @@ body.run-mode {
   resize: none;
   overflow-y: auto;
   line-height: 1.5;
+  position: relative;
 }
 
 [data-theme="classic"] .editor-textarea {
   background-color: var(--color-bg-secondary);
+  padding-left: 40px;
 }
 
 .editor-textarea:focus {
   outline: 2px var(--border-style) var(--color-focus);
   outline-offset: 1px;
   border-color: var(--color-accent);
+}
+
+.editor-line-numbers {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  padding: var(--spacing-sm) 4px;
+  background-color: rgba(168, 85, 247, 0.08);
+  border-right: 1px solid rgba(168, 85, 247, 0.2);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
+  text-align: right;
+  user-select: none;
 }
 
 .editor-buttons {
@@ -668,7 +725,7 @@ button:disabled {
 
 /* Card element styling with thicker borders */
 .card-button {
-  background-color: #ffffff;
+  background-color: #ede8de;
   border: 2px var(--border-style) #000000;
   cursor: pointer;
   display: flex;
@@ -676,17 +733,18 @@ button:disabled {
   justify-content: center;
   font-weight: bold;
   color: #000000;
+  border-radius: 8px;
   transition: all var(--transition-duration);
 }
 
 .card-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
 
 .card-button:active {
-  background-color: #000000;
-  color: #ffffff;
-  transform: scale(0.97);
+  transform: translateY(1px) inset(1px 1px 3px rgba(0, 0, 0, 0.2));
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .card-button:focus {
@@ -810,22 +868,68 @@ textarea:focus {
   background-color: var(--color-bg-primary);
   grid-column: 1 / -1;
   grid-row: 2;
+  position: relative;
 }
 
-.run-mode-viewer .editor-header {
-  border-bottom: 2px var(--border-style) var(--color-border);
-  background-color: var(--color-bg-tertiary);
+.run-mode-header {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: rgba(26, 26, 46, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 24px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.2);
+}
+
+.run-mode-header svg {
+  width: 20px;
+  height: 20px;
+  color: #a855f7;
+}
+
+.run-mode-header-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: #e8e8f0;
+  font-weight: bold;
+}
+
+.run-mode-header-exit {
+  background-color: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #e8e8f0;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  transition: all 150ms;
+}
+
+.run-mode-header-exit:hover {
+  background-color: rgba(168, 85, 247, 0.3);
+  border-color: rgba(168, 85, 247, 0.6);
 }
 
 .run-mode-viewer .card-canvas {
   flex: 1;
   overflow: hidden;
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  background-color: var(--color-bg-primary);
+  display: block;
+  background: 
+    radial-gradient(circle, rgba(168, 85, 247, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  background-color: #0b0614;
   min-height: 0;
+  padding: 24px;
 }
 
 .run-mode-viewer .card-view {
@@ -833,18 +937,17 @@ textarea:focus {
   height: var(--card-logical-height);
   background-color: #ebe7de;
   border: 3px var(--border-style) #000000;
-  position: relative;
-  box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.4), inset 0 0 0 1px rgba(249, 115, 22, 0.3);
 }
 
-[data-theme="classic"] .run-mode-viewer .card-view {
-  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
-}
-
+/* Run-mode buttons and fields use card-element styles (cream bg, dark border) */
 .run-button {
-  background-color: var(--color-bg-tertiary);
-  border: 2px var(--border-style) var(--color-border);
-  border-radius: var(--glass-radius);
+  background-color: #ede8de;
+  border: 2px var(--border-style) #000000;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -852,30 +955,33 @@ textarea:focus {
   font-weight: bold;
   font-size: 12px;
   font-family: var(--font-mono);
-  color: var(--color-text-primary);
+  color: #000000;
+  border-radius: 8px;
   transition: all var(--transition-duration);
 }
 
 .run-button:hover {
-  background-color: rgba(168, 85, 247, 0.2);
-  border-color: var(--color-accent);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
 
 .run-button:active {
-  background-color: var(--color-accent);
-  color: var(--color-bg-primary);
-  transform: scale(0.97);
+  transform: translateY(1px) inset(1px 1px 3px rgba(0, 0, 0, 0.2));
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.run-button:focus {
+  outline: 3px var(--border-style) var(--color-accent);
+  outline-offset: -2px;
 }
 
 .run-field {
-  border: 1px var(--border-style) var(--color-border);
-  border-radius: var(--glass-radius);
+  border: 1.5px var(--border-style) #000000;
   padding: var(--spacing-xs);
   font-family: var(--font-mono);
   font-size: 12px;
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-primary);
+  background-color: #ffffff;
+  color: #000000;
 }
 
 .run-field-editable {
@@ -883,8 +989,8 @@ textarea:focus {
 }
 
 .run-field-readonly {
-  background-color: var(--color-bg-tertiary);
-  opacity: 0.7;
+  background-color: #ffffff;
+  opacity: 1;
 }
 
 /* ===== Scrollbars (Custom appearance) ===== */

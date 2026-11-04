@@ -7,12 +7,22 @@ import { createElement, setTextContent, setClasses, addEventListener } from '../
 export class ButtonComponent {
   private element: HTMLButtonElement
 
-  constructor(text: string, onClick?: () => void) {
+  constructor(text: string, onClick?: () => void, icon?: SVGElement) {
     this.element = createElement('button', {
       className: 'button'
     }) as HTMLButtonElement
 
-    setTextContent(this.element, text)
+    // Add icon if provided
+    if (icon) {
+      icon.setAttribute('width', '16')
+      icon.setAttribute('height', '16')
+      this.element.appendChild(icon)
+    }
+
+    // Create text node
+    const textSpan = createElement('span')
+    setTextContent(textSpan, text)
+    this.element.appendChild(textSpan)
 
     if (onClick) {
       addEventListener(this.element, 'click', () => onClick())
@@ -24,7 +34,13 @@ export class ButtonComponent {
   }
 
   setText(text: string): void {
-    setTextContent(this.element, text)
+    // Update text content in the span
+    const span = this.element.querySelector('span')
+    if (span) {
+      setTextContent(span, text)
+    } else {
+      setTextContent(this.element, text)
+    }
   }
 
   setDisabled(disabled: boolean): void {

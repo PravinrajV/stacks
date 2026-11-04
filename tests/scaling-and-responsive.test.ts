@@ -12,6 +12,8 @@ import { CardCanvas } from '../src/dom/cardCanvas'
 import { createCard, createStack } from '../src/model/stack'
 import type { Rect } from '../src/model/types'
 
+const CARD_PADDING = 24 // Padding on each side
+
 describe('Task 8.1: Card Scaling and Responsive Layout', () => {
   let container: HTMLElement
 
@@ -42,7 +44,7 @@ describe('Task 8.1: Card Scaling and Responsive Layout', () => {
   })
 
   describe('Card scaling computation', () => {
-    it('calculates scale 2.0 for 1024x684 stage (exactly double)', () => {
+    it('calculates scale for 1024x684 stage (with padding)', () => {
       const canvas = new CardCanvas()
       const canvasElement = canvas.getElement()
       container.appendChild(canvasElement)
@@ -68,10 +70,12 @@ describe('Task 8.1: Card Scaling and Responsive Layout', () => {
         canvas.testUpdateScale()
       }
 
-      expect(canvas.getScale()).toBeCloseTo(2.0, 1)
+      // With 24px padding: (1024-48)/512 ≈ 1.906, (684-48)/342 ≈ 1.863
+      // scale = min(1.906, 1.863) ≈ 1.863
+      expect(canvas.getScale()).toBeCloseTo(Math.min((1024 - 48) / 512, (684 - 48) / 342), 1)
     })
 
-    it('calculates scale 1.0 for 512x342 stage (exact card size)', () => {
+    it('calculates scale for 512x342 stage (exact card size with padding)', () => {
       const canvas = new CardCanvas()
       const canvasElement = canvas.getElement()
       container.appendChild(canvasElement)
@@ -95,10 +99,12 @@ describe('Task 8.1: Card Scaling and Responsive Layout', () => {
         canvas.testUpdateScale()
       }
 
-      expect(canvas.getScale()).toBeCloseTo(1.0, 1)
+      // With 24px padding: (512-48)/512 ≈ 0.906, (342-48)/342 ≈ 0.859
+      // scale = min(0.906, 0.859) ≈ 0.859
+      expect(canvas.getScale()).toBeCloseTo(Math.min((512 - 48) / 512, (342 - 48) / 342), 1)
     })
 
-    it('calculates scale ~0.59 for 300x300 stage', () => {
+    it('calculates scale ~0.49 for 300x300 stage (with padding)', () => {
       const canvas = new CardCanvas()
       const canvasElement = canvas.getElement()
       container.appendChild(canvasElement)
@@ -122,8 +128,9 @@ describe('Task 8.1: Card Scaling and Responsive Layout', () => {
         canvas.testUpdateScale()
       }
 
-      // 300 / 512 = 0.586...
-      expect(canvas.getScale()).toBeCloseTo(300 / 512, 2)
+      // With padding: (300-48)/512 ≈ 0.492, (300-48)/342 ≈ 0.737
+      // scale = min(0.492, 0.737) ≈ 0.492
+      expect(canvas.getScale()).toBeCloseTo(Math.min((300 - 48) / 512, (300 - 48) / 342), 2)
     })
 
     it('preserves aspect ratio: taller container limited by width', () => {
@@ -133,12 +140,11 @@ describe('Task 8.1: Card Scaling and Responsive Layout', () => {
 
       const mockContainer = canvasElement.querySelector('.canvas-container') as HTMLElement
       if (mockContainer) {
-        // Width-limited: 512 logical width -> 256 pixels = 0.5 scale
-        // Height would allow 512 / (height/logical) but we use min, so scale = 0.5
+        // Width-limited with padding
         Object.defineProperty(mockContainer, 'getBoundingClientRect', {
           value: () => ({
-            width: 256,  // Limits to 0.5 scale
-            height: 1000,  // Would allow ~2.9 scale
+            width: 256,  // (256-48)/512 ≈ 0.406
+            height: 1000,  // (1000-48)/342 ≈ 2.788
             top: 0,
             left: 0,
             bottom: 1000,
@@ -152,8 +158,8 @@ describe('Task 8.1: Card Scaling and Responsive Layout', () => {
         canvas.testUpdateScale()
       }
 
-      // min(256/512, 1000/342) = min(0.5, 2.9) = 0.5
-      expect(canvas.getScale()).toBeCloseTo(0.5, 1)
+      // min((256-48)/512, (1000-48)/342) = min(0.406, 2.788) = 0.406
+      expect(canvas.getScale()).toBeCloseTo(Math.min((256 - 48) / 512, (1000 - 48) / 342), 1)
     })
 
     it('preserves aspect ratio: wider container limited by height', () => {
@@ -163,11 +169,11 @@ describe('Task 8.1: Card Scaling and Responsive Layout', () => {
 
       const mockContainer = canvasElement.querySelector('.canvas-container') as HTMLElement
       if (mockContainer) {
-        // Height-limited: 342 logical height -> 171 pixels = 0.5 scale
+        // Height-limited with padding
         Object.defineProperty(mockContainer, 'getBoundingClientRect', {
           value: () => ({
-            width: 1000,  // Would allow ~1.95 scale
-            height: 171,  // Limits to 0.5 scale
+            width: 1000,  // (1000-48)/512 ≈ 1.855
+            height: 171,  // (171-48)/342 ≈ 0.359
             top: 0,
             left: 0,
             bottom: 171,
@@ -181,8 +187,8 @@ describe('Task 8.1: Card Scaling and Responsive Layout', () => {
         canvas.testUpdateScale()
       }
 
-      // min(1000/512, 171/342) = min(1.95, 0.5) = 0.5
-      expect(canvas.getScale()).toBeCloseTo(0.5, 1)
+      // min((1000-48)/512, (171-48)/342) = min(1.855, 0.359) = 0.359
+      expect(canvas.getScale()).toBeCloseTo(Math.min((1000 - 48) / 512, (171 - 48) / 342), 1)
     })
   })
 

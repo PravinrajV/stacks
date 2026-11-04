@@ -54,9 +54,20 @@ export class ScriptEditor {
     })
 
     const header = createElement('div', { className: 'editor-header' })
-    const title = createElement('div', { className: 'editor-title' })
-    setTextContent(title, 'Script Editor')
-    header.appendChild(title)
+    
+    // File-like tab showing element name
+    const tab = createElement('div', { className: 'editor-tab' })
+    const fileIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    fileIcon.setAttribute('class', 'editor-tab-icon')
+    fileIcon.setAttribute('viewBox', '0 0 24 24')
+    fileIcon.setAttribute('fill', 'currentColor')
+    fileIcon.innerHTML = '<path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-8-6z"/>'
+    tab.appendChild(fileIcon)
+    const tabName = createElement('div')
+    tabName.style.color = 'var(--color-text-secondary)'
+    setTextContent(tabName, 'handler')
+    tab.appendChild(tabName)
+    header.appendChild(tab)
 
     const previewBtn = new ButtonComponent('Preview', () => this.showPreview())
     header.appendChild(previewBtn.getElement())
@@ -74,6 +85,21 @@ export class ScriptEditor {
     this.editorContainer.style.width = '100%'
     this.editorContainer.style.minHeight = '160px'
     this.editorContainer.style.overflow = 'hidden'
+    this.editorContainer.style.display = 'flex'
+
+    // Line numbers gutter
+    const lineNumbersGutter = createElement('div', {
+      className: 'editor-line-numbers'
+    })
+    this.editorContainer.appendChild(lineNumbersGutter)
+
+    // Editor wrapper (contains highlight layer and textarea)
+    const editorWrapper = createElement('div')
+    editorWrapper.style.position = 'relative'
+    editorWrapper.style.flex = '1'
+    editorWrapper.style.overflow = 'hidden'
+    editorWrapper.style.display = 'flex'
+    editorWrapper.style.flexDirection = 'column'
 
     // Highlight layer (read-only, behind textarea)
     // REQ-P8-005: Perfectly aligned overlay with identical CSS
@@ -133,6 +159,8 @@ export class ScriptEditor {
       // Sync scroll position of highlight layer with textarea
       this.highlightLayer.scrollLeft = this.textarea.scrollLeft
       this.highlightLayer.scrollTop = this.textarea.scrollTop
+      // Also sync line numbers
+      lineNumbersGutter.scrollTop = this.textarea.scrollTop
     })
 
     addEventListener(this.textarea, 'keydown', (e) => {
@@ -149,12 +177,22 @@ export class ScriptEditor {
       }
     })
 
-    this.editorContainer.appendChild(this.highlightLayer)
-    this.editorContainer.appendChild(this.textarea)
+    editorWrapper.appendChild(this.highlightLayer)
+    editorWrapper.appendChild(this.textarea)
+    this.editorContainer.appendChild(editorWrapper)
     this.element.appendChild(this.editorContainer)
 
     this.errorDisplay = createElement('div', { className: 'editor-error' })
     this.element.appendChild(this.errorDisplay)
+
+    // Update line numbers whenever script changes
+    const updateLineNumbers = () => {
+      const lines = this.textarea.value.split('\n').length
+      const lineNumbersText = Array.from({ length: lines }, (_, i) => i + 1).join('\n')
+      lineNumbersGutter.textContent = lineNumbersText
+    }
+    addEventListener(this.textarea, 'input', () => updateLineNumbers())
+    updateLineNumbers()
   }
 
   getElement(): HTMLElement {
