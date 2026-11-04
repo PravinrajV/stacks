@@ -261,12 +261,12 @@ This document outlines the implementation tasks for the Stacks core engine, orga
   - Location: `src/ai/modelProvider.ts`
   - Methods: `generate(request): Promise<ScriptGenResponse>`, `isAvailable(): Promise<boolean>`.
 
-- [ ] **4.2** Implement `CloudModelProvider` for Claude API. *(Ref: REQ-SG-002)*
+- [x] **4.2** Implement `CloudModelProvider` for Claude API. *(Ref: REQ-SG-002)*
   - Location: `src/ai/cloudModelProvider.ts`
   - Initialize with API key, construct prompts, make HTTP requests, parse responses.
   - Tests: Mock API calls, verify requests well-formed, responses parsed correctly.
 
-- [ ] **4.3** Implement `OllamaProvider` for local Ollama instance (optional, can defer). *(Ref: REQ-SG-002)*
+- [x] **4.3** Implement `OllamaProvider` for local Ollama instance (optional, can defer). *(Ref: REQ-SG-002)*
   - Location: `src/ai/ollamaProvider.ts`
   - Connect to local Ollama server, send prompts, parse responses.
   - Tests: If Ollama available, verify connection and generation.
