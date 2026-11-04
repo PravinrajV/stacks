@@ -363,8 +363,8 @@ export class CardCanvas {
 
     if (!this.dragState) return
 
-    const dx = e.clientX - this.dragState.startX
-    const dy = e.clientY - this.dragState.startY
+    const dx = (e.clientX - this.dragState.startX) / this.zoomLevel
+    const dy = (e.clientY - this.dragState.startY) / this.zoomLevel
     const { startRect, mode, elementId } = this.dragState
 
     let newRect: Rect

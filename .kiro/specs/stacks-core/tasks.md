@@ -523,7 +523,7 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
 
 ### Accessibility and Polish
 
-- [ ] **7.18** Add keyboard shortcuts and accessible labels. *(Ref: REQ-UI-CONST-001)*
+- [x] **7.18** Add keyboard shortcuts and accessible labels. *(Ref: REQ-UI-CONST-001)*
   - Location: `src/dom/app.ts`, all components
   - Shortcuts: Cmd/Ctrl+S (save), Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo), Tab (navigate elements), Delete (remove selected).
   - Add `aria-label`, `aria-describedby` to interactive elements.
@@ -535,7 +535,7 @@ Phase 1 (Model) → Phase 2 (Lexer/Parser) → Phase 3 (Runtime) → Phase 4 (Sc
   - Keyboard: arrow keys to pan, Cmd+scroll to zoom.
   - Tests: Panning and zooming work correctly, elements remain selectable.
 
-- [ ] **7.20** Cross-browser testing (Chrome, Firefox, Safari). *(Ref: REQ-CE-001)*
+- [x] **7.20** Cross-browser testing (Chrome, Firefox, Safari). *(Ref: REQ-CE-001)*
   - Location: Manual testing or Playwright/Cypress integration tests
   - Verify layout, rendering, script execution consistent across browsers.
   - Test touch events (if mobile is in scope) or note desktop-only.

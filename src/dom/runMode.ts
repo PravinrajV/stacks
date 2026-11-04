@@ -130,6 +130,15 @@ export class RunModeViewer {
       await this.onButtonClick(button)
     })
 
+    // Handle Enter and Space key presses when button is focused
+    addEventListener(el, 'keydown', async (e: Event) => {
+      const keyEvent = e as KeyboardEvent
+      if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+        keyEvent.preventDefault()
+        await this.onButtonClick(button)
+      }
+    })
+
     this.cardView.appendChild(el)
   }
 

@@ -133,6 +133,24 @@ export class App {
       // Escape: Deselect element or close panels
       if (keyEvent.key === 'Escape' && this.appState.mode === 'edit') {
         keyEvent.preventDefault()
+        
+        // Try to close modal if visible
+        const modalBackdrop = document.querySelector('.modal-backdrop') as HTMLElement
+        if (modalBackdrop && modalBackdrop.style.display !== 'none') {
+          const closeEvent = new MouseEvent('click', { bubbles: true })
+          Object.defineProperty(closeEvent, 'target', { value: modalBackdrop, enumerable: true })
+          modalBackdrop.dispatchEvent(closeEvent)
+          return
+        }
+        
+        // Try to close AI panel if visible
+        const aiPanel = document.querySelector('.ai-panel') as HTMLElement
+        if (aiPanel && aiPanel.style.display !== 'none') {
+          aiPanel.style.display = 'none'
+          return
+        }
+        
+        // Deselect element
         this.appState.selectedElementId = null
         this.cardCanvas.deselectElement()
         this.render()
