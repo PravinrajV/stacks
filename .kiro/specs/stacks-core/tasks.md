@@ -313,33 +313,33 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Unit Tests (Colocated)
 
-- [ ] **5.1** Write comprehensive unit tests for `src/model/stack.ts`. *(Ref: REQ-TEST-002)*
+- [x] **5.1** Write comprehensive unit tests for `src/model/stack.ts`. *(Ref: REQ-TEST-002)*
   - Location: `src/model/stack.test.ts`
   - Coverage: Field/Button/Card/Background/Stack creation, lookup, serialization, variable scoping.
   - Target: 95%+ line coverage.
 
-- [ ] **5.2** Write comprehensive unit tests for lexer. *(Ref: REQ-TEST-001, REQ-TEST-002)*
+- [x] **5.2** Write comprehensive unit tests for lexer. *(Ref: REQ-TEST-001, REQ-TEST-002)*
   - Location: `src/interpreter/lexer.test.ts`
   - Coverage: All token types, keywords, escape sequences, error cases.
   - Target: 95%+ line coverage.
 
-- [ ] **5.3** Write comprehensive unit tests for parser. *(Ref: REQ-TEST-001, REQ-TEST-002)*
+- [x] **5.3** Write comprehensive unit tests for parser. *(Ref: REQ-TEST-001, REQ-TEST-002)*
   - Location: `src/interpreter/parser.test.ts`
   - Coverage: All statement types, expressions, operator precedence, error cases, handler definitions.
   - Target: 90%+ line coverage.
   - Include property-based tests for random valid token sequences.
 
-- [ ] **5.4** Write comprehensive unit tests for runtime. *(Ref: REQ-TEST-001, REQ-TEST-002)*
+- [x] **5.4** Write comprehensive unit tests for runtime. *(Ref: REQ-TEST-001, REQ-TEST-002)*
   - Location: `src/interpreter/runtime.test.ts`
   - Coverage: Built-in commands, functions, scoping, message passing, timeout, sandbox.
   - Target: 85%+ line coverage.
 
-- [ ] **5.5** Write unit tests for serialization round-trip. *(Ref: REQ-TEST-002)*
+- [x] **5.5** Write unit tests for serialization round-trip. *(Ref: REQ-TEST-002)*
   - Location: `src/model/serialization.test.ts`
   - Coverage: Stack → JSON → Stack equivalence, invalid JSON rejection.
   - Target: 100% coverage.
 
-- [ ] **5.6** Write unit tests for script generation and validation. *(Ref: REQ-TEST-002)*
+- [x] **5.6** Write unit tests for script generation and validation. *(Ref: REQ-TEST-002)*
   - Location: `src/ai/scriptGen.test.ts`
   - Coverage: Prompt building, response parsing, validation, error handling.
   - Mock model provider for testing.
@@ -347,19 +347,19 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Integration Tests
 
-- [ ] **5.7** Test end-to-end stack creation, serialization, navigation. *(Ref: REQ-CE-001, REQ-CE-004, REQ-CE-005)*
+- [x] **5.7** Test end-to-end stack creation, serialization, navigation. *(Ref: REQ-CE-001, REQ-CE-004, REQ-CE-005)*
   - Location: `tests/integration.test.ts` or new file
   - Scenario: Create stack with cards, add fields/buttons, serialize to JSON, load from JSON, navigate, verify data intact.
 
-- [ ] **5.8** Test end-to-end script execution (handler firing on button click, field update). *(Ref: REQ-HT-004, REQ-HT-005)*
+- [x] **5.8** Test end-to-end script execution (handler firing on button click, field update). *(Ref: REQ-HT-004, REQ-HT-005)*
   - Location: `tests/integration.test.ts`
   - Scenario: Create card with button, attach mouseUp handler with `put "clicked" into field X`, click button, verify field updated.
 
-- [ ] **5.9** Test script generation workflow (describe → generate → validate → preview → insert). *(Ref: REQ-SG-001, REQ-SG-003)*
+- [x] **5.9** Test script generation workflow (describe → generate → validate → preview → insert). *(Ref: REQ-SG-001, REQ-SG-003)*
   - Location: `tests/integration.test.ts`
   - Scenario: Request script generation, verify code generated, diff shown, insertion succeeds.
 
-- [ ] **5.10** Test error handling and recovery (invalid script, parse error, runtime error, timeout). *(Ref: REQ-EH-001, REQ-EH-002, REQ-EH-003)*
+- [x] **5.10** Test error handling and recovery (invalid script, parse error, runtime error, timeout). *(Ref: REQ-EH-001, REQ-EH-002, REQ-EH-003)*
   - Location: `tests/integration.test.ts`
   - Scenarios: Load invalid JSON → error reported; execute script with undefined var → error caught, continue; timeout → halted.
 

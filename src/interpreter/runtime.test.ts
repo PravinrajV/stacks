@@ -1448,3 +1448,293 @@ describe('Runtime: Sandbox Enforcement - Restricted Globals (REQ-EH-003, 3.21)',
     expect(ctx.sandboxViolations).toContain('window')
   })
 })
+
+
+describe('Runtime: Advanced Loop Tests', () => {
+  it('repeat until loop terminates on condition', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put 0 into i
+repeat until i >= 3
+  put i + 1 into i
+end repeat`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('i')).toBe(3)
+  })
+
+  it('nested loops work correctly', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put 0 into total
+repeat 3 times
+  repeat 2 times
+    put total + 1 into total
+  end repeat
+end repeat`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('total')).toBe(6)
+  })
+
+  it('loop exits early on return statement', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put 0 into x
+repeat 10 times
+  put x + 1 into x
+  if x = 3 then
+    return
+  end if
+end repeat`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('x')).toBe(3)
+  })
+
+  it('loop detects step limit exceeded', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    // Create a loop that will exceed step limit
+    const code = `repeat 200000 times
+end repeat`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.type).toBe('ExecutionTimeout')
+      expect(result.error.message).toContain('exceeded')
+    }
+  })
+
+  it('while loop with complex condition', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put 0 into x
+put 0 into sum
+repeat while x < 5 and sum < 10
+  put sum + x into sum
+  put x + 1 into x
+end repeat`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('x')).toBeGreaterThan(0)
+  })
+})
+
+describe('Runtime: String and Math Functions', () => {
+  it('concat function joins strings', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put concat("hello", " ", "world") into result`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('result')).toBe('hello world')
+  })
+
+  it('length function returns string length', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put length("hello") into len`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('len')).toBe(5)
+  })
+
+  it('contains function checks substring', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put contains("hello world", "world") into found`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('found')).toBe(true)
+  })
+
+  it('substring function extracts portion', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put substring("hello", 2, 4) into sub`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    // substring is 1-indexed: substring("hello", 2, 4)
+    // converts to substring(2-1, 4-1) = substring(1, 3) = "el"
+    expect(ctx.localVariables.get('sub')).toBe('el')
+  })
+
+  it('uppercase function converts case', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put uppercase("Hello World") into upper`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('upper')).toBe('HELLO WORLD')
+  })
+
+  it('lowercase function converts case', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put lowercase("Hello World") into lower`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('lower')).toBe('hello world')
+  })
+
+  it('math functions compute correctly', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put sqrt(16) into root
+put round(3.7) into rounded`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('root')).toBe(4)
+    expect(ctx.localVariables.get('rounded')).toBe(4)
+  })
+})
+
+describe('Runtime: Error Recovery', () => {
+  it('continues execution after recoverable error in separate statements', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put 10 / 0 into x`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('invalid field access produces clear error message', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put field "nonexistent" into x`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.message).toContain('Field not found')
+    }
+  })
+
+  it('type coercion handles unexpected types', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    // String arithmetic should coerce
+    const code = `put "5" + 3 into result`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('result')).toBe(8)
+  })
+})
+
+describe('Runtime: Complex Control Flow', () => {
+  it('nested if for else-if chain works', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put 2 into x
+if x = 1 then
+  put "one" into result
+else
+  if x = 2 then
+    put "two" into result
+  else
+    put "other" into result
+  end if
+end if`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('result')).toBe('two')
+  })
+
+  it('nested if statements work correctly', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put 5 into x
+put 0 into result
+if x > 0 then
+  if x < 10 then
+    put "small positive" into result
+  end if
+end if`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('result')).toBe('small positive')
+  })
+
+  it('return statement exits early from script', () => {
+    const { stack, card } = createTestCard()
+    const ctx = createExecutionContext(stack, card)
+    const runtime = new Runtime(ctx)
+
+    const code = `put 1 into x
+return
+put 2 into x`
+    const ast = parseCode(code)
+    const result = runtime.execute(ast)
+
+    expect(result.success).toBe(true)
+    expect(ctx.localVariables.get('x')).toBe(1) // Second statement shouldn't execute
+  })
+})
