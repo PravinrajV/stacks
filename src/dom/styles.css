@@ -1856,3 +1856,17 @@ textarea:focus-visible {
   margin-bottom: 2px;
   line-height: 1.4;
 }
+
+/* Hand-tuned overrides after screenshot review (logged in KIRO_LOG.md) */
+@media (min-width: 901px) {
+  body.edit-mode { grid-template-columns: clamp(220px, 15vw, 300px) 1fr clamp(260px, 17vw, 340px); grid-template-rows: clamp(44px, 3.2vw, 60px) 1fr clamp(200px, 24vh, 300px); }
+  body.run-mode { grid-template-rows: clamp(44px, 3.2vw, 60px) 1fr; }
+}
+.app-header button { font-size: clamp(12px, 0.8vw, 16px); padding: clamp(5px, 0.4vw, 9px) clamp(10px, 0.8vw, 16px); }
+.app-header button svg { width: clamp(14px, 1vw, 20px); height: clamp(14px, 1vw, 20px); }
+.ai-panel.ai-panel-drawer > *, .ai-panel.ai-panel-drawer .ai-prompt-section > * { flex: 0 0 auto !important; }
+.ai-panel.ai-panel-drawer { overflow-y: auto; }
+.ai-panel.ai-panel-drawer > .ai-button-group { margin-top: auto; position: sticky; bottom: 0; background: inherit; padding-top: 8px; }
+.ai-generate-btn { height: 40px; min-height: 40px; max-height: 40px; }
+.ai-offline-notice { padding: 8px 12px; height: auto; min-height: 0; }
+.ai-code-block, .ai-diff-preview { height: auto; min-height: 0; max-height: none; flex: 0 0 auto; }
