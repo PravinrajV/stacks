@@ -8,53 +8,53 @@ This document outlines the implementation tasks for the Stacks core engine, orga
 
 ### Card Engine: Model Definitions
 
-- [ ] **1.1** Implement `Rect` interface and utility functions (center, width, height, intersect). *(Ref: REQ-CE-002, REQ-CE-003)*
+- [x] **1.1** Implement `Rect` interface and utility functions (center, width, height, intersect). *(Ref: REQ-CE-002, REQ-CE-003)*
   - Location: `src/model/types.ts`
   - Tests: `src/model/types.test.ts`
 
-- [ ] **1.2** Implement `Field` interface and class with getters/setters for content, style, rect. *(Ref: REQ-CE-002, REQ-CE-004)*
+- [x] **1.2** Implement `Field` interface and class with getters/setters for content, style, rect. *(Ref: REQ-CE-002, REQ-CE-004)*
   - Location: `src/model/stack.ts`
   - Methods: `content`, `setContent()`, `isEditable()`, `serialize()`
   - Tests: Field serialization round-trip, content validation
 
-- [ ] **1.3** Implement `Button` interface and class with label, rect, style, and scripts map. *(Ref: REQ-CE-002, REQ-CE-004)*
+- [x] **1.3** Implement `Button` interface and class with label, rect, style, and scripts map. *(Ref: REQ-CE-002, REQ-CE-004)*
   - Location: `src/model/stack.ts`
   - Methods: `getScript(handlerName)`, `setScript()`, `serialize()`
   - Tests: Script attachment, button lookup by ID
 
-- [ ] **1.4** Implement `Background` interface with fields, buttons, and scripts. *(Ref: REQ-CE-003, REQ-CE-004)*
+- [x] **1.4** Implement `Background` interface with fields, buttons, and scripts. *(Ref: REQ-CE-003, REQ-CE-004)*
   - Location: `src/model/stack.ts`
   - Methods: `getElementsInZOrder()`, `findElement(id)`, `serialize()`
   - Tests: Element lookup, z-order rendering
 
-- [ ] **1.5** Implement `Card` interface with backgroundId ref, buttons, fields, scripts, and card-scoped variables. *(Ref: REQ-CE-001, REQ-CE-002, REQ-CE-004, REQ-HT-006)*
+- [x] **1.5** Implement `Card` interface with backgroundId ref, buttons, fields, scripts, and card-scoped variables. *(Ref: REQ-CE-001, REQ-CE-002, REQ-CE-004, REQ-HT-006)*
   - Location: `src/model/stack.ts`
   - Methods: `getHandler(name)`, `setHandler()`, `getVariable()`, `setVariable()`, `serialize()`
   - Tests: Handler lookup, variable scoping, card references valid background IDs
 
-- [ ] **1.6** Implement `Stack` interface with backgrounds, cards, stack-scoped variables, and ID. *(Ref: REQ-CE-001, REQ-CE-004, REQ-HT-006)*
+- [x] **1.6** Implement `Stack` interface with backgrounds, cards, stack-scoped variables, and ID. *(Ref: REQ-CE-001, REQ-CE-004, REQ-HT-006)*
   - Location: `src/model/stack.ts`
   - Methods: `getCard(id)`, `addCard()`, `getHandler(name)`, `getVariable()`, `setVariable()`, `serialize()`, `deserialize(json)`
   - Tests: Card lookup, variable scoping, valid stack structure
 
 ### Serialization
 
-- [ ] **1.7** Implement JSON serialization for Stack, Card, Background, Button, Field (to JSON). *(Ref: REQ-CE-004)*
+- [x] **1.7** Implement JSON serialization for Stack, Card, Background, Button, Field (to JSON). *(Ref: REQ-CE-004)*
   - Location: `src/model/serialization.ts`
   - Ensure output matches canonical JSON schema (version "1.0").
   - Tests: `REQ-TEST-002` - Round-trip serialization, verify no data loss.
 
-- [ ] **1.8** Implement JSON deserialization (JSON to Stack object). *(Ref: REQ-CE-004)*
+- [x] **1.8** Implement JSON deserialization (JSON to Stack object). *(Ref: REQ-CE-004)*
   - Location: `src/model/serialization.ts`
   - Validate schema, restore all elements, error handling for malformed JSON.
   - Tests: Invalid JSON rejected, error line/column reported. Valid JSON reconstructs correctly.
 
-- [ ] **1.9** Implement stack ID generation and URL-safe encoding (base32 or similar). *(Ref: REQ-CE-005)*
+- [x] **1.9** Implement stack ID generation and URL-safe encoding (base32 or similar). *(Ref: REQ-CE-005)*
   - Location: `src/storage/encoding.ts`
   - Methods: `generateStackId()`, `encodeStackId(id)`, `decodeStackId(encoded)`
   - Tests: Encoding/decoding round-trip, URL-safe characters only.
 
-- [ ] **1.10** Implement stack compression (gzip or LZ4) for URL embedding. *(Ref: REQ-CE-005)*
+- [x] **1.10** Implement stack compression (gzip or LZ4) for URL embedding. *(Ref: REQ-CE-005)*
   - Location: `src/storage/compression.ts`
   - Methods: `compress(json)`, `decompress(compressed)`
   - Tests: Compression ratio, round-trip fidelity.
