@@ -362,7 +362,7 @@ export class App {
 
     // Edit/Run toggle button
     const modeToggleBtn = createElement('button', {
-      className: 'button mode-toggle'
+      className: ['button', 'mode-toggle']
     })
     modeToggleBtn.setAttribute('aria-pressed', this.appState.mode === 'run' ? 'true' : 'false')
     modeToggleBtn.setAttribute('title', this.appState.mode === 'edit' ? 'Switch to Run Mode (Ctrl/Cmd+R)' : 'Switch to Edit Mode (Ctrl/Cmd+E)')

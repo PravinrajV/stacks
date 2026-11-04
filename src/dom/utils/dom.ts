@@ -26,8 +26,13 @@ export function createElement(
   }
 
   if (options.className) {
-    const classes = Array.isArray(options.className) ? options.className : [options.className]
-    element.classList.add(...classes)
+    const classArray = Array.isArray(options.className) ? options.className : [options.className]
+    const classes = classArray
+      .flatMap(c => c.split(/\s+/))
+      .filter(c => c.length > 0)
+    if (classes.length > 0) {
+      element.classList.add(...classes)
+    }
   }
 
   if (options.attributes) {
@@ -95,10 +100,14 @@ export function setTextContent(element: HTMLElement, text: string): void {
  */
 export function setClasses(element: HTMLElement, classes: Record<string, boolean>): void {
   for (const [className, shouldAdd] of Object.entries(classes)) {
-    if (shouldAdd) {
-      element.classList.add(className)
-    } else {
-      element.classList.remove(className)
+    // Split class names on whitespace and filter empties
+    const tokens = className.split(/\s+/).filter(c => c.length > 0)
+    for (const token of tokens) {
+      if (shouldAdd) {
+        element.classList.add(token)
+      } else {
+        element.classList.remove(token)
+      }
     }
   }
 }

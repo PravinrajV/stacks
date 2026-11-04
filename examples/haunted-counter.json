@@ -1,0 +1,149 @@
+{
+  "version": "1.0",
+  "stack": {
+    "id": "stack-demo",
+    "name": "Haunted Counter",
+    "backgrounds": [],
+    "variables": {},
+    "cards": [
+      {
+        "id": "card-1",
+        "backgroundId": null,
+        "name": "Welcome",
+        "scripts": {},
+        "variables": {},
+        "fields": [
+          {
+            "id": "f-status",
+            "name": "Status",
+            "content": "Nobody has knocked yet.",
+            "rect": {
+              "left": 40,
+              "top": 40,
+              "right": 400,
+              "bottom": 80
+            },
+            "font": "Monaco",
+            "fontSize": 14,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-count",
+            "name": "Count",
+            "content": "0",
+            "rect": {
+              "left": 40,
+              "top": 100,
+              "right": 160,
+              "bottom": 140
+            },
+            "font": "Monaco",
+            "fontSize": 14,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          }
+        ],
+        "buttons": [
+          {
+            "id": "b-knock",
+            "label": "Knock",
+            "rect": {
+              "left": 40,
+              "top": 170,
+              "right": 160,
+              "bottom": 200
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  put field \"Count\" + 1 into field \"Count\"\n  put \"Someone knocked \" & field \"Count\" & \" times\" into field \"Status\"\nend mouseUp"
+            }
+          },
+          {
+            "id": "b-next",
+            "label": "Open the door",
+            "rect": {
+              "left": 180,
+              "top": 170,
+              "right": 340,
+              "bottom": 200
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  go next card\nend mouseUp"
+            }
+          }
+        ]
+      },
+      {
+        "id": "card-2",
+        "backgroundId": null,
+        "name": "Inside",
+        "scripts": {},
+        "variables": {},
+        "fields": [
+          {
+            "id": "f-inside",
+            "name": "Inside",
+            "content": "It's 1987 in here.",
+            "rect": {
+              "left": 40,
+              "top": 40,
+              "right": 400,
+              "bottom": 80
+            },
+            "font": "Monaco",
+            "fontSize": 14,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          }
+        ],
+        "buttons": [
+          {
+            "id": "b-hello",
+            "label": "Say hello",
+            "rect": {
+              "left": 40,
+              "top": 110,
+              "right": 160,
+              "bottom": 140
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  put \"Welcome back, HyperCard.\" into field \"Inside\"\nend mouseUp"
+            }
+          },
+          {
+            "id": "b-back",
+            "label": "Go back",
+            "rect": {
+              "left": 180,
+              "top": 110,
+              "right": 300,
+              "bottom": 140
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  go previous card\nend mouseUp"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

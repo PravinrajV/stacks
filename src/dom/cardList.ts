@@ -49,8 +49,12 @@ export class CardListPanel {
     removeAllChildren(this.cardList)
 
     for (const card of stack.cards) {
+      const classes = ['card-item']
+      if (card.id === currentCardId) {
+        classes.push('selected')
+      }
       const item = createElement('div', {
-        className: 'card-item' + (card.id === currentCardId ? ' selected' : '')
+        className: classes
       })
       item.setAttribute('data-card-id', card.id)
       item.setAttribute('role', 'listitem')

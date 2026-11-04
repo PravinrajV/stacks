@@ -55,6 +55,20 @@ npm run size
 
 Builds and reports gzipped bundle size. Fails if bundle exceeds 500KB limit.
 
+## Try the Example
+
+Load the **Haunted Counter** example to see Stacks in action:
+
+1. Open the app and click the **Import** button in the header
+2. Select `examples/haunted-counter.json`
+3. Switch to **Run mode** (top-right button)
+4. Click **Knock** to increment the counter
+5. Click **Open the door** to navigate to the next card
+6. Click **Say hello** and watch the message change
+7. Click **Go back** to return to the first card
+
+This example demonstrates navigation, button click handlers, field content manipulation, and variable counting.
+
 ## HyperTalk Language
 
 ### Statements
