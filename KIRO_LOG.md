@@ -26,3 +26,4 @@
 - 2026-11-04 ~01:24 ET: kiro-cli (haiku-4.5) fixed the 2 type errors in src/generator. Unedited by hand.
 - Independent verification: clean npm ci, build OK, vitest 244/244 (11 files). No eval/new Function/fetch in src.
 - Hand edits (not code): ticked 4.1, 4.4-4.7 in tasks.md. 4.2 (Claude API), 4.3 (Ollama), 4.8, 4.9 not started.
+- Credits after Phase 4 sessions: 27.05 of 50. Stopped near ~30 cap.
