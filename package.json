@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "vitest",
-    "size": "npm run build && node -e \"const fs=require('fs'); const path=require('path'); const zlib=require('zlib'); let bundleFile=null; const assetsDir=path.join('dist','assets'); if(fs.existsSync(assetsDir)){const files=fs.readdirSync(assetsDir).filter(f=>f.endsWith('.js')&&f.startsWith('index')); if(files.length>0) bundleFile=path.join(assetsDir,files[0]);} if(!bundleFile){const files=fs.readdirSync('dist').filter(f=>f.endsWith('.js')&&f.startsWith('index')); if(files.length>0) bundleFile=path.join('dist',files[0]);} if(!bundleFile){console.error('No bundle found'); process.exit(1);} const file=fs.readFileSync(bundleFile); const gzipped=zlib.gzipSync(file); const sizeKB=(gzipped.length/1024).toFixed(2); console.log('Bundle size (gzipped):',sizeKB+'KB'); if(gzipped.length>512000){console.error('ERROR: Bundle exceeds 500KB limit'); process.exit(1);}else{console.log('✓ Within 500KB limit');}\""
+    "size": "npm run build && node scripts/measure-bundle-size.js"
   },
   "dependencies": {
     "fflate": "^0.8.1"

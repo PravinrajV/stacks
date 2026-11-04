@@ -8,12 +8,15 @@ Stacks lets you create interactive card-based applications with scriptable butto
 
 ## Features
 
-- **Visual Editor**: Drag to position elements, click to select, inspect properties
-- **HyperTalk Scripting**: Simple, safe scripting with no eval. Just plain code.
-- **Run Mode**: Test your scripts instantly
-- **Share**: Export stacks as JSON; load them back anytime
-- **Zoom & Pan**: Edit at any scale; Ctrl+scroll to zoom
+- **Two Themes**: Classic (System 7 aesthetic) and Haunted (dark purple/orange)
+- **Visual Editor**: Drag to position elements, click to select, inspect properties. Add cards, buttons, and fields.
+- **Edit & Run Modes**: Author scripts in Edit mode; test instantly in Run mode
+- **HyperTalk Scripting**: Simple, safe scripting with no eval. Just plain English-like code.
+- **Accessible UI**: Keyboard navigation, focus indicators, respects `prefers-reduced-motion`
+- **Export & Import**: Share stacks as JSON files; load them back anytime
+- **AI Assistant**: Generate scripts from natural language (offline demo templates by default; real AI with your own Anthropic key or local Ollama)
 - **Auto-save**: Your stacks are saved to browser storage
+- **Welcome Screen**: Guided intro on first visit
 
 ## Quick Start
 
@@ -45,7 +48,16 @@ Produces optimized bundle in `dist/`.
 npm test
 ```
 
-Runs all Vitest tests. Use `npm test -- --run` for single execution or `npm test -- --watch` for interactive mode.
+Runs all Vitest tests using happy-dom (lightweight DOM simulation). Use `npm run test -- --run` for single execution.
+
+**Test Count**: 100+ automated unit and integration tests covering:
+- Model (Stack, Card, Button, Field) serialization and round-trip
+- HyperTalk lexer, parser, and runtime
+- Script execution and message dispatch
+- UI interactions (canvas, editor, inspector)
+- Theme system and accessibility
+- Storage persistence
+- Error handling
 
 ### Bundle Size Check
 
@@ -53,7 +65,56 @@ Runs all Vitest tests. Use `npm test -- --run` for single execution or `npm test
 npm run size
 ```
 
-Builds and reports gzipped bundle size. Fails if bundle exceeds 500KB limit.
+Builds and reports gzipped size of `dist/assets/*.js` and `*.css` files. Fails if total exceeds 40 KB.
+
+## Authoring a Stack
+
+1. **Load the app** at https://stacks-6go.pages.dev (or `npm run dev`)
+2. **Create a new stack** (or use the example stack on first visit)
+3. **Edit mode** (default):
+   - Click the **+Button** button to add a button to the card
+   - Click the **+Field** button to add a text field
+   - Click and drag elements to reposition
+   - Select an element and use the **Inspector** panel (right sidebar) to rename, edit properties
+   - Write HyperTalk code in the **Script Editor** (bottom panel)
+   - Use **Syntax Highlighting** to see code structure
+4. **Run mode** (click the **Run** button):
+   - Click buttons to test handlers
+   - Edit fields to test input/output
+   - Click **Exit** to return to Edit mode
+5. **Add more cards**: Use the **+Card** button in the **Card List** sidebar (left)
+6. **Rename/delete**: Use buttons in the Card List to manage cards
+7. **Export**: Click **Export** to download your stack as JSON
+8. **Import**: Click **Import** to load a previously exported stack
+
+## Testing Scope
+
+### Automated Tests ✅
+
+Via Vitest + happy-dom:
+- Unit tests for parser, lexer, runtime, serialization
+- Integration tests for script execution and DOM updates
+- WCAG AA contrast ratio validation
+- Focus-visible and keyboard navigation
+- `prefers-reduced-motion` behavior
+- Theme persistence and compatibility
+- Network security (no external URLs except model providers)
+
+### Manual Testing ⚠️
+
+Real browsers (currently untested in production):
+- ✅ **Chrome**: Primary development browser
+- ⚠️ **Firefox**: Not yet tested
+- ⚠️ **Safari**: Not yet tested
+- ⚠️ **Edge**: Not yet tested
+
+See `docs/CROSS_BROWSER_CHECKLIST.md` for manual testing procedures.
+
+### Out of Scope
+
+- Mobile browsers (desktop-optimized only)
+- Real-time collaboration
+- Large stacks (1000+ cards)
 
 ## Try the Example
 
@@ -71,13 +132,15 @@ This example demonstrates navigation, button click handlers, field content manip
 
 ## HyperTalk Language
 
+Stacks uses a subset of HyperTalk, inspired by the original Apple HyperCard language.
+
 ### Statements
 
 - `put VALUE into TARGET` — Assign value to a field or variable
 - `get EXPR` — Evaluate expression (result in "it")
-- `go to CARD` — Navigate to a card
-- `answer MESSAGE` — Show a dialog
-- `if COND then ... else ...` — Conditionals
+- `go to CARD` — Navigate to a card (or `go next card`, `go previous card`, `go first card`, `go last card`)
+- `answer MESSAGE` — Show a modal dialog with buttons
+- `if COND then ... else ... end if` — Conditionals
 - `repeat 10 | while COND | until COND ... end repeat` — Loops
 - `return VALUE` — Exit handler with result
 - `exit repeat` — Break from loop
@@ -88,17 +151,19 @@ This example demonstrates navigation, button click handlers, field content manip
 - **Comparison**: `=`, `!=`, `<`, `>`, `<=`, `>=`
 - **Logical**: `and`, `or`, `not`
 - **String**: `&` (concatenate)
-- **Functions**: `length()`, `uppercase()`, `trim()`, `split()`, `abs()`, `round()`, etc.
+- **Functions**: `length()`, `uppercase()`, `lowercase()`, `trim()`, `split()`, `substring()`, `contains()`, `abs()`, `round()`, `random()`, etc.
 
 ### Built-in Variables
 
-- `it` — Result of last `get`
-- Field content: `field "NAME"`
-- Card variables: `put "value" into variable "myVar"`
+- `it` — Result of last `get` statement
+- `field "NAME"` — Access field content
+- `variable "NAME"` — Access card or stack variables
+- Card-level variables: `put "value" into variable "myVar"`
+- Stack-level variables: accessible from all cards
 
-### Handlers
+### Handlers (Event Handlers)
 
-Handlers respond to events:
+Handlers respond to user events:
 
 ```hypertext
 on mouseUp
@@ -111,7 +176,13 @@ on openCard
 end openCard
 ```
 
-Supported events: `mouseUp`, `mouseDown`, `keyDown`, `keyUp`, `openCard`, `closeCard`
+**Supported Events**:
+- `mouseUp` — Button click or field click
+- `mouseDown` — Mouse button down
+- `keyDown` — Key pressed
+- `keyUp` — Key released
+- `openCard` — Card displayed
+- `closeCard` — Card is being left
 
 ## Keyboard Shortcuts
 
@@ -125,7 +196,7 @@ Supported events: `mouseUp`, `mouseDown`, `keyDown`, `keyUp`, `openCard`, `close
 - **Shift+Arrow keys** — Nudge by 10px
 - **Delete** — Remove selected element
 - **Escape** — Deselect
-- **Ctrl+Enter** — Run selected element's script (if button)
+- **Ctrl+Enter** — Preview script (if editing handler)
 - **Ctrl+/** — Toggle comment in script editor
 
 ### Run Mode
@@ -136,44 +207,75 @@ Supported events: `mouseUp`, `mouseDown`, `keyDown`, `keyUp`, `openCard`, `close
 
 ## Modes
 
-- **Edit Mode**: Arrange elements, write scripts
+- **Edit Mode**: Arrange elements, write scripts, inspect properties
 - **Run Mode**: Interact with your stack like an end-user
 
 Switch modes via the **Run** button in the header.
 
-## AI Script Writer (Bring Your Own Key)
+## Themes
+
+### Classic (1-Bit)
+
+Authentic System 7 Macintosh aesthetic: pure black, white, and gray.
+
+### Haunted (Dark)
+
+Purple and orange accents on a dark background. Modern interpretation of retro computing.
+
+Toggle themes using the **Theme** button in the header. Your preference is saved to browser storage.
+
+See `docs/THEMING.md` for color tokens and customization guide.
+
+## AI Script Writer
 
 Three provider options:
 
-1. **Mock Provider** — No setup required, works offline (testing/demo)
-2. **Anthropic Claude** — Use your own API key for Claude 3.5 Sonnet
-   - Get a free API key from [console.anthropic.com](https://console.anthropic.com)
-   - Enter it in Settings (encrypted in sessionStorage, never stored permanently)
-3. **Ollama** — Run local models on your machine
-   - Install [Ollama](https://ollama.ai), run `ollama serve`, then select "Ollama" in Settings
-   - Works completely offline
+### Mock Provider (Default)
 
-**Privacy:** Your API key stays in this browser tab and is sent only to your chosen provider. It is never saved in stacks, exports, logs, or undo history.
+No setup required. Works completely offline. Provides template-based code generation for common patterns.
+
+### Anthropic Claude
+
+Use your own API key for Claude 3.5 Sonnet:
+1. Get a free API key from [console.anthropic.com](https://console.anthropic.com)
+2. Click **Settings** (gear icon) in the app
+3. Enter your API key in the AI Settings panel
+4. The key stays in your browser tab and is never stored permanently
+
+### Ollama (Local Models)
+
+Run models on your machine:
+1. Install [Ollama](https://ollama.ai)
+2. Run `ollama serve` in a terminal
+3. Click **Settings** in the app
+4. Select "Ollama" from the provider dropdown
+5. Works completely offline
+
+**Privacy**: Your API key stays in this browser tab and is sent only to your chosen provider. It is never saved in stacks, exports, logs, or undo history.
 
 See `src/generator/README.md` for detailed setup and examples.
 
 ## Architecture
 
 - `src/model/` — Data structures (Stack, Card, Button, Field)
-- `src/interpreter/` — HyperTalk lexer, parser, and runtime (no eval)
+- `src/interpreter/` — HyperTalk lexer, parser, and runtime (no eval, fully sandboxed)
 - `src/dom/` — UI, event handling, and persistence
-- `src/generator/` — Script generation (mock provider only)
+- `src/generator/` — Script generation with multiple providers
 - `src/storage/` — Compression and encoding utilities
 
 See individual module READMEs in `src/*/README.md` for details.
 
-## No Browser Testing Claims
+## Documentation
 
-This project is tested with happy-dom (a lightweight DOM simulation) and not with real browsers. For production deployment, test manually with Chrome, Firefox, Safari, and Edge.
+- `docs/THEMING.md` — Color system and theme customization
+- `docs/CROSS_BROWSER_CHECKLIST.md` — Manual testing checklist for browsers
+- `docs/PERFORMANCE.md` — Benchmark results and performance targets
 
 ## Performance
 
-See `docs/PERFORMANCE.md` for benchmark results.
+Bundle size (gzipped): **~32 KB** (JavaScript + CSS combined)
+
+Run `npm run size` to measure current bundle size.
 
 ## License
 
