@@ -474,3 +474,118 @@ As a security constraint, I want the UI layer to never use eval or new Function 
 - WHEN scripts are executed, THE SYSTEM SHALL use the HyperTalk interpreter (parser + runtime) only.
 - IF a user writes a custom script, IT SHALL be parsed and validated before execution.
 
+---
+
+## Phase 8: Demo Readiness
+
+### REQ-P8-001: Layout and Viewport
+
+**User Story**
+As a user, I want the card editor and run mode to fill the window with a fixed card size centered and scaled, so that the interface feels polished and the card always fits without clipping.
+
+**Acceptance Criteria**
+- WHEN the app loads in edit or run mode, THE SYSTEM SHALL render the card at a fixed logical size of 512×342 pixels (classic HyperCard dimensions).
+- WHEN the viewport is resized, THE SYSTEM SHALL scale the card proportionally (maintaining aspect ratio) to fit the available area without clipping.
+- WHEN the card is scaled, ALL elements (buttons, fields, text) SHALL scale proportionally so the layout remains intact.
+- IF the viewport is too small, THE SYSTEM SHALL show scrollbars rather than clipping content.
+- WHEN in edit mode, THE SYSTEM SHALL allow drag/resize of elements in logical coordinates, updating the model correctly.
+
+---
+
+### REQ-P8-002: In-UI Stack Authoring
+
+**User Story**
+As a creator, I want to build stacks from scratch using in-UI tools so that I never need to touch JSON or external editors.
+
+**Acceptance Criteria**
+- WHEN the app loads with no saved stack, THE SYSTEM SHALL display the starter stack from `examples/haunted-counter.json` as the default stack.
+- WHEN the "Add Card" button is clicked, THE SYSTEM SHALL create a new card with a unique ID, name ("Card X"), and no elements.
+- WHEN the "Add Button" button is clicked, THE SYSTEM SHALL create a button with default position (100, 100) and size (100, 30), label "Button X", and add it to the current card.
+- WHEN the "Add Field" button is clicked, THE SYSTEM SHALL create a field with default position (100, 150), size (300, 60), name "field_X", content "", and add it to the current card.
+- WHEN an element (card, button, or field) is right-clicked or a "Delete" button is pressed, THE SYSTEM SHALL prompt for confirmation and remove it.
+- WHEN an element is double-clicked or a "Rename" button is pressed, THE SYSTEM SHALL show an inline rename dialog, allow text entry, and update the element's name/label on confirm.
+- WHEN a card is selected in the card list, THE SYSTEM SHALL display a context menu or action buttons for: rename card, delete card.
+- WHEN changes are made, THE SYSTEM SHALL auto-save to localStorage.
+- IF the starter stack is not found, THE SYSTEM SHALL display an empty stack instead and allow creation from scratch.
+
+---
+
+### REQ-P8-003: 1-Bit Visual Design
+
+**User Story**
+As a designer, I want the app to embody the classic System 7 / 1-bit Mac aesthetic so that it feels nostalgic, cohesive, and visually distinct.
+
+**Acceptance Criteria**
+- WHEN the app is rendered, THE SYSTEM SHALL use only black, white, and shades of gray (#000, #fff, #ccc, #999, #666).
+- WHEN UI elements (buttons, borders, panels) are drawn, THE SYSTEM SHALL use 1–2px solid borders with no rounded corners or shadows.
+- WHEN interactive elements are hovered/focused, THE SYSTEM SHALL show a clear visual indicator (e.g., inverted colors, thicker border).
+- WHEN text is rendered, THE SYSTEM SHALL use a monospace or system font (Monaco, Courier New, or system-ui fallback).
+- WHEN backgrounds need patterning, THE SYSTEM MAY use dithered or checker patterns (pixels/SVG) to simulate 1-bit graphics.
+- WHEN a menu bar is present, IT SHALL mimic classic Mac menu styling (horizontal, black text on white background).
+- WHEN focus is on an interactive element, THE SYSTEM SHALL show a visible focus indicator (outline or border change) that meets WCAG contrast requirements.
+- WHEN contrast is checked, ALL text SHALL have a contrast ratio of at least 4.5:1 (WCAG AA standard for normal text).
+
+---
+
+### REQ-P8-004: Answer Modal Dialog
+
+**User Story**
+As a script author, I want the `answer` command to display a real, accessible modal dialog in run mode so that users can see and interact with it.
+
+**Acceptance Criteria**
+- WHEN a script calls `answer "message" with button "OK"` (or multiple buttons), THE SYSTEM SHALL display a modal dialog with the message text.
+- WHEN the modal is shown, THE SYSTEM SHALL render the buttons in a row at the bottom of the modal.
+- WHEN a user clicks a button in the modal, THE SYSTEM SHALL close the modal and return the button index (0 for first button, 1 for second, etc.) to the script.
+- WHEN the modal is open, THE SYSTEM SHALL prevent interaction with the card below (modal focus capture).
+- WHEN the modal dialog is displayed, IT SHALL be keyboard accessible (Tab to navigate buttons, Enter to confirm).
+- WHEN the modal is closed, script execution SHALL continue from the point after the `answer` call.
+
+---
+
+### REQ-P8-005: Script Editor Syntax Highlight Layer
+
+**User Story**
+As a script editor, I want syntax highlighting to render on top of the textarea without shifting text so that editing remains smooth and highlighting stays synchronized.
+
+**Acceptance Criteria**
+- WHEN the script editor is rendered, THE SYSTEM SHALL use a single `<textarea>` element for input and an overlay `<div>` with syntax-highlighted tokens.
+- WHEN the textarea has focus, THE SYSTEM SHALL ensure the highlighted layer is positioned identically (same font, same metrics, same overflow behavior).
+- WHEN the user types, THE SYSTEM SHALL synchronize scrolling between textarea and highlight layer (both scroll together).
+- WHEN text in the textarea changes, THE SYSTEM SHALL update the highlight layer immediately (no lag).
+- WHEN the textarea has CSS `white-space: pre`, THE SYSTEM SHALL apply the same to the highlight layer so line breaks are preserved exactly.
+- WHEN the font/size/line-height change, THE SYSTEM SHALL ensure the highlight layer uses identical metrics (measured via JavaScript if necessary).
+- WHEN testing in Chromium, THE SYSTEM SHALL verify no text drift or misalignment between textarea and highlights.
+
+---
+
+### REQ-P8-006: Offline Mock AI Provider
+
+**User Story**
+As a user without an AI API key, I want the script generator to offer sensible demo templates for common requests so that I can prototype interactivity without real AI.
+
+**Acceptance Criteria**
+- WHEN the user opens the "Generate Script" dialog, THE SYSTEM SHALL detect if no API key is configured.
+- IF no API key is set, THE SYSTEM SHALL use the `MockProvider` to generate code.
+- WHEN the MockProvider receives a request like "click" or "alert", THE SYSTEM SHALL return a template handler `on mouseUp: answer "Hello"`.
+- WHEN the request contains "count" or "increment", THE SYSTEM SHALL return a template that increments a card variable.
+- WHEN the request contains "next card" or "previous card", THE SYSTEM SHALL return a handler with `go next card` or `go previous card`.
+- WHEN the request contains "show" or "hide", THE SYSTEM SHALL return a template handler (implementation depends on field/button visibility support).
+- WHEN the request contains "put" or "text", THE SYSTEM SHALL return a template handler that updates a field.
+- WHEN code is generated by MockProvider, THE SYSTEM SHALL label it: "Offline demo mode - add your own API key in AI Settings for real AI".
+- WHEN a real API key is added in settings, THE SYSTEM SHALL switch to the real provider and remove the demo label.
+
+---
+
+### REQ-P8-007: Documentation: README and Cross-Browser Checklist
+
+**User Story**
+As a maintainer, I want accurate documentation so that users understand what is tested and what is expected to work.
+
+**Acceptance Criteria**
+- WHEN the README is read, IT SHALL clearly state: "This project is tested headless (Chromium only). Manual cross-browser testing required for production use."
+- WHEN the README lists features, IT SHALL match the actual implementation (no promised features that are incomplete).
+- WHEN the README describes the tech stack, IT SHALL accurately list: TypeScript, Vite, Vitest, happy-dom, no external UI frameworks.
+- WHEN a cross-browser checklist exists, IT SHALL include: Chrome/Chromium, Firefox, Safari, Edge on desktop (and notes on mobile scope).
+- WHEN the checklist is used, A TESTER SHALL verify: layout rendering, button/field interaction, script execution, localStorage persistence, modal dialogs, and error messages.
+- IF bugs are found in specific browsers, THEY SHALL be documented with workarounds or noted as known limitations.
+

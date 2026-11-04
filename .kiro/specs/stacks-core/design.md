@@ -993,3 +993,313 @@ interface ScriptValidator {
 - **Model Providers**: Implement `ModelProvider` interface for new AI backends.
 - **Message Types**: Add new handler types (e.g., `on idle`, `on closeCard`) without modifying core message dispatcher.
 
+---
+
+## Phase 8: Demo Readiness Design
+
+### Layout and Viewport Scaling
+
+The card is a fixed logical size of 512×342 pixels (classic HyperCard dimensions). The viewport may be larger or smaller, so the entire card scales proportionally (with aspect ratio preserved) to fit the available space.
+
+**Implementation Approach**:
+
+```typescript
+interface CardViewport {
+  logicalWidth: number;   // 512
+  logicalHeight: number;  // 342
+  scale: number;          // Computed based on available space
+  offsetX: number;        // Centering offset
+  offsetY: number;        // Centering offset
+}
+
+// Calculate scale
+function calculateCardScale(availableWidth: number, availableHeight: number): CardViewport {
+  const maxScaleX = availableWidth / 512;
+  const maxScaleY = availableHeight / 342;
+  const scale = Math.min(maxScaleX, maxScaleY, 1);  // Don't enlarge
+  return {
+    logicalWidth: 512,
+    logicalHeight: 342,
+    scale,
+    offsetX: (availableWidth - 512 * scale) / 2,
+    offsetY: (availableHeight - 342 * scale) / 2
+  };
+}
+```
+
+**DOM Structure**:
+
+```html
+<div class="viewport">
+  <div class="card" style="transform: scale(${scale}); transform-origin: 0 0; margin: ${offsetY}px ${offsetX}px;">
+    <!-- Card content: buttons, fields -->
+  </div>
+</div>
+```
+
+**Interaction**: When dragging elements in edit mode, convert screen coordinates to logical coordinates:
+
+```typescript
+function screenToLogical(screenX: number, screenY: number, viewport: CardViewport): { x: number, y: number } {
+  return {
+    x: (screenX - viewport.offsetX) / viewport.scale,
+    y: (screenY - viewport.offsetY) / viewport.scale
+  };
+}
+```
+
+### In-UI Authoring
+
+**Card Management**:
+- Card list panel shows all cards with +Add and delete buttons.
+- Right-click card to rename (inline editor or modal).
+- Delete prompts for confirmation.
+
+**Element Creation**:
+- "Add Button" creates Button at (100, 100) with size (100, 30), label "Button X", unique ID.
+- "Add Field" creates Field at (100, 150) with size (300, 60), name "field_X", empty content, unique ID.
+- Elements appear on canvas immediately; can be dragged/resized.
+
+**Starter Stack**:
+- On first visit, load `examples/haunted-counter.json` (or create empty if missing).
+- Subsequent visits restore last-saved stack from localStorage.
+
+### 1-Bit Aesthetic Design
+
+**Color Palette**:
+- Primary: `#000` (black), `#fff` (white)
+- Secondary: `#ccc` (light gray), `#999` (medium gray), `#666` (dark gray)
+- No other colors; no gradients, shadows, or transparency effects
+
+**Typography**:
+- Monospace: Monaco, "Courier New", or system-ui fallback
+- Font sizes: typically 12–14px for UI, 11–13px for editor
+- Line height: 1.5 for readability
+
+**Borders and Outlines**:
+- 1px solid for most borders; 2px for emphasis (focus, hover)
+- No rounded corners (border-radius: 0)
+- No drop shadows (box-shadow: none)
+
+**Focus Indicators**:
+- Keyboard focus: show a 2px inset border or inverted colors
+- Contrast: all text must be ≥4.5:1 against background (WCAG AA standard)
+- Ensure visible focus on buttons, inputs, and interactive elements
+
+**Classic Menu Bar** (optional):
+- Horizontal bar at top: File, Edit, View, Help
+- Black text on white or light gray background
+- Standard Mac-style spacing and alignment
+
+**Patterns** (optional for depth):
+- CSS `repeating-linear-gradient` or SVG patterns for dithered/checker backgrounds
+- Used sparingly to add visual depth without breaking 1-bit constraint
+
+### Answer Modal Dialog Design
+
+The `answer` command in a script triggers a modal overlay. The modal is rendered on top of the card and captures focus.
+
+**DOM Structure**:
+
+```html
+<div class="modal-overlay">
+  <div class="modal-dialog">
+    <div class="modal-message">Message text here</div>
+    <div class="modal-buttons">
+      <button>OK</button>
+      <button>Cancel</button>
+    </div>
+  </div>
+</div>
+```
+
+**Behavior**:
+- Script execution pauses while modal is open.
+- When user clicks a button, the modal closes and the handler receives the button index (0, 1, 2, ...).
+- Keyboard: Tab to navigate buttons, Enter/Space to confirm.
+- Modal blocks all interaction with the card behind it.
+
+**Integration**:
+
+```typescript
+// In runtime.ts
+async executeAnswerCommand(message: string, buttons: string[], context: ExecutionContext) {
+  const buttonIndex = await showAnswerModal(message, buttons);  // Async, waits for user input
+  return buttonIndex;
+}
+
+// In runMode.ts
+function showAnswerModal(message: string, buttons: string[]): Promise<number> {
+  return new Promise((resolve) => {
+    const modal = createModalElement(message, buttons, (index) => {
+      modal.remove();
+      resolve(index);
+    });
+    document.body.appendChild(modal);
+  });
+}
+```
+
+### Script Editor Highlight Layer Design
+
+The script editor consists of a hidden `<textarea>` for input and an overlay `<div>` for syntax highlighting. They must be perfectly aligned so text and highlights stay in sync.
+
+**DOM Structure**:
+
+```html
+<div class="script-editor-container">
+  <textarea class="script-editor-input" id="editor-textarea"></textarea>
+  <div class="script-editor-highlights" id="editor-highlights"></div>
+</div>
+```
+
+**CSS**:
+
+```css
+.script-editor-container {
+  position: relative;
+  font-family: Monaco, Courier New, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.script-editor-input {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  color: transparent;  /* Make text invisible; highlights show behind */
+  border: 1px solid #000;
+  width: 100%;
+  height: 200px;
+  padding: 8px;
+  margin: 0;
+  white-space: pre;
+  overflow-y: scroll;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.script-editor-highlights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 8px;
+  overflow-y: scroll;
+  white-space: pre;
+  pointer-events: none;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.token-keyword { color: #000; font-weight: bold; }
+.token-string { color: #666; }
+.token-number { color: #333; }
+.token-comment { color: #999; }
+```
+
+**Synchronization Logic**:
+
+```typescript
+// When textarea is scrolled, update highlight div's scroll position
+textareaElement.addEventListener('scroll', () => {
+  highlightDiv.scrollTop = textareaElement.scrollTop;
+  highlightDiv.scrollLeft = textareaElement.scrollLeft;
+});
+
+// When textarea content changes, tokenize and update highlights
+textareaElement.addEventListener('input', () => {
+  const source = textareaElement.value;
+  const tokens = lexer.tokenize(source);
+  
+  // Rebuild highlight div with tokens
+  highlightDiv.innerHTML = '';
+  for (const token of tokens) {
+    const span = document.createElement('span');
+    span.classList.add(`token-${token.type}`);
+    span.textContent = token.value;
+    highlightDiv.appendChild(span);
+  }
+});
+```
+
+**Measurement**: If font metrics differ slightly, use JavaScript to measure and adjust:
+
+```typescript
+function alignHighlightLayer(textarea: HTMLTextAreaElement, highlightDiv: HTMLElement) {
+  const computed = window.getComputedStyle(textarea);
+  highlightDiv.style.font = computed.font;
+  highlightDiv.style.padding = computed.padding;
+  highlightDiv.style.border = 'none';  // Highlight layer invisible; no border
+  highlightDiv.style.width = computed.width;
+  highlightDiv.style.height = computed.height;
+}
+```
+
+### Offline Mock AI Provider Design
+
+The `MockProvider` is a fallback when no API key is configured. It returns template handlers for common requests.
+
+**Templates**:
+
+```typescript
+const templates: Record<string, string> = {
+  click:      'on mouseUp\n  answer "Button clicked!"\nend mouseUp',
+  alert:      'on mouseUp\n  answer "Alert!"\nend mouseUp',
+  count:      'on mouseUp\n  put card counter + 1 into card counter\nend mouseUp',
+  increment:  'on mouseUp\n  put card count + 1 into card count\nend mouseUp',
+  next:       'on mouseUp\n  go next card\nend mouseUp',
+  previous:   'on mouseUp\n  go previous card\nend mouseUp',
+  show:       'on mouseUp\n  answer "Show logic"\nend mouseUp',
+  hide:       'on mouseUp\n  answer "Hide logic"\nend mouseUp',
+  text:       'on mouseUp\n  put "Updated text" into field "output"\nend mouseUp',
+};
+
+// Implement ModelProvider interface
+class MockProvider implements ModelProvider {
+  async generate(request: ScriptGenRequest): Promise<ScriptGenResponse> {
+    const description = request.description.toLowerCase();
+    let code = templates.click;  // Default
+    
+    for (const [keyword, template] of Object.entries(templates)) {
+      if (description.includes(keyword)) {
+        code = template;
+        break;
+      }
+    }
+    
+    return {
+      code,
+      explanation: "Offline demo mode - add your own API key in AI Settings for real AI",
+      confidence: 0.5
+    };
+  }
+  
+  async isAvailable(): Promise<boolean> {
+    return true;  // Always available offline
+  }
+}
+```
+
+**Integration**: In settings panel, detect missing API key and label generated code with the disclaimer.
+
+### Documentation Design
+
+**README**:
+- Clearly state testing scope: "Tested headless (Chromium only). Manual cross-browser testing required for production use."
+- List implemented features (only those actually coded).
+- Tech stack: TypeScript, Vite, Vitest, happy-dom, vanilla DOM.
+- Quick-start guide: open app, load/create stack, write script, test in Run Mode.
+- Link to cross-browser checklist.
+
+**Cross-Browser Checklist** (new file: `docs/BROWSER_SUPPORT.md`):
+- Template table for testers:
+  - Column 1: Feature (Layout, Buttons, Fields, Script Execution, localStorage, Modals, Error Messages)
+  - Columns 2–5: Chrome, Firefox, Safari, Edge (with checkboxes and notes)
+- Instructions: manually test on each browser, record pass/fail/notes.
+- Known limitations: e.g., "Safari: touch events not tested" or "IE: not supported."
+

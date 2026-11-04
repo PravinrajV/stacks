@@ -579,3 +579,89 @@ Phase 6 (Polish & Documentation)
 - **UI Testing**: Since DOM testing is harder to visualize, create simple HTML pages (`/index.html`) that manually test components during development.
 - **Bundle Size**: Monitor that UI + core stays <500KB gzipped; remove unused CSS/components if needed.
 
+---
+
+## Phase 8: Demo Readiness
+
+### Layout and Viewport Management
+
+- [ ] **8.1** Implement fixed 512×342 logical card size with responsive scaling. *(Ref: REQ-P8-001)*
+  - Location: `src/dom/cardCanvas.ts`, `src/dom/runMode.ts`
+  - The card renders at fixed logical dimensions and scales proportionally to fit available viewport.
+  - Implement a scale transform or CSS zoom that maintains aspect ratio.
+  - Elements (buttons, fields) scale with the card; drag/resize uses logical coordinates.
+  - Tests: Verify card scales correctly on viewport resize; elements remain selectable and interactive at any scale.
+
+### In-UI Authoring Tools
+
+- [ ] **8.2** Add "Add Card", "Add Button", "Add Field", "Delete Card", "Rename" UI controls. *(Ref: REQ-P8-002)*
+  - Location: `src/dom/cardList.ts`, `src/dom/cardCanvas.ts`, `src/dom/elementInspector.ts`
+  - Card list: add +/Delete buttons for cards; context menu for rename.
+  - Canvas: add +Button/+Field buttons in toolbar or context menu.
+  - Element creation: new elements get default positions/sizes and unique names.
+  - Rename: inline text editor or modal dialog for card/button/field names.
+  - Delete: confirmation prompt before removal.
+  - Tests: All CRUD operations work; elements created with correct defaults; renames persist.
+
+- [ ] **8.2b** Load starter stack (`examples/haunted-counter.json`) on first visit when no saved stack exists. *(Ref: REQ-P8-002)*
+  - Location: `src/dom/app.ts`, `src/dom/storage.ts`
+  - On app startup: check localStorage for saved stack.
+  - If no stack exists: load `examples/haunted-counter.json` as default.
+  - If file not found: create empty starter stack with one blank card.
+  - Auto-save any changes to localStorage.
+  - Tests: First visit shows starter stack; subsequent visits show last-saved stack.
+
+### 1-Bit Visual Design
+
+- [ ] **8.3** Implement classic Mac 1-bit aesthetic: black/white/gray, monospace font, borders, menu bar, accessible contrast. *(Ref: REQ-P8-003)*
+  - Location: `src/dom/styles.css`, all DOM components
+  - Color palette: limit to #000, #fff, #ccc, #999, #666.
+  - Typography: monospace (Monaco, "Courier New", system-ui fallback).
+  - Borders: 1–2px solid, no rounded corners, no drop shadows.
+  - Focus indicators: inverted colors or thicker border, meets WCAG AA (4.5:1 contrast minimum).
+  - Menu bar: horizontal top bar with classic Mac styling (if added).
+  - Patterns: optional dithered/checker backgrounds for visual depth (SVG or CSS patterns).
+  - Tests: Visual regression testing (screenshot comparison); contrast ratios verified; focus states visible on keyboard navigation.
+
+### Answer Modal Dialog
+
+- [ ] **8.4** Implement accessible modal dialog for `answer` command in run mode. *(Ref: REQ-P8-004)*
+  - Location: `src/dom/components/modal.ts`, `src/interpreter/runtime.ts`
+  - Modal displays message text and a row of buttons.
+  - Focus is captured in the modal; clicking a button returns its index to the script.
+  - Keyboard accessible: Tab navigates buttons, Enter/Space confirms.
+  - Modal blocks interaction with card below.
+  - Tests: Modal displays correctly; button clicks return correct index; keyboard navigation works; focus restored on close.
+
+### Script Editor Syntax Highlight Layer
+
+- [ ] **8.5** Implement perfectly-aligned syntax highlight overlay (textarea + div layer) with synchronized scrolling. *(Ref: REQ-P8-005)*
+  - Location: `src/dom/scriptEditor.ts`
+  - Use `<textarea>` for user input and `<div contenteditable="false">` for highlights.
+  - Apply identical CSS: font, font-size, line-height, padding, border, white-space: pre.
+  - Position highlight layer absolutely over textarea at (0, 0).
+  - Synchronize scrolling: when textarea scrolls, update highlight div's scroll position.
+  - On keystroke: update highlight tokens in real-time (same content, just styled).
+  - Measure font metrics via JavaScript if needed to ensure exact alignment.
+  - Tests in Chromium: verify no text drift under normal typing, multi-line input, and rapid scrolling.
+
+### Offline Mock AI Provider
+
+- [ ] **8.6** Implement offline mock AI provider with sensible templates for common requests. *(Ref: REQ-P8-006)*
+  - Location: `src/generator/mockProvider.ts`
+  - Detect API key absence; use MockProvider as fallback.
+  - Template patterns: "click"/"alert" → `on mouseUp: answer "Hello"`; "count"/"increment" → increment card variable; "next"/"previous card" → `go next/previous card`; "show"/"hide" → placeholder; "put"/"text" → `put value into field`.
+  - Return non-empty, functional handler code (not placeholders).
+  - Label output: "Offline demo mode - add your own API key in AI Settings for real AI".
+  - On API key addition in settings: switch to real provider, remove label.
+  - Tests: Common requests generate valid, runnable code; label appears/disappears correctly.
+
+### Documentation
+
+- [ ] **8.7** Update README to reflect testing scope and cross-browser checklist. *(Ref: REQ-P8-007)*
+  - Location: `README.md`, `docs/BROWSER_SUPPORT.md` (or new checklist file)
+  - README: clearly state "Tested headless (Chromium only). Manual cross-browser testing required for production."
+  - Feature list: ensure all described features are implemented.
+  - Tech stack: verify TypeScript, Vite, Vitest, happy-dom, vanilla DOM are accurately listed.
+  - Cross-browser checklist: template for testers to verify Chrome, Firefox, Safari, Edge (layout, interaction, scripts, localStorage, modals, errors).
+  - Tests: README accuracy verified (no promised unimplemented features).
