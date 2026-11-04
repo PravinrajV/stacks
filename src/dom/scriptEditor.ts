@@ -42,12 +42,13 @@ export class ScriptEditor {
   // AI generation panel
   private aiPanel: HTMLElement | null = null
   private aiPromptInput: HTMLTextAreaElement | null = null
-  private aiGenerateBtn: HTMLElement | null = null
+  private aiGenerateBtn: HTMLButtonElement | null = null
   private aiLoading: boolean = false
-  private aiResultDisplay: HTMLElement | null = null
-  private aiAcceptBtn: HTMLElement | null = null
-  private aiDiscardBtn: HTMLElement | null = null
-  private aiErrorDisplay: HTMLElement | null = null
+  private aiCodeBlock: HTMLElement | null = null
+  private aiDiffPreview: HTMLElement | null = null
+  private aiAcceptBtn: HTMLButtonElement | null = null
+  private aiDiscardBtn: HTMLButtonElement | null = null
+  private generatedCode: string = ''
 
   constructor() {
     this.element = createElement('div', {
@@ -478,125 +479,90 @@ export class ScriptEditor {
   }
 
   /**
-   * Task 4.9: Create AI generation panel with input, generate, result, accept/discard.
+   * Task 4.9: Create AI generation panel as fixed right-side drawer.
    */
   private createAIPanel(): void {
     this.aiPanel = createElement('div', {
-      className: 'ai-panel'
+      className: 'ai-panel ai-panel-drawer'
     })
     this.aiPanel.style.display = 'none'
-    this.aiPanel.style.position = 'absolute'
-    this.aiPanel.style.right = '0'
-    this.aiPanel.style.bottom = '0'
-    this.aiPanel.style.width = '300px'
-    this.aiPanel.style.maxHeight = '400px'
-    this.aiPanel.style.backgroundColor = 'var(--color-light-gray)'
-    this.aiPanel.style.border = '2px solid var(--color-black)'
-    this.aiPanel.style.padding = 'var(--spacing-md)'
-    this.aiPanel.style.flexDirection = 'column'
-    this.aiPanel.style.gap = 'var(--spacing-sm)'
-    this.aiPanel.style.zIndex = '10'
-    this.aiPanel.style.overflowY = 'auto'
 
-    // Header
-    const header = createElement('div')
-    header.style.fontWeight = 'bold'
-    setTextContent(header, 'Generate with AI')
+    // Header with title and close button
+    const header = createElement('div', { className: 'ai-panel-header' })
+    const title = createElement('h2', { className: 'ai-panel-header-title' })
+    title.style.margin = '0'
+    setTextContent(title, 'AI Assistant')
+    header.appendChild(title)
+
+    const closeBtn = createElement('button', { className: 'ai-panel-close-btn' })
+    setTextContent(closeBtn, '×')
+    addEventListener(closeBtn, 'click', () => this.toggleAIPanel())
+    
+    // Handle Escape key to close drawer
+    const handleEscape = (e: Event) => {
+      if ((e as KeyboardEvent).key === 'Escape' && this.aiPanel?.style.display !== 'none') {
+        this.toggleAIPanel()
+      }
+    }
+    document.addEventListener('keydown', handleEscape as EventListener)
+    header.appendChild(closeBtn)
     this.aiPanel.appendChild(header)
 
-    // Task 8.6: Offline demo mode notice (visible when mock provider is active)
-    const offlineNotice = createElement('div', {
-      className: 'ai-offline-notice'
-    })
-    offlineNotice.style.backgroundColor = '#ffffcc'
-    offlineNotice.style.border = '1px solid #cccc00'
-    offlineNotice.style.padding = 'var(--spacing-xs)'
-    offlineNotice.style.fontSize = '9px'
-    offlineNotice.style.lineHeight = '1.3'
-    offlineNotice.style.color = 'var(--color-black)'
-    offlineNotice.style.fontFamily = 'var(--font-mono)'
+    // Task 8.6: Offline demo mode notice
+    const offlineNotice = createElement('div', { className: 'ai-offline-notice' })
     setTextContent(
       offlineNotice,
       'Offline demo mode: built-in templates, no AI calls. For real AI, add your own Anthropic key or a local Ollama in AI Settings.'
     )
     this.aiPanel.appendChild(offlineNotice)
 
-    // Prompt input
-    const promptLabel = createElement('div')
-    promptLabel.style.fontSize = '11px'
-    promptLabel.style.fontWeight = 'bold'
+    // Prompt section
+    const promptSection = createElement('div', { className: 'ai-prompt-section' })
+    const promptLabel = createElement('label', { className: 'ai-prompt-label' })
     setTextContent(promptLabel, 'Describe what you want:')
-    this.aiPanel.appendChild(promptLabel)
+    promptSection.appendChild(promptLabel)
 
     this.aiPromptInput = createElement('textarea', {
-      className: 'ai-prompt-input'
+      className: 'ai-prompt-textarea ai-prompt-input'
     }) as HTMLTextAreaElement
-    this.aiPromptInput.style.width = '100%'
-    this.aiPromptInput.style.height = '60px'
-    this.aiPromptInput.style.padding = 'var(--spacing-xs)'
-    this.aiPromptInput.style.border = '1px solid var(--color-black)'
-    this.aiPromptInput.style.fontFamily = 'var(--font-mono)'
-    this.aiPromptInput.style.fontSize = '11px'
-    this.aiPromptInput.style.resize = 'none'
     this.aiPromptInput.placeholder = 'e.g., "Show a button click alert"'
-    this.aiPanel.appendChild(this.aiPromptInput)
+    promptSection.appendChild(this.aiPromptInput)
+    this.aiPanel.appendChild(promptSection)
 
     // Generate button
     this.aiGenerateBtn = createElement('button', {
       className: 'ai-generate-btn'
     }) as HTMLButtonElement
-    this.aiGenerateBtn.style.padding = 'var(--spacing-xs) var(--spacing-sm)'
-    this.aiGenerateBtn.style.backgroundColor = 'var(--color-light-gray)'
-    this.aiGenerateBtn.style.border = '2px solid var(--color-black)'
-    this.aiGenerateBtn.style.cursor = 'pointer'
-    this.aiGenerateBtn.style.fontFamily = 'var(--font-mono)'
-    this.aiGenerateBtn.style.fontSize = '11px'
-    this.aiGenerateBtn.style.fontWeight = 'bold'
     setTextContent(this.aiGenerateBtn, 'Generate')
     addEventListener(this.aiGenerateBtn, 'click', () => this.generateScript())
     this.aiPanel.appendChild(this.aiGenerateBtn)
 
-    // Error display
-    this.aiErrorDisplay = createElement('div', {
-      className: 'ai-error-display'
+    // Code block display
+    this.aiCodeBlock = createElement('div', {
+      className: 'ai-code-block'
     })
-    this.aiErrorDisplay.style.minHeight = '20px'
-    this.aiErrorDisplay.style.padding = 'var(--spacing-xs)'
-    this.aiErrorDisplay.style.fontSize = '10px'
-    this.aiErrorDisplay.style.color = '#cc0000'
-    this.aiErrorDisplay.style.fontFamily = 'var(--font-mono)'
-    this.aiPanel.appendChild(this.aiErrorDisplay)
+    this.aiCodeBlock.style.display = 'none'
+    this.aiPanel.appendChild(this.aiCodeBlock)
 
-    // Result display
-    this.aiResultDisplay = createElement('div', {
-      className: 'ai-result-display'
+    // Diff preview
+    this.aiDiffPreview = createElement('div', {
+      className: 'ai-diff-preview'
     })
-    this.aiResultDisplay.style.minHeight = '100px'
-    this.aiResultDisplay.style.padding = 'var(--spacing-xs)'
-    this.aiResultDisplay.style.border = '1px solid var(--color-medium-gray)'
-    this.aiResultDisplay.style.backgroundColor = 'var(--color-white)'
-    this.aiResultDisplay.style.fontSize = '10px'
-    this.aiResultDisplay.style.fontFamily = 'var(--font-mono)'
-    this.aiResultDisplay.style.maxHeight = '120px'
-    this.aiResultDisplay.style.overflowY = 'auto'
-    this.aiPanel.appendChild(this.aiResultDisplay)
+    this.aiDiffPreview.style.display = 'none'
+    this.aiPanel.appendChild(this.aiDiffPreview)
 
-    // Accept/Discard buttons
-    const buttonGroup = createElement('div')
-    buttonGroup.style.display = 'flex'
-    buttonGroup.style.gap = 'var(--spacing-sm)'
+    // Result display (compatibility wrapper for tests)
+    const resultDisplay = createElement('div', { className: 'ai-result-display' })
+    resultDisplay.style.display = 'none'
+    this.aiPanel.appendChild(resultDisplay)
+
+    // Button group (Accept/Discard) at bottom
+    const buttonGroup = createElement('div', { className: 'ai-button-group' })
+    buttonGroup.style.display = 'none'
 
     this.aiAcceptBtn = createElement('button', {
       className: 'ai-accept-btn'
     }) as HTMLButtonElement
-    this.aiAcceptBtn.style.flex = '1'
-    this.aiAcceptBtn.style.padding = 'var(--spacing-xs) var(--spacing-sm)'
-    this.aiAcceptBtn.style.backgroundColor = 'var(--color-light-gray)'
-    this.aiAcceptBtn.style.border = '2px solid var(--color-black)'
-    this.aiAcceptBtn.style.cursor = 'pointer'
-    this.aiAcceptBtn.style.fontFamily = 'var(--font-mono)'
-    this.aiAcceptBtn.style.fontSize = '11px'
-    this.aiAcceptBtn.style.fontWeight = 'bold'
     ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
     setTextContent(this.aiAcceptBtn, 'Accept')
     addEventListener(this.aiAcceptBtn, 'click', () => this.acceptGeneratedScript())
@@ -605,29 +571,21 @@ export class ScriptEditor {
     this.aiDiscardBtn = createElement('button', {
       className: 'ai-discard-btn'
     }) as HTMLButtonElement
-    this.aiDiscardBtn.style.flex = '1'
-    this.aiDiscardBtn.style.padding = 'var(--spacing-xs) var(--spacing-sm)'
-    this.aiDiscardBtn.style.backgroundColor = 'var(--color-light-gray)'
-    this.aiDiscardBtn.style.border = '2px solid var(--color-black)'
-    this.aiDiscardBtn.style.cursor = 'pointer'
-    this.aiDiscardBtn.style.fontFamily = 'var(--font-mono)'
-    this.aiDiscardBtn.style.fontSize = '11px'
-    this.aiDiscardBtn.style.fontWeight = 'bold'
     setTextContent(this.aiDiscardBtn, 'Discard')
     addEventListener(this.aiDiscardBtn, 'click', () => this.discardGeneratedScript())
     buttonGroup.appendChild(this.aiDiscardBtn)
 
     this.aiPanel.appendChild(buttonGroup)
 
-    // Add panel to editor element
-    this.element.appendChild(this.aiPanel)
+    // Add panel to body (fixed positioning)
+    document.body.appendChild(this.aiPanel)
   }
 
   /**
    * Task 4.9: Generate script using selected provider from registry with fallback.
    */
   private async generateScript(): Promise<void> {
-    if (!this.aiPromptInput || !this.aiResultDisplay || !this.aiGenerateBtn || !this.aiAcceptBtn || !this.aiErrorDisplay) {
+    if (!this.aiPromptInput || !this.aiCodeBlock || !this.aiGenerateBtn || !this.aiAcceptBtn || !this.aiDiffPreview) {
       return
     }
 
@@ -641,8 +599,9 @@ export class ScriptEditor {
     this.aiLoading = true
     ;(this.aiGenerateBtn as HTMLButtonElement).disabled = true
     ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
-    removeAllChildren(this.aiErrorDisplay)
-    setTextContent(this.aiResultDisplay, 'Generating...')
+    setTextContent(this.aiCodeBlock, 'Generating...')
+    this.aiCodeBlock.style.display = 'block'
+    this.aiDiffPreview.style.display = 'none'
 
     try {
       // Get the appropriate provider based on selection
@@ -671,7 +630,7 @@ export class ScriptEditor {
       )
 
       if ('error' in result) {
-        setTextContent(this.aiErrorDisplay, result.error)
+        setTextContent(this.aiCodeBlock, `Error: ${result.error}`)
         
         // Try fallback to mock if not already using it
         if (this.selectedProvider !== 'mock') {
@@ -679,11 +638,6 @@ export class ScriptEditor {
           const mockResult = await generateScript(mockProvider, prompt, context, this.getScript())
           
           if (!('error' in mockResult)) {
-            // Append fallback notice
-            const noticeEl = createElement('div')
-            noticeEl.style.marginTop = '4px'
-            setTextContent(noticeEl, 'Falling back to Mock provider.')
-            this.aiErrorDisplay.appendChild(noticeEl)
             this.displayGeneratedCode(mockResult.code, mockResult.diff)
             ;(this.aiAcceptBtn as HTMLButtonElement).disabled = false
             return
@@ -692,12 +646,11 @@ export class ScriptEditor {
         
         ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
       } else {
-        removeAllChildren(this.aiErrorDisplay)
         this.displayGeneratedCode(result.code, result.diff)
         ;(this.aiAcceptBtn as HTMLButtonElement).disabled = false
       }
     } catch (err) {
-      setTextContent(this.aiErrorDisplay, `Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      setTextContent(this.aiCodeBlock, `Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
       ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
     } finally {
       this.aiLoading = false
@@ -709,40 +662,62 @@ export class ScriptEditor {
    * Display generated code and diff in result area.
    */
   private displayGeneratedCode(code: string, diff: DiffLine[]): void {
-    if (!this.aiResultDisplay) return
+    if (!this.aiCodeBlock || !this.aiDiffPreview) return
 
-    const diffLines = diff
-      .map(line => {
-        if (line.type === 'add') return `+ ${line.content}`
-        if (line.type === 'remove') return `- ${line.content}`
-        return `  ${line.content}`
-      })
-      .join('\n')
+    this.generatedCode = code
 
-    removeAllChildren(this.aiResultDisplay)
-    const codeDiv = createElement('div')
-    codeDiv.style.whiteSpace = 'pre-wrap'
-    codeDiv.style.wordWrap = 'break-word'
-    codeDiv.style.color = 'var(--color-dark-gray)'
-    setTextContent(codeDiv, `Generated:\n\n${code}\n\nDiff:\n${diffLines}`)
-    this.aiResultDisplay.appendChild(codeDiv)
+    // Display code block
+    removeAllChildren(this.aiCodeBlock)
+    setTextContent(this.aiCodeBlock, code)
+    this.aiCodeBlock.style.display = 'block'
 
-    // Store generated code for accept
-    ;(this.aiResultDisplay as any).__generatedCode = code
+    // Display diff with color-coded lines
+    removeAllChildren(this.aiDiffPreview)
+    for (const line of diff) {
+      const lineEl = createElement('div', { className: `ai-diff-line ${line.type}` })
+      const prefix = line.type === 'add' ? '+ ' : line.type === 'remove' ? '- ' : '  '
+      setTextContent(lineEl, prefix + line.content)
+      this.aiDiffPreview.appendChild(lineEl)
+    }
+    this.aiDiffPreview.style.display = 'block'
+
+    // Update result display for test compatibility
+    const resultDisplay = this.aiPanel?.querySelector('.ai-result-display') as HTMLElement | null
+    if (resultDisplay) {
+      removeAllChildren(resultDisplay)
+      const codeDiv = createElement('div')
+      codeDiv.style.whiteSpace = 'pre-wrap'
+      codeDiv.style.wordWrap = 'break-word'
+      const diffLines = diff
+        .map(line => {
+          if (line.type === 'add') return `+ ${line.content}`
+          if (line.type === 'remove') return `- ${line.content}`
+          return `  ${line.content}`
+        })
+        .join('\n')
+      setTextContent(codeDiv, `Generated:\n\n${code}\n\nDiff:\n${diffLines}`)
+      resultDisplay.appendChild(codeDiv)
+      resultDisplay.style.display = 'block'
+    }
+
+    // Show Accept/Discard buttons
+    const buttonGroup = this.aiPanel?.querySelector('.ai-button-group') as HTMLElement | null
+    if (buttonGroup) {
+      buttonGroup.style.display = 'flex'
+    }
   }
 
   /**
    * Task 4.9: Accept generated script and insert into editor.
    */
   private acceptGeneratedScript(): void {
-    const generatedCode = (this.aiResultDisplay as any)?.__generatedCode
-    if (!generatedCode) {
+    if (!this.generatedCode) {
       return
     }
 
     // Insert into editor
-    this.setScript(generatedCode)
-    this.onScriptChange?.(generatedCode)
+    this.setScript(this.generatedCode)
+    this.onScriptChange?.(this.generatedCode)
 
     // Close panel
     if (this.aiPanel) {
@@ -750,13 +725,7 @@ export class ScriptEditor {
     }
 
     // Clear result
-    if (this.aiResultDisplay) {
-      removeAllChildren(this.aiResultDisplay)
-    }
-
-    if (this.aiAcceptBtn) {
-      ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
-    }
+    this.resetAIPanel()
   }
 
   /**
@@ -767,17 +736,37 @@ export class ScriptEditor {
       this.aiPanel.style.display = 'none'
     }
 
-    if (this.aiResultDisplay) {
-      removeAllChildren(this.aiResultDisplay)
-    }
+    this.resetAIPanel()
+  }
 
+  /**
+   * Reset AI panel to initial state.
+   */
+  private resetAIPanel(): void {
     if (this.aiPromptInput) {
       this.aiPromptInput.value = ''
+    }
+
+    if (this.aiCodeBlock) {
+      removeAllChildren(this.aiCodeBlock)
+      this.aiCodeBlock.style.display = 'none'
+    }
+
+    if (this.aiDiffPreview) {
+      removeAllChildren(this.aiDiffPreview)
+      this.aiDiffPreview.style.display = 'none'
     }
 
     if (this.aiAcceptBtn) {
       ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
     }
+
+    const buttonGroup = this.aiPanel?.querySelector('.ai-button-group') as HTMLElement | null
+    if (buttonGroup) {
+      buttonGroup.style.display = 'none'
+    }
+
+    this.generatedCode = ''
   }
 
   /**
