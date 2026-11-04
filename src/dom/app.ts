@@ -43,6 +43,12 @@ export class App {
 
     const stackId = `stack-${Date.now()}`
     const stack = loaded || createStack(stackId, 'My Stack')
+    
+    // Ensure stack has at least one card
+    if (stack.cards.length === 0) {
+      stack.cards.push(createCard(`card-${Date.now()}`, 'Card 1', null))
+    }
+    
     const currentCardId = stack.cards[0]?.id || ''
 
     this.appState = {
@@ -71,9 +77,8 @@ export class App {
     this.cardListPanel.onAddCardClicked(() => this.addCard())
     this.cardListPanel.onDeleteCardClicked((cardId) => this.deleteCard(cardId))
 
-    // Canvas
-    this.cardCanvas.onElementMoved((elementId, rect) => this.moveElement(elementId, rect))
-    this.cardCanvas.onElementResized((elementId, rect) => this.resizeElement(elementId, rect))
+    // Canvas - need to add element click handler
+    // This will be wired via delegated events in render()
 
     // Inspector
     this.elementInspector.onPropertyChanged((element) => {
@@ -116,6 +121,11 @@ export class App {
   private selectCard(cardId: string): void {
     this.appState.currentCardId = cardId
     this.appState.selectedElementId = null
+    this.render()
+  }
+
+  private selectElement(elementId: string): void {
+    this.appState.selectedElementId = elementId
     this.render()
   }
 
@@ -199,8 +209,24 @@ export class App {
   }
 
   private saveToUndoStack(): void {
-    // Clone current state before the change
-    this.appState.undoStack.unshift(JSON.parse(JSON.stringify(this.appState.stack)))
+    // Clone current state using serialization to handle Maps properly
+    const json = JSON.stringify(this.appState.stack, (key, value) => {
+      if (value instanceof Map) {
+        return Object.fromEntries(value)
+      }
+      return value
+    })
+    const cloned = JSON.parse(json, (key, value) => {
+      if (key === 'variables') {
+        const map = new Map()
+        if (typeof value === 'object' && value !== null) {
+          Object.entries(value).forEach(([k, v]) => map.set(k, v))
+        }
+        return map
+      }
+      return value
+    })
+    this.appState.undoStack.unshift(cloned)
     this.appState.redoStack = []
     saveUndoRedo(this.appState.undoStack, this.appState.redoStack)
   }
@@ -264,6 +290,21 @@ export class App {
     main.appendChild(this.scriptEditor.getElement())
 
     this.container.appendChild(app)
+
+    // Set up delegated event listener for element selection in canvas
+    const canvasElement = app.querySelector('.card-canvas') as HTMLElement | null
+    if (canvasElement) {
+      addEventListener(canvasElement, 'mousedown', (e: Event) => {
+        const target = (e as MouseEvent).target as HTMLElement
+        const element = target.closest('.card-element') as HTMLElement | null
+        if (element) {
+          const elementId = element.getAttribute('data-element-id')
+          if (elementId) {
+            this.selectElement(elementId)
+          }
+        }
+      })
+    }
 
     // Render current state
     const card = this.appState.stack.cards.find((c) => c.id === this.appState.currentCardId)
