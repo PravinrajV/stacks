@@ -260,6 +260,10 @@ end openCard`
     // Verify card 2 is now displayed by checking for its field
     const yContent = getRunFieldContent('y')
     expect(yContent).toBe('opened')
+
+    // Card swap renders once: old card's button gone, no duplicated new content
+    expect(findRunButton('Button B')).toBeFalsy()
+    expect(document.querySelectorAll('[data-field-id="y"]').length).toBe(1)
   })
 
   /**

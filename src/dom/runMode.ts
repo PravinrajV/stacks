@@ -24,6 +24,7 @@ export class RunModeViewer {
   private onNavigate: ((cardId: string) => void) | null = null
   private onExit: (() => void) | null = null
   private scale: number = 1  // Responsive scale factor
+  private lastCardId: string | null = null
   private fitLeft: number = 0  // Centering offset
   private fitTop: number = 0   // Centering offset
   private resizeObserver: ResizeObserver | null = null
@@ -155,15 +156,20 @@ export class RunModeViewer {
       this.renderButton(button)
     }
 
-    // Measure container and apply fit after layout
-    // Use requestAnimationFrame to ensure layout has been computed
+    // HAND EDIT (Phase 11.2): fit synchronously so the new card never paints
+    // unscaled at the top-left for a frame, then re-check after layout.
+    this.updateCardFit()
     if (typeof requestAnimationFrame !== 'undefined') {
-      requestAnimationFrame(() => {
-        this.updateCardFit()
-      })
-    } else {
-      // Fallback for test environments
-      this.updateCardFit()
+      requestAnimationFrame(() => this.updateCardFit())
+    }
+
+    // Card change: opacity-only fade (never touches the fit transform).
+    const changed = this.lastCardId !== null && this.lastCardId !== card.id
+    this.lastCardId = card.id
+    const reduce = typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (changed && !reduce && typeof this.cardView.animate === 'function') {
+      this.cardView.animate([{ opacity: 0.25 }, { opacity: 1 }], { duration: 220, easing: 'cubic-bezier(.2,.7,.2,1)' })
     }
   }
 
