@@ -9,7 +9,9 @@ Stacks lets you create interactive card-based applications with scriptable butto
 ## Features
 
 - **Two Themes**: Classic (1-bit System 7 look) and a dark premium theme with three palettes: Navy (default, ice blue/silver), Ink (champagne gold) and Graphite (copper). Pick one in the toolbar or with `?palette=navy|ink|graphite`.
-- **Visual Editor**: Drag to position elements, click to select, inspect properties. Add cards, buttons, and fields.
+- **Visual Editor**: Drag to position elements, click to select, edit properties in a sectioned inspector (Identity, Content, Typography, Position & Size). Add cards, buttons, and fields.
+- **Docked AI drawer**: the AI assistant opens beside the inspector (at 1100px wide and up) so properties stay reachable.
+- **Transitions**: run-mode cards fade between each other and Run fades in. Both are off under prefers-reduced-motion.
 - **Edit & Run Modes**: Author scripts in Edit mode; test instantly in Run mode
 - **HyperTalk Scripting**: Simple, safe scripting with no eval. Just plain English-like code.
 - **Accessible UI**: Keyboard navigation, focus indicators, respects `prefers-reduced-motion`
