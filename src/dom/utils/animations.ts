@@ -1,9 +1,11 @@
 /**
  * Task 9.4: Animation utilities for card transitions and mode switches.
+ * Phase 11.2: Card transitions in run mode.
  * 
  * Handles:
  * - Card flip/fade animations (320ms)
  * - Mode switch fade/scale animations (250ms)
+ * - Run mode card transitions with fade/scale (120ms out + 120ms in)
  * - prefers-reduced-motion support (animations disabled)
  * - Animation interruption and completion
  */
@@ -13,6 +15,74 @@
  */
 export function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+/**
+ * Phase 11.2: Animate card transition in run mode: fade out old, fade in new.
+ * Outgoing: opacity 1->0, scale 1->0.985 (120ms)
+ * Incoming: opacity 0->1, scale 0.985->1 (120ms)
+ * State updates immediately; only visuals animate.
+ */
+export async function animateRunModeCardTransition(
+  outgoingCard: HTMLElement,
+  incomingCard: HTMLElement
+): Promise<void> {
+  if (prefersReducedMotion()) {
+    return
+  }
+
+  return new Promise((resolve) => {
+    // Animate outgoing card
+    outgoingCard.classList.add('run-mode-card-out')
+
+    const onOutAnimationEnd = () => {
+      outgoingCard.removeEventListener('animationend', onOutAnimationEnd)
+      outgoingCard.classList.remove('run-mode-card-out')
+
+      // Start incoming animation
+      incomingCard.classList.add('run-mode-card-in')
+
+      const onInAnimationEnd = () => {
+        incomingCard.removeEventListener('animationend', onInAnimationEnd)
+        incomingCard.classList.remove('run-mode-card-in')
+        resolve()
+      }
+
+      incomingCard.addEventListener('animationend', onInAnimationEnd)
+
+      // Fallback timeout for incoming
+      setTimeout(() => {
+        incomingCard.removeEventListener('animationend', onInAnimationEnd)
+        incomingCard.classList.remove('run-mode-card-in')
+        resolve()
+      }, 120 + 50)
+    }
+
+    outgoingCard.addEventListener('animationend', onOutAnimationEnd)
+
+    // Fallback timeout for outgoing
+    setTimeout(() => {
+      outgoingCard.removeEventListener('animationend', onOutAnimationEnd)
+      outgoingCard.classList.remove('run-mode-card-out')
+
+      // Start incoming animation
+      incomingCard.classList.add('run-mode-card-in')
+
+      const onInAnimationEnd = () => {
+        incomingCard.removeEventListener('animationend', onInAnimationEnd)
+        incomingCard.classList.remove('run-mode-card-in')
+        resolve()
+      }
+
+      incomingCard.addEventListener('animationend', onInAnimationEnd)
+
+      setTimeout(() => {
+        incomingCard.removeEventListener('animationend', onInAnimationEnd)
+        incomingCard.classList.remove('run-mode-card-in')
+        resolve()
+      }, 120 + 50)
+    }, 120 + 50)
+  })
 }
 
 /**

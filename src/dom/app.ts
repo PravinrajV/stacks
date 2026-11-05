@@ -23,7 +23,7 @@ import { deserializeStack } from '../model/serialization'
 import { createSunIcon, createMoonIcon, createGhostIcon, createPlayIcon, createPlusIcon } from './icons'
 import { WelcomeScreen } from './welcomeScreen'
 import { StyledAlert, StyledConfirm, StyledPrompt } from './components/styledDialogs'
-import { animateModeSwitchIn, animateModeSwitchOut, prefersReducedMotion } from './utils/animations'
+import { animateModeSwitchIn, animateModeSwitchOut, animateRunModeCardTransition, prefersReducedMotion } from './utils/animations'
 
 // Import haunted-counter.json as a string at build time
 declare const HAUNTED_COUNTER_STACK: string | undefined
@@ -716,6 +716,12 @@ export class App {
       
       this.runModeViewer.render(this.appState.stack, card, null)
       main.appendChild(this.runModeViewer.getElement())
+      
+      // Phase 11.2: Animate mode switch entry to run mode
+      if (!prefersReducedMotion()) {
+        const runContainer = this.runModeViewer.getElement()
+        animateModeSwitchIn(runContainer, 200)
+      }
     } else {
       // Edit mode: render normal editor UI
       main.appendChild(this.cardListPanel.getElement())
@@ -782,19 +788,75 @@ export class App {
     const newCard = this.appState.stack.cards.find(c => c.id === cardId)
     
     if (oldCard && newCard && this.runModeViewer) {
-      // Send closeCard to old card
+      // Send closeCard to old card (async, doesn't block)
       send('closeCard', oldCard, createExecutionContext(this.appState.stack, oldCard), this.runModeViewer)
-        .then(() => {
-          // Send openCard to new card
-          return send('openCard', newCard, createExecutionContext(this.appState.stack, newCard), this.runModeViewer)
-        })
-        .then(() => {
-          // Re-render new card
-          this.runModeViewer?.render(this.appState.stack, newCard, null)
-        })
         .catch((err) => {
-          console.error('Error during card navigation:', err)
+          console.error('Error in closeCard:', err)
         })
+      
+      // Send openCard to new card (async, doesn't block)
+      send('openCard', newCard, createExecutionContext(this.appState.stack, newCard), this.runModeViewer)
+        .catch((err) => {
+          console.error('Error in openCard:', err)
+        })
+      
+      // Phase 11.2: Animate card transition in run mode
+      // Render new card immediately (state update happens now, not after animation)
+      const cardView = this.runModeViewer.getElement().querySelector('.card-view') as HTMLElement
+      
+      if (cardView && !prefersReducedMotion()) {
+        // Apply outgoing animation to old card view
+        cardView.classList.add('run-mode-card-out')
+        
+        // Wait for outgoing animation to complete, then apply incoming
+        const onOutAnimationEnd = () => {
+          cardView.removeEventListener('animationend', onOutAnimationEnd)
+          cardView.classList.remove('run-mode-card-out')
+          
+          // Now render the new card and animate in
+          this.runModeViewer?.render(this.appState.stack, newCard, null)
+          
+          // Apply incoming animation
+          cardView.classList.add('run-mode-card-in')
+          const onInAnimationEnd = () => {
+            cardView.removeEventListener('animationend', onInAnimationEnd)
+            cardView.classList.remove('run-mode-card-in')
+          }
+          cardView.addEventListener('animationend', onInAnimationEnd)
+          
+          // Fallback timeout
+          setTimeout(() => {
+            cardView.removeEventListener('animationend', onInAnimationEnd)
+            cardView.classList.remove('run-mode-card-in')
+          }, 120 + 50)
+        }
+        
+        cardView.addEventListener('animationend', onOutAnimationEnd)
+        
+        // Fallback timeout for outgoing
+        setTimeout(() => {
+          cardView.removeEventListener('animationend', onOutAnimationEnd)
+          cardView.classList.remove('run-mode-card-out')
+          
+          // Render new card and apply incoming animation
+          this.runModeViewer?.render(this.appState.stack, newCard, null)
+          
+          cardView.classList.add('run-mode-card-in')
+          const onInAnimationEnd = () => {
+            cardView.removeEventListener('animationend', onInAnimationEnd)
+            cardView.classList.remove('run-mode-card-in')
+          }
+          cardView.addEventListener('animationend', onInAnimationEnd)
+          
+          setTimeout(() => {
+            cardView.removeEventListener('animationend', onInAnimationEnd)
+            cardView.classList.remove('run-mode-card-in')
+          }, 120 + 50)
+        }, 120 + 50)
+      } else {
+        // No animation: render immediately
+        this.runModeViewer?.render(this.appState.stack, newCard, null)
+      }
     }
   }
 

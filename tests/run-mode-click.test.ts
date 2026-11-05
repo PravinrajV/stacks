@@ -1,5 +1,6 @@
 /**
  * Integration test: Real UI click path from initApp() through run mode.
+ * Phase 11.2: Tests card transitions with animations.
  * 
  * Tests the complete flow:
  * 1. Build stack with buttons and fields
@@ -114,11 +115,15 @@ describe('Run Mode Click Path Integration Tests', () => {
   let appContainer: HTMLElement
 
   beforeEach(() => {
+    // Phase 11.2: Enable reduced motion for faster test execution with animations
+    (window as any).__TEST_REDUCE_MOTION__ = true
     clearStack()
     appContainer = setupDOM()
   })
 
   afterEach(() => {
+    // Phase 11.2: Disable reduced motion after test
+    (window as any).__TEST_REDUCE_MOTION__ = false
     clearStack()
     const app = document.getElementById('app')
     if (app) {

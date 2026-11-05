@@ -65,6 +65,16 @@ describe('Task 8.1 & 8.3: Layout and 1-bit Styling', () => {
   })
 
   describe('Run mode layout', () => {
+    beforeEach(() => {
+      // Phase 11.2: Enable reduced motion for faster mode switch tests
+      (window as any).__TEST_REDUCE_MOTION__ = true
+    })
+
+    afterEach(() => {
+      // Phase 11.2: Disable reduced motion after test
+      (window as any).__TEST_REDUCE_MOTION__ = false
+    })
+
     it('hides edit panels and shows centered card', async () => {
       initApp()
       await waitForUIUpdate()

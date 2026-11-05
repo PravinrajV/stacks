@@ -2,6 +2,10 @@
  * Vitest setup file to patch DOMTokenList to match real browser behavior.
  * Throws InvalidCharacterError for empty or whitespace-containing tokens,
  * just like real browsers do.
+ * 
+ * Also mock matchMedia to provide consistent behavior in tests.
+ * By default, prefers-reduced-motion returns false (animations enabled).
+ * Tests can override this by setting (window as any).__TEST_REDUCE_MOTION__ = true
  */
 
 import { beforeAll } from 'vitest'
@@ -52,5 +56,20 @@ beforeAll(() => {
       return originalToggle.call(this, token, force)
     }
   }
-})
 
+  // Mock matchMedia to provide consistent behavior in tests
+  window.matchMedia = (query: string) => {
+    const testReducedMotion = (window as any).__TEST_REDUCE_MOTION__ || false
+    const isReducedMotion = query === '(prefers-reduced-motion: reduce)' && testReducedMotion
+    return {
+      matches: isReducedMotion,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => true
+    } as MediaQueryList
+  }
+})

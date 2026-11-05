@@ -267,13 +267,27 @@ body.edit-mode {
 /* Phase 11.1: Drawer docking at >= 1100px */
 @media (min-width: 1100px) {
   body.edit-mode.ai-drawer-open {
-    grid-template-columns: 250px 1fr 300px var(--drawer-width);
+    grid-template-columns: clamp(220px, 15vw, 300px) 1fr clamp(260px, 17vw, 340px) clamp(300px, 22vw, 360px);
+  }
+  
+  body.edit-mode.ai-drawer-open .ai-panel-drawer {
+    position: static;
+    grid-column: 4;
+    grid-row: 2 / span 2;
+    width: auto;
+    height: auto;
+    top: auto;
+    right: auto;
+    border-left: var(--hairline) solid var(--border-color);
+    border-right: none;
+    box-shadow: none;
+    display: flex;
   }
 }
 
 /* Below 1100px, drawer stays overlay (position: fixed) */
 @media (max-width: 1099px) {
-  body.edit-mode.ai-drawer-open .ai-drawer {
+  body.edit-mode.ai-drawer-open .ai-panel-drawer {
     position: fixed !important;
     top: 0;
     right: 0;
@@ -681,10 +695,6 @@ body.run-mode {
   }
   
   .script-editor {
-    transition: none !important;
-  }
-  
-  .ai-drawer {
     transition: none !important;
   }
 }
@@ -1588,6 +1598,29 @@ textarea:focus {
   }
 }
 
+/* Phase 11.2: Card transitions in run mode - smooth fade/scale */
+@keyframes runModeCardOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes runModeCardIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Animation classes for card transitions */
 .card-flip-in {
   perspective: 1200px;
@@ -1605,6 +1638,15 @@ textarea:focus {
 
 .card-fade-out {
   animation: fadeOut 320ms ease-out forwards;
+}
+
+/* Phase 11.2: Run mode card transitions */
+.run-mode-card-out {
+  animation: runModeCardOut 120ms ease-out forwards;
+}
+
+.run-mode-card-in {
+  animation: runModeCardIn 120ms ease-out forwards;
 }
 
 /* Mode switch animations */
@@ -2046,66 +2088,4 @@ textarea:focus-visible {
 
 /* ===== Phase 11.1: AI Drawer Docking ===== */
 
-.ai-drawer {
-  grid-column: 4;
-  grid-row: 2;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  border-left: var(--glass-border);
-  overflow-y: auto;
-  padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  color: var(--text-1);
-  width: var(--drawer-width);
-  /* Hide by default, show when open */
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity var(--transition-duration) var(--transition-easing), visibility var(--transition-duration) var(--transition-easing);
-}
 
-body.edit-mode.ai-drawer-open .ai-drawer {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Below 1100px, drawer stays fixed overlay */
-@media (max-width: 1099px) {
-  .ai-drawer {
-    grid-column: auto;
-    grid-row: auto;
-    position: fixed !important;
-    top: 0;
-    right: 0;
-    width: 90vw;
-    max-width: 400px;
-    height: 100vh;
-    visibility: hidden;
-    opacity: 0;
-    z-index: 999;
-    transition: opacity var(--transition-duration) var(--transition-easing), visibility var(--transition-duration) var(--transition-easing);
-  }
-  
-  body.edit-mode.ai-drawer-open .ai-drawer {
-    visibility: visible;
-    opacity: 1;
-  }
-}
-
-/* Drawer close button */
-.ai-drawer-close {
-  align-self: flex-end;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background-color: transparent;
-  border: none;
-  color: var(--text-2);
-  cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
-  transition: color var(--transition-duration);
-}
-
-.ai-drawer-close:hover {
-  color: var(--text-1);
-}

@@ -466,6 +466,7 @@ export class ScriptEditor {
 
   /**
    * Task 4.9: Toggle AI generation panel visibility.
+   * Phase 11.1: Toggle body.ai-drawer-open class for responsive docking.
    */
   private toggleAIPanel(): void {
     if (!this.aiPanel) {
@@ -475,6 +476,16 @@ export class ScriptEditor {
     const isVisible = this.aiPanel?.style.display !== 'none'
     if (this.aiPanel) {
       this.aiPanel.style.display = isVisible ? 'none' : 'flex'
+      
+      // Phase 11.1: Toggle body class and trigger canvas re-fit
+      if (isVisible) {
+        document.body.classList.remove('ai-drawer-open')
+      } else {
+        document.body.classList.add('ai-drawer-open')
+      }
+      
+      // Trigger canvas re-fit by dispatching resize event
+      window.dispatchEvent(new Event('resize'))
     }
   }
 
