@@ -39,76 +39,108 @@ export class ElementInspector {
     }
 
     const el = this.currentElement
-
-    // Title
     const type = 'label' in el ? 'Button' : 'Field'
-    const title = createElement('div')
-    title.setAttribute('role', 'heading')
-    title.setAttribute('aria-level', '2')
-    title.style.fontWeight = 'bold'
-    setTextContent(title, `${type} Properties`)
-    this.element.appendChild(title)
 
-    // Common properties
+    // Identity section
+    const identitySection = this.createSection('Identity')
     if ('label' in el) {
       // Button
-      this.addTextInput('Label:', el.label, (value) => {
+      this.addTextInputToSection(identitySection, 'Label:', el.label, (value) => {
         el.label = value
         this.changeCallback?.(el)
       })
     } else {
       // Field
-      this.addTextInput('Name:', el.name, (value) => {
+      this.addTextInputToSection(identitySection, 'Name:', el.name, (value) => {
         el.name = value
         this.changeCallback?.(el)
       })
+    }
+    this.element.appendChild(identitySection)
 
-      this.addTextInput('Content:', el.content, (value) => {
+    // Content section (fields only)
+    if (!('label' in el)) {
+      const contentSection = this.createSection('Content')
+      this.addTextInputToSection(contentSection, 'Content:', el.content, (value) => {
         el.content = value
         this.changeCallback?.(el)
       })
+      this.element.appendChild(contentSection)
+    }
 
-      this.addTextInput('Font:', el.font, (value) => {
+    // Typography section (fields only)
+    if (!('label' in el)) {
+      const typographySection = this.createSection('Typography')
+      this.addTextInputToSection(typographySection, 'Font:', el.font, (value) => {
         el.font = value
         this.changeCallback?.(el)
       })
-
-      this.addNumberInput('Font Size:', el.fontSize, (value) => {
+      this.addNumberInputToSection(typographySection, 'Font Size:', el.fontSize, (value) => {
         el.fontSize = value
         this.changeCallback?.(el)
       })
-
-      this.addCheckbox('Editable:', el.editable, (value) => {
-        el.editable = value
-        this.changeCallback?.(el)
-      })
+      this.element.appendChild(typographySection)
     }
 
-    // Position and size
-    this.addNumberInput('Left:', el.rect.left, (value) => {
+    // Position & Size section (two-column grid layout)
+    const positionSection = this.createSection('Position & Size')
+    
+    // Left and Top on one row (two-column)
+    const row1 = createElement('div', { className: 'inspector-row' })
+    const col1 = createElement('div', { className: 'inspector-col' })
+    this.addNumberInputToSection(col1, 'Left:', el.rect.left, (value) => {
       el.rect.left = value
       this.changeCallback?.(el)
     })
-
-    this.addNumberInput('Top:', el.rect.top, (value) => {
+    row1.appendChild(col1)
+    
+    const col2 = createElement('div', { className: 'inspector-col' })
+    this.addNumberInputToSection(col2, 'Top:', el.rect.top, (value) => {
       el.rect.top = value
       this.changeCallback?.(el)
     })
-
-    this.addNumberInput('Width:', el.rect.right - el.rect.left, (value) => {
+    row1.appendChild(col2)
+    positionSection.appendChild(row1)
+    
+    // Width and Height on one row (two-column)
+    const row2 = createElement('div', { className: 'inspector-row' })
+    const col3 = createElement('div', { className: 'inspector-col' })
+    this.addNumberInputToSection(col3, 'Width:', el.rect.right - el.rect.left, (value) => {
       el.rect.right = el.rect.left + value
       this.changeCallback?.(el)
     })
-
-    this.addNumberInput('Height:', el.rect.bottom - el.rect.top, (value) => {
+    row2.appendChild(col3)
+    
+    const col4 = createElement('div', { className: 'inspector-col' })
+    this.addNumberInputToSection(col4, 'Height:', el.rect.bottom - el.rect.top, (value) => {
       el.rect.bottom = el.rect.top + value
       this.changeCallback?.(el)
     })
+    row2.appendChild(col4)
+    positionSection.appendChild(row2)
+    
+    this.element.appendChild(positionSection)
+
+    // Editable checkbox (fields only) 
+    if (!('label' in el)) {
+      const editableSection = this.createSection('Options')
+      this.addCheckboxToSection(editableSection, 'Editable:', el.editable, (value) => {
+        el.editable = value
+        this.changeCallback?.(el)
+      })
+      this.element.appendChild(editableSection)
+    }
   }
 
-  private addTextInput(label: string, value: string, onChange: (value: string) => void): void {
-    const section = createElement('div', { className: 'inspector-section' })
+  private createSection(title: string): HTMLElement {
+    const section = createElement('div', { className: 'inspector-group' })
+    const sectionTitle = createElement('div', { className: 'inspector-group-title' })
+    setTextContent(sectionTitle, title)
+    section.appendChild(sectionTitle)
+    return section
+  }
 
+  private addTextInputToSection(section: HTMLElement, label: string, value: string, onChange: (value: string) => void): void {
     const labelId = `label-${Math.random().toString(36).substr(2, 9)}`
     const labelEl = createElement('label', { className: 'inspector-label' })
     labelEl.setAttribute('for', labelId)
@@ -122,13 +154,9 @@ export class ElementInspector {
       onChange(val)
     })
     section.appendChild(input.getElement())
-
-    this.element.appendChild(section)
   }
 
-  private addNumberInput(label: string, value: number, onChange: (value: number) => void): void {
-    const section = createElement('div', { className: 'inspector-section' })
-
+  private addNumberInputToSection(section: HTMLElement, label: string, value: number, onChange: (value: number) => void): void {
     const labelId = `label-${Math.random().toString(36).substr(2, 9)}`
     const labelEl = createElement('label', { className: 'inspector-label' })
     labelEl.setAttribute('for', labelId)
@@ -145,18 +173,16 @@ export class ElementInspector {
       }
     })
     section.appendChild(input.getElement())
-
-    this.element.appendChild(section)
   }
 
-  private addCheckbox(label: string, value: boolean, onChange: (value: boolean) => void): void {
-    const section = createElement('div', { className: 'inspector-section' })
-
+  private addCheckboxToSection(section: HTMLElement, label: string, value: boolean, onChange: (value: boolean) => void): void {
     const labelId = `label-${Math.random().toString(36).substr(2, 9)}`
+    const checkboxContainer = createElement('div', { className: 'inspector-checkbox-row' })
+    
     const labelEl = createElement('label', { className: 'inspector-label' })
     labelEl.setAttribute('for', labelId)
     setTextContent(labelEl, label)
-    section.appendChild(labelEl)
+    checkboxContainer.appendChild(labelEl)
 
     const checkbox = createElement('input', {
       attributes: {
@@ -165,11 +191,12 @@ export class ElementInspector {
       }
     }) as HTMLInputElement
     checkbox.setAttribute('aria-labelledby', labelId)
+    checkbox.classList.add('inspector-switch')
     checkbox.checked = value
     checkbox.addEventListener('change', () => onChange(checkbox.checked))
-    section.appendChild(checkbox)
+    checkboxContainer.appendChild(checkbox)
 
-    this.element.appendChild(section)
+    section.appendChild(checkboxContainer)
   }
 
   onPropertyChanged(handler: (element: Button | Field) => void): void {

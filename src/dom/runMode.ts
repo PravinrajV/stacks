@@ -7,7 +7,7 @@
 import { createElement, setTextContent, setStyles, removeAllChildren, addEventListener } from './utils/dom'
 import { rectWidth, rectHeight } from './utils/rect'
 import { computeFit } from './utils/fit'
-import { createGhostIcon } from './icons'
+import { createBrandMark } from './icons'
 import type { Card, Button, Field, Background } from '../model/stack'
 import type { Stack } from '../model/stack'
 import { ModalComponent } from './components/modal'
@@ -37,12 +37,12 @@ export class RunModeViewer {
     // Create floating glass header pill
     const header = createElement('div', { className: 'run-mode-header' })
     
-    // Ghost icon
-    const ghostIcon = createGhostIcon()
-    ghostIcon.setAttribute('width', '20')
-    ghostIcon.setAttribute('height', '20')
-    ghostIcon.classList.add('run-mode-header-ghost')
-    header.appendChild(ghostIcon)
+    // Brand mark icon
+    const brandMark = createBrandMark()
+    brandMark.setAttribute('width', '20')
+    brandMark.setAttribute('height', '20')
+    brandMark.classList.add('run-mode-header-ghost')
+    header.appendChild(brandMark)
 
     const label = createElement('div', { className: 'run-mode-header-label' })
     setTextContent(label, 'Running')

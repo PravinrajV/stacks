@@ -313,43 +313,47 @@ export function createGhostIcon(): SVGElement {
 }
 
 /**
- * Task 11.7: Brand mark - stylized stack of three overlapping cards.
+ * Task 11.1: Brand mark - stylized stack of three overlapping cards.
+ * Inline SVG (viewBox 0 0 24 24, currentColor strokes 1.5px, no fill except subtle accent).
+ * Three stacked, offset rounded rectangles (cards) with the front card slightly brighter.
  * Used in header logo, welcome screen, and running pill.
  */
-export function createBrandMarkIcon(size: number = 24): SVGElement {
+export function createBrandMark(): SVGElement {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.setAttribute('viewBox', '0 0 16 16')
-  svg.setAttribute('width', String(size))
-  svg.setAttribute('height', String(size))
-  svg.setAttribute('fill', 'currentColor')
+  svg.setAttribute('viewBox', '0 0 24 24')
+  svg.setAttribute('fill', 'none')
+  svg.setAttribute('stroke', 'currentColor')
+  svg.setAttribute('stroke-width', '1.5')
+  svg.setAttribute('stroke-linecap', 'round')
+  svg.setAttribute('stroke-linejoin', 'round')
   
-  // Bottom card (most transparent)
+  // Back card (darkest)
   const rect1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-  rect1.setAttribute('x', '1')
-  rect1.setAttribute('y', '8')
-  rect1.setAttribute('width', '7')
-  rect1.setAttribute('height', '6')
-  rect1.setAttribute('rx', '1')
-  rect1.setAttribute('opacity', '0.6')
+  rect1.setAttribute('x', '2')
+  rect1.setAttribute('y', '10')
+  rect1.setAttribute('width', '10')
+  rect1.setAttribute('height', '10')
+  rect1.setAttribute('rx', '2')
+  rect1.setAttribute('opacity', '0.4')
   svg.appendChild(rect1)
   
   // Middle card
   const rect2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-  rect2.setAttribute('x', '4')
-  rect2.setAttribute('y', '5')
-  rect2.setAttribute('width', '7')
-  rect2.setAttribute('height', '6')
-  rect2.setAttribute('rx', '1')
-  rect2.setAttribute('opacity', '0.8')
+  rect2.setAttribute('x', '7')
+  rect2.setAttribute('y', '7')
+  rect2.setAttribute('width', '10')
+  rect2.setAttribute('height', '10')
+  rect2.setAttribute('rx', '2')
+  rect2.setAttribute('opacity', '0.7')
   svg.appendChild(rect2)
   
-  // Top card (opaque)
+  // Front card (brightest - subtle accent fill)
   const rect3 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-  rect3.setAttribute('x', '7')
-  rect3.setAttribute('y', '2')
-  rect3.setAttribute('width', '7')
-  rect3.setAttribute('height', '6')
-  rect3.setAttribute('rx', '1')
+  rect3.setAttribute('x', '12')
+  rect3.setAttribute('y', '4')
+  rect3.setAttribute('width', '10')
+  rect3.setAttribute('height', '10')
+  rect3.setAttribute('rx', '2')
   svg.appendChild(rect3)
   
   return svg

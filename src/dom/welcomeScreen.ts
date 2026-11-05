@@ -9,7 +9,7 @@
  */
 
 import { createElement, setTextContent, removeAllChildren, addEventListener } from './utils/dom'
-import { createGhostIcon } from './icons'
+import { createBrandMark } from './icons'
 
 export class WelcomeScreen {
   private backdrop: HTMLElement
@@ -32,12 +32,12 @@ export class WelcomeScreen {
     this.modal.setAttribute('aria-modal', 'true')
     this.modal.setAttribute('aria-labelledby', 'welcome-title')
 
-    // Ghost icon
+    // Brand mark icon
     const iconContainer = createElement('div', { className: 'welcome-icon' })
-    const ghostIcon = createGhostIcon()
-    ghostIcon.setAttribute('width', '64')
-    ghostIcon.setAttribute('height', '64')
-    iconContainer.appendChild(ghostIcon)
+    const brandMark = createBrandMark()
+    brandMark.setAttribute('width', '64')
+    brandMark.setAttribute('height', '64')
+    iconContainer.appendChild(brandMark)
     this.modal.appendChild(iconContainer)
 
     // Title

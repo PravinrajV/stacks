@@ -346,9 +346,10 @@ describe('Task 7.4: Element Inspector Property Editing', () => {
     // Button should be selected by default
     await new Promise(resolve => setTimeout(resolve, 20))
 
-    // Inspector should show properties
+    // Inspector should show properties (check for Identity section and Label)
     const inspector = layout?.querySelector('.element-inspector')
-    expect(inspector?.textContent).toContain('Button')
+    expect(inspector?.textContent).toContain('Identity')
+    expect(inspector?.textContent).toContain('Label')
     
     // Check that input values are present
     const inputs = inspector?.querySelectorAll('input[type="text"]')
@@ -374,9 +375,10 @@ describe('Task 7.4: Element Inspector Property Editing', () => {
     fieldEl?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
     await new Promise(resolve => setTimeout(resolve, 20))
 
-    // Inspector should show field properties
+    // Inspector should show field properties (check for Identity section and Typography section)
     const inspector = layout?.querySelector('.element-inspector')
-    expect(inspector?.textContent).toContain('Field')
+    expect(inspector?.textContent).toContain('Identity')
+    expect(inspector?.textContent).toContain('Typography')
     
     // Check that field name is in an input
     const inputs = inspector?.querySelectorAll('input[type="text"]')

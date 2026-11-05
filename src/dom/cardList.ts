@@ -106,6 +106,13 @@ export class CardListPanel {
 
       this.cardList.appendChild(item)
     }
+
+    // Show empty state hint if stack has only one card (Task 11.3)
+    if (stack.cards.length === 1) {
+      const hint = createElement('div', { className: 'card-list-empty-hint' })
+      setTextContent(hint, 'Add cards to build your stack')
+      this.cardList.appendChild(hint)
+    }
   }
 
   onSelectCardChanged(handler: (cardId: string) => void): void {

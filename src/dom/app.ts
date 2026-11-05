@@ -20,7 +20,7 @@ import { send } from '../interpreter/dispatcher'
 import { createExecutionContext } from '../interpreter/runtime'
 import { defaultRegistry } from '../generator/providerRegistry'
 import { deserializeStack } from '../model/serialization'
-import { createSunIcon, createMoonIcon, createGhostIcon, createPlayIcon, createPlusIcon } from './icons'
+import { createSunIcon, createMoonIcon, createGhostIcon, createPlayIcon, createPlusIcon, createBrandMark } from './icons'
 import { WelcomeScreen } from './welcomeScreen'
 import { StyledAlert, StyledConfirm, StyledPrompt } from './components/styledDialogs'
 import { animateModeSwitchIn, animateModeSwitchOut, prefersReducedMotion } from './utils/animations'
@@ -526,11 +526,11 @@ export class App {
     // Header
     const header = createElement('div', { className: 'app-header' })
     
-    // Title with ghost icon and gradient text
+    // Title with brand mark icon and gradient text
     const titleContainer = createElement('div', { className: 'app-header-title' })
-    const ghostIcon = createGhostIcon()
-    ghostIcon.classList.add('app-header-title-icon')
-    titleContainer.appendChild(ghostIcon)
+    const brandMark = createBrandMark()
+    brandMark.classList.add('app-header-title-icon')
+    titleContainer.appendChild(brandMark)
     const titleText = createElement('span', { className: 'app-header-title-text' })
     titleText.textContent = 'Stacks'
     titleContainer.appendChild(titleText)
