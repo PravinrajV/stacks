@@ -8,6 +8,49 @@ import { serializeStack, deserializeStack } from '../model/serialization'
 const STORAGE_KEY = 'stacks_current'
 const UNDO_KEY = 'stacks_undo'
 const REDO_KEY = 'stacks_redo'
+const PALETTE_KEY = 'stacks-palette'
+
+type Palette = 'ink' | 'navy' | 'graphite'
+
+/**
+ * Get current palette from localStorage, URL param, or default
+ */
+export function loadPalette(): Palette {
+  // Check URL parameter first (?palette=navy)
+  const params = new URLSearchParams(window.location.search)
+  const urlPalette = params.get('palette')
+  if (urlPalette && ['ink', 'navy', 'graphite'].includes(urlPalette)) {
+    return urlPalette as Palette
+  }
+  
+  // Check localStorage
+  const saved = localStorage.getItem(PALETTE_KEY) as Palette | null
+  if (saved && ['ink', 'navy', 'graphite'].includes(saved)) {
+    return saved
+  }
+  
+  // Default to ink
+  return 'ink'
+}
+
+/**
+ * Save palette to localStorage
+ */
+export function savePalette(palette: Palette): void {
+  if (['ink', 'navy', 'graphite'].includes(palette)) {
+    localStorage.setItem(PALETTE_KEY, palette)
+  }
+}
+
+/**
+ * Apply palette to DOM
+ */
+export function applyPalette(palette: Palette): void {
+  if (['ink', 'navy', 'graphite'].includes(palette)) {
+    document.documentElement.setAttribute('data-palette', palette)
+    savePalette(palette)
+  }
+}
 
 /**
  * Save stack to localStorage.

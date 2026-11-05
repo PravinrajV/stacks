@@ -186,6 +186,24 @@ export class CardCanvas {
       this.renderButton(button, 'card')
     }
 
+    // Show empty state message if no elements (Phase 10.4)
+    if (card.buttons.length === 0 && card.fields.length === 0 && (!background || (background.buttons.length === 0 && background.fields.length === 0))) {
+      const emptyState = createElement('div', {
+        className: 'empty-state-message'
+      })
+      emptyState.setAttribute('aria-label', 'Empty card. Use the toolbar to add buttons and fields.')
+      
+      const message = createElement('div', { className: 'empty-state-text' })
+      message.textContent = 'This card is empty'
+      emptyState.appendChild(message)
+      
+      const hint = createElement('div', { className: 'empty-state-hint' })
+      hint.textContent = 'Use the toolbar to add buttons and fields'
+      emptyState.appendChild(hint)
+      
+      this.cardView.appendChild(emptyState)
+    }
+
     // Recompute scale after rendering
     this.updateCardScale()
   }

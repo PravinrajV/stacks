@@ -897,27 +897,27 @@ Phase 6 (Polish & Documentation)
 
 ### CSS Token Refactor
 
-- [ ] **10.1.1** Define all semantic CSS custom properties in `src/dom/styles.css`. *(Ref: REQ-P10-001, REQ-P10-003)*
+- [x] **10.1.1** Define all semantic CSS custom properties in `src/dom/styles.css`. *(Ref: REQ-P10-001, REQ-P10-003)*
   - Location: `src/dom/styles.css` (new `:root` blocks)
   - Define base tokens: `--accent`, `--surface-0/1/2/3`, `--text-1/2/3`, `--hairline`, `--shadow-sm/md/lg`, `--radius-sm/md/lg`, `--glow`.
   - Define palette-specific values: `:root[data-palette="ink"]`, `:root[data-palette="navy"]`, `:root[data-palette="graphite"]`.
   - Ensure Classic theme tokens remain (`[data-theme="classic"]`).
   - Tests: Verify all tokens defined, no undefined CSS var() references in computed styles.
 
-- [ ] **10.1.2** Replace hardcoded colors in `src/dom/styles.css` with CSS custom properties. *(Ref: REQ-P10-001)*
+- [x] **10.1.2** Replace hardcoded colors in `src/dom/styles.css` with CSS custom properties. *(Ref: REQ-P10-001)*
   - Location: `src/dom/styles.css`
   - Search for all hex colors, rgb(), rgba() functions.
   - Replace with `var(--token-name)`.
   - Verify zero remaining hardcoded colors (use regex `#[0-9a-f]{6}|rgba?\(` to check).
   - Tests: Regex test passes (no hardcoded colors found).
 
-- [ ] **10.1.3** Replace inline color styles in `src/dom/**/*.ts` files with CSS classes or `var()`. *(Ref: REQ-P10-001)*
+- [x] **10.1.3** Replace inline color styles in `src/dom/**/*.ts` files with CSS classes or `var()`. *(Ref: REQ-P10-001)*
   - Location: Search codebase for `color:`, `backgroundColor:`, `borderColor:` in inline styles
   - Files likely affected: `src/dom/app.ts`, `src/dom/cardCanvas.ts`, `src/dom/runMode.ts`, `src/dom/elementInspector.ts`, `src/dom/scriptEditor.ts`, `src/dom/components/*.ts`
   - Replace inline `style.color = "#..."` with CSS classes or `style.color = "var(--text-1)"`.
   - Tests: Verify no hardcoded colors in inline styles, only `var()` expressions.
 
-- [ ] **10.1.4** Verify Classic theme backward compatibility with token refactor. *(Ref: REQ-P10-012)*
+- [x] **10.1.4** Verify Classic theme backward compatibility with token refactor. *(Ref: REQ-P10-012)*
   - Location: Render Classic theme, visually inspect
   - Classic theme should appear identical to Phase 9 Classic theme (black, white, gray, 1-bit aesthetic).
   - Verify no color changes or regressions.
@@ -925,14 +925,14 @@ Phase 6 (Polish & Documentation)
 
 ### Three Premium Palettes
 
-- [ ] **10.2.1** Implement palette selector in toolbar. *(Ref: REQ-P10-002, REQ-P10-005)*
+- [x] **10.2.1** Implement palette selector in toolbar. *(Ref: REQ-P10-002, REQ-P10-005)*
   - Location: `src/dom/app.ts` (or new `src/dom/components/paletteSelector.ts`)
   - Create `<select>` or segmented control with options: "Ink", "Navy", "Graphite".
   - Add `aria-label="Palette"` for accessibility.
   - Place near Classic/Haunted theme toggle in toolbar.
   - Tests: Selector renders, options selectable, aria-label present.
 
-- [ ] **10.2.2** Implement palette persistence in localStorage and URL override. *(Ref: REQ-P10-002)*
+- [x] **10.2.2** Implement palette persistence in localStorage and URL override. *(Ref: REQ-P10-002)*
   - Location: `src/dom/storage.ts` or `src/dom/app.ts`
   - On load: restore palette from localStorage key `"stacks-palette"` (default: "ink").
   - On change: save to localStorage.
@@ -941,13 +941,13 @@ Phase 6 (Polish & Documentation)
   - Apply palette via `document.documentElement.setAttribute("data-palette", palette)`.
   - Tests: Persistence test (load → change → reload → verify), URL override test, invalid URL rejection.
 
-- [ ] **10.2.3** Palette selector visibility: hidden in Classic theme, visible in Haunted. *(Ref: REQ-P10-005)*
+- [x] **10.2.3** Palette selector visibility: hidden in Classic theme, visible in Haunted. *(Ref: REQ-P10-005)*
   - Location: `src/dom/app.ts`
   - When theme is "classic": `selector.style.display = "none"` or `selector.disabled = true`.
   - When theme is "haunted": `selector.style.display = "block"` and `selector.disabled = false`.
   - Tests: Selector visibility toggles with theme switch.
 
-- [ ] **10.2.4** Verify palette colors match design spec. *(Ref: REQ-P10-002, REQ-P10-003)*
+- [x] **10.2.4** Verify palette colors match design spec. *(Ref: REQ-P10-002, REQ-P10-003)*
   - Location: Visually inspect or CSS test
   - Ink: surfaces #0a0a0b-ish, accent champagne gold #d4b98c.
   - Navy: surfaces #0b1220-ish, accent ice blue #a9c7e8.
@@ -957,7 +957,7 @@ Phase 6 (Polish & Documentation)
 
 ### Premium Refinement
 
-- [ ] **10.3.1** Typography hierarchy: titles, section labels, body, monospace. *(Ref: REQ-P10-004)*
+- [x] **10.3.1** Typography hierarchy: titles, section labels, body, monospace. *(Ref: REQ-P10-004)*
   - Location: `src/dom/styles.css`
   - Define `.heading-primary`, `.label-section` (11px uppercase, 2px letter-spacing), `.text-body`, `.text-mono`.
   - Apply to relevant UI elements (panel headers, button labels, script editor, inspector labels).
@@ -969,20 +969,20 @@ Phase 6 (Polish & Documentation)
   - Apply to panels, cards, dialogs where depth is needed.
   - Tests: Gradients visible in Haunted mode, barely noticeable (not distracting).
 
-- [ ] **10.3.3** Hairline borders (1px) throughout UI. *(Ref: REQ-P10-004)*
+- [x] **10.3.3** Hairline borders (1px) throughout UI. *(Ref: REQ-P10-004)*
   - Location: `src/dom/styles.css`
   - Replace 2px borders with 1px `border: 1px solid var(--hairline)`.
   - Update buttons, panels, panels headers, dialogs, input fields.
   - Tests: All borders are 1px, use `--hairline` token.
 
-- [ ] **10.3.4** Consistent border radius: 6px (small), 10px (medium), 14px (large). *(Ref: REQ-P10-004)*
+- [x] **10.3.4** Consistent border radius: 6px (small), 10px (medium), 14px (large). *(Ref: REQ-P10-004)*
   - Location: `src/dom/styles.css`
   - Define `--radius-sm: 6px`, `--radius-md: 10px`, `--radius-lg: 14px`.
   - Apply to buttons (6px), panels/cards (10px), modals/dialogs (14px).
   - Update all existing hardcoded border-radius values.
   - Tests: Radius values match spec, applied consistently.
 
-- [ ] **10.3.5** Soft dark shadows (no colored glows): `0 Xpx Ypx rgba(0,0,0,0.Z)`. *(Ref: REQ-P10-004)*
+- [x] **10.3.5** Soft dark shadows (no colored glows): `0 Xpx Ypx rgba(0,0,0,0.Z)`. *(Ref: REQ-P10-004)*
   - Location: `src/dom/styles.css`
   - Replace glowing purple/orange shadows with neutral dark shadows.
   - Define `--shadow-sm: 0 2px 4px rgba(0,0,0,0.3)`, `--shadow-md: 0 4px 12px rgba(0,0,0,0.4)`, `--shadow-lg: 0 12px 24px rgba(0,0,0,0.5)`.
@@ -1002,7 +1002,7 @@ Phase 6 (Polish & Documentation)
   - Apply to inspector title, script editor title, card list title, etc.
   - Tests: Panel headers match styling spec, uppercase and spaced correctly.
 
-- [ ] **10.3.8** Drastically reduce glow/neon text-shadows and box-shadows. *(Ref: REQ-P10-004)*
+- [x] **10.3.8** Drastically reduce glow/neon text-shadows and box-shadows. *(Ref: REQ-P10-004)*
   - Location: Search codebase for `text-shadow`, `box-shadow`, and remove or soften
   - Replace `text-shadow: 0 0 12px #a855f7` (neon glow) with minimal/no text-shadow.
   - Replace glowing button shadows with neutral `var(--shadow-sm)`.
@@ -1011,7 +1011,7 @@ Phase 6 (Polish & Documentation)
 
 ### Welcome/Empty State Refinement
 
-- [ ] **10.4.1** Refine welcome dialog with elegant heading, tagline, hairline card, accent button. *(Ref: REQ-P10-006)*
+- [x] **10.4.1** Refine welcome dialog with elegant heading, tagline, hairline card, accent button. *(Ref: REQ-P10-006)*
   - Location: `src/dom/welcomeScreen.ts`
   - Update heading text styling to `.heading-primary`.
   - Add 1–2 line tagline.
@@ -1019,7 +1019,7 @@ Phase 6 (Polish & Documentation)
   - Make primary button use `--accent` color (palette-aware).
   - Tests: Welcome dialog renders with refined styling, button uses accent color from current palette.
 
-- [ ] **10.4.2** Create tasteful empty-state message for cards with no elements. *(Ref: REQ-P10-006)*
+- [x] **10.4.2** Create tasteful empty-state message for cards with no elements. *(Ref: REQ-P10-006)*
   - Location: `src/dom/cardCanvas.ts` (or card renderer)
   - When card is empty: display centered message with hairline border around it.
   - Text: "This card is empty" (body) + "Use the toolbar to add buttons and fields" (secondary).

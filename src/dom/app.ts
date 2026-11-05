@@ -13,7 +13,7 @@ import { RunModeViewer } from './runMode'
 import { ButtonComponent } from './components/button'
 import { ModalComponent } from './components/modal'
 import { SettingsPanel, type ProviderSettings } from './components/settingsPanel'
-import { saveStack, loadStack, loadUndoRedo, saveUndoRedo, exportJSON, importJSON, readJSONFile } from './storage'
+import { saveStack, loadStack, loadUndoRedo, saveUndoRedo, exportJSON, importJSON, readJSONFile, loadPalette, savePalette, applyPalette } from './storage'
 import { Stack, Card, createCard, createStack, createButton, createField, Button, Field } from '../model/stack'
 import type { Rect } from '../model/types'
 import { send } from '../interpreter/dispatcher'
@@ -62,6 +62,7 @@ export class App {
   private settingsPanel: SettingsPanel | null = null
   private settingsModal: ModalComponent | null = null
   private currentTheme: 'haunted' | 'classic' = 'haunted'
+  private currentPalette: 'ink' | 'navy' | 'graphite' = 'ink'
   private welcomeScreen: WelcomeScreen | null = null
 
   constructor(containerId: string) {
@@ -71,6 +72,10 @@ export class App {
     const savedTheme = localStorage.getItem('stacks-theme') as 'haunted' | 'classic' | null
     this.currentTheme = savedTheme || 'haunted'
     this.applyTheme(this.currentTheme)
+
+    // Load palette from localStorage or URL (Phase 10.2)
+    this.currentPalette = loadPalette()
+    applyPalette(this.currentPalette)
 
     // Check if welcomed (Task 9.5.1)
     const hasWelcomed = localStorage.getItem('stacks-welcomed') === 'true'
@@ -143,6 +148,12 @@ export class App {
   private toggleTheme(): void {
     const newTheme = this.currentTheme === 'haunted' ? 'classic' : 'haunted'
     this.applyTheme(newTheme)
+    this.render()
+  }
+
+  private setPalette(palette: 'ink' | 'navy' | 'graphite'): void {
+    this.currentPalette = palette
+    applyPalette(palette)
     this.render()
   }
 
@@ -624,6 +635,36 @@ export class App {
     themeToggleBtn.appendChild(themeIcon)
     addEventListener(themeToggleBtn, 'click', () => this.toggleTheme())
     header.appendChild(themeToggleBtn)
+
+    // Palette selector (hidden in Classic theme, visible in Haunted) - Phase 10.2
+    if (this.currentTheme === 'haunted') {
+      const paletteSelector = createElement('select', {
+        className: 'palette-selector'
+      })
+      paletteSelector.setAttribute('aria-label', 'Palette')
+      paletteSelector.setAttribute('title', 'Choose a color palette')
+
+      const paletteOptions = [
+        { value: 'ink', label: 'Ink' },
+        { value: 'navy', label: 'Navy' },
+        { value: 'graphite', label: 'Graphite' }
+      ]
+
+      paletteOptions.forEach(({ value, label }) => {
+        const option = document.createElement('option')
+        option.value = value
+        option.textContent = label
+        option.selected = value === this.currentPalette
+        paletteSelector.appendChild(option)
+      })
+
+      addEventListener(paletteSelector, 'change', (e: Event) => {
+        const newPalette = (e.target as HTMLSelectElement).value as 'ink' | 'navy' | 'graphite'
+        this.setPalette(newPalette)
+      })
+
+      header.appendChild(paletteSelector)
+    }
 
     app.appendChild(header)
 
