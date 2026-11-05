@@ -8,7 +8,7 @@ Stacks lets you create interactive card-based applications with scriptable butto
 
 ## Features
 
-- **Two Themes**: Classic (System 7 aesthetic) and Haunted (dark purple/orange)
+- **Two Themes**: Classic (1-bit System 7 look) and a dark premium theme with three palettes: Navy (default, ice blue/silver), Ink (champagne gold) and Graphite (copper). Pick one in the toolbar or with `?palette=navy|ink|graphite`.
 - **Visual Editor**: Drag to position elements, click to select, inspect properties. Add cards, buttons, and fields.
 - **Edit & Run Modes**: Author scripts in Edit mode; test instantly in Run mode
 - **HyperTalk Scripting**: Simple, safe scripting with no eval. Just plain English-like code.
@@ -220,7 +220,7 @@ Authentic System 7 Macintosh aesthetic: pure black, white, and gray.
 
 ### Haunted (Dark)
 
-Purple and orange accents on a dark background. Modern interpretation of retro computing.
+Midnight navy surfaces with ice-blue and silver accents by default, hairline borders and soft shadows. Ink and Graphite are alternative palettes. See docs/THEMING.md.
 
 Toggle themes using the **Theme** button in the header. Your preference is saved to browser storage.
 
