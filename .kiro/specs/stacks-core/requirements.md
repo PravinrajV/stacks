@@ -957,3 +957,141 @@ As a user of Classic theme, I want it to continue working exactly as before so t
 - WHEN CSS custom properties are evaluated in Classic mode, THEY SHALL resolve to the existing black/white/gray values.
 - WHEN tests that target Classic theme run, THEY SHALL pass without modification (appearance must be unchanged).
 
+
+
+---
+
+# Phase 11: Premium Finishing — Requirements
+
+## Overview
+
+Polish the Stacks editor and runtime to production quality: responsive layouts, smooth transitions, refined visual hierarchy, cohesive design system, and crafted UX. All changes preserve bundle size (<8 kB CSS gz, <32 kB JS gz) and WCAG AA accessibility.
+
+---
+
+## Requirements
+
+### 11.1 AI Drawer Responsive Docking
+
+**Requirement:** The AI assistant drawer must adapt to viewport width to avoid covering the properties panel on larger screens.
+
+- **Layout >= 1100px (wide screens):**
+  - Drawer docks as a grid column when open
+  - App grid reflows: the card canvas column shrinks, card scales automatically via `computeFit()`
+  - Properties panel (inspector) remains visible and fully usable
+  - No overlay; drawer takes dedicated column space
+  - Drawer and inspector can coexist on screen
+
+- **Layout < 1100px (narrow screens):**
+  - Drawer may overlay the canvas or other UI
+  - Drawer must be closable (close button visible)
+  - Inspector inputs must remain reachable (not permanently blocked)
+  - Drawer is modal-like but dismissible
+
+- **Behavior:**
+  - Drawer toggled via AI button in toolbar
+  - Grid layout recalculation happens when drawer opens/closes
+  - No layout shift or content reflow artifacts
+
+- **Testing:**
+  - Layout test verifies bounding boxes: drawer and inspector do not overlap at ≥1100px
+  - Inspector inputs are not covered at any width
+  - Close button is visible and functional on narrow screens
+
+---
+
+### 11.2 Smooth Transitions
+
+**Requirement:** Visual transitions between states must be fluid, predictable, and performant.
+
+- **Card Flip (Navigate to Next/Previous):**
+  - Current card fades out (opacity 0) while next card fades in (opacity 1)
+  - No blank frames, no double-card flash
+  - 200–300ms duration
+  - Uses `transform` and `opacity` only (GPU-friendly)
+  - Disabled under `prefers-reduced-motion` (instant snap)
+
+- **Edit ↔ Run Mode:**
+  - Script editor slides/fades in or out smoothly
+  - Canvas/buttons remain in place (no layout jump)
+  - 200–300ms duration
+  - Transform-based animation (no reflow)
+  - Disabled under `prefers-reduced-motion`
+
+- **Other Transitions:**
+  - Drawer open/close (if not instant)
+  - Hover/press states on buttons (200ms, subtle)
+  - Removed from motion-reduced queries
+
+- **Testing:**
+  - Visual regression test: no blank frames during card flip
+  - No double cards rendered simultaneously
+  - Layout remains stable (no shift)
+  - Motion disabled in `prefers-reduced-motion` test
+
+---
+
+### 11.7 Brand & Identity
+
+**Requirement:** Establish visual brand identity with custom SVG mark, favicon, and refined messaging.
+
+- **Brand Mark (Stylised Stack of Cards):**
+  - Inline SVG (no external file)
+  - 24×24px or 32×32px (scalable)
+  - Three or more overlapping cards in 45° rotation
+  - Navy/black with subtle shadows or layers
+  - Replaces generic user icon in header
+  - Appears in welcome dialog as well
+
+- **Favicon:**
+  - SVG favicon (data URI embedded in HTML or `public/favicon.svg`)
+  - 16×16px minimum (auto-scaled by browser)
+  - Recognizable stack-of-cards design
+  - Monochrome (fits 1-bit aesthetic)
+
+- **Page Title:**
+  - HTML `<title>`: "Stacks — HyperCard, resurrected"
+  - Appears in browser tab and search results
+
+- **Welcome Screen Refinement:**
+  - Brand mark prominently displayed
+  - Clear call-to-action ("Create a Stack", "Load Example")
+  - Refined typography (use `--fs-*` tokens)
+  - Polish existing copy
+
+- **Testing:**
+  - Favicon appears in browser tab
+  - Brand mark renders crisply on all backgrounds
+  - Page title appears correctly
+
+---
+
+## Non-Functional Requirements
+
+- **Bundle Size:**
+  - CSS: < 8 kB gzipped
+  - JS: < 32 kB gzipped
+  - No external dependencies for icons or design system
+
+- **Accessibility:**
+  - WCAG AA compliance (contrast, keyboard nav, focus indicators)
+  - All states distinguishable (not color-only)
+  - Motion respect (`prefers-reduced-motion`)
+
+- **No External Requests:**
+  - No Google Fonts, no icon CDNs, no analytics
+  - All assets bundled or embedded (data URIs)
+
+- **Browser Support:**
+  - Chrome, Firefox, Safari, Edge (latest versions)
+  - Graceful degradation for older browsers
+
+---
+
+## Success Criteria
+
+✓ Drawer docks at ≥1100px, inspector always visible  
+✓ Card flip and mode transitions smooth, no blank frames  
+✓ Brand mark and favicon implemented  
+✓ Bundle size maintained  
+✓ WCAG AA compliance verified  

@@ -1125,3 +1125,117 @@ Phase 10: Premium Palettes
   - 10.7: Documentation (can proceed in parallel)
 ```
 
+
+
+---
+
+# Phase 11: Premium Finishing — Tasks
+
+## Overview
+
+Implement the design system, responsive layouts, smooth transitions, and polished UI components to bring Stacks to production quality. Tasks are sequenced to build foundational tokens first, then apply them systematically across the codebase.
+
+---
+
+## 11.1 AI Drawer Responsive Docking
+
+**Status**: ✅ COMPLETED
+
+**Description:** Implement responsive grid layout so AI drawer docks at ≥1100px without overlapping the inspector, and adapts to overlay mode on narrow screens.
+
+**Subtasks:**
+
+- **11.1.1** Review existing grid layout in `app.ts` and identify breakpoint logic
+- **11.1.2** Define CSS media query at 1100px breakpoint
+- **11.1.3** Refactor app grid layout:
+  - Desktop (≥1100px): grid-template-columns with canvas, drawer, and inspector columns
+  - Mobile (<1100px): stack layout or drawer overlay
+- **11.1.4** Update app state to track drawer width (280–320px)
+- **11.1.5** Implement canvas scaling via existing `computeFit()` when drawer appears
+- **11.1.6** Add close button to drawer for mobile mode
+- **11.1.7** Write layout test: drawer and inspector bounding boxes do not overlap at ≥1100px
+- **11.1.8** Write layout test: inspector inputs remain visible on narrow screens even when drawer open
+
+**Definition of Done:**
+- Grid layout responsive and working at both breakpoints
+- No visual overlap of drawer and inspector
+- Tests pass
+- Canvas scales smoothly when drawer docks
+
+---
+
+## 11.2 Smooth Transitions
+
+**Status**: ✅ COMPLETED
+
+**Description:** Implement fluid transitions for card flip, mode switching, and button states using GPU-friendly transforms.
+
+**Subtasks:**
+
+- **11.2.1** Define transition CSS variables: `--transition-duration: 250ms`, `--transition-easing: cubic-bezier(0.4, 0, 0.2, 1)`
+- **11.2.2** Implement card flip transition in `cardCanvas.ts`:
+  - On navigation, previous card: `opacity 0` in 250ms
+  - Next card: starts at `opacity 0`, transitions to `opacity 1` in 250ms
+  - No double-card rendering
+- **11.2.3** Implement Edit ↔ Run mode transition:
+  - Script editor hidden: `opacity 0` + optional `transform: translateY(100%)`
+  - Smooth 250ms transition
+- **11.2.4** Add button press state animation: `transform: translateY(1px)` on active
+- **11.2.5** Implement `prefers-reduced-motion` media query:
+  - All transitions disabled (transition: none)
+  - Instant state changes
+- **11.2.6** Write visual regression test: card flip (no blank frames)
+- **11.2.7** Write visual regression test: mode switch (no layout jump)
+- **11.2.8** Verify GPU acceleration (use DevTools performance profiler)
+
+**Definition of Done:**
+- Card flip smooth, no visual artifacts
+- Mode switch fluid, canvas stable
+- Button press feedback clear
+- Motion-reduced mode instant
+- Tests pass
+
+---
+
+## 11.7 Brand & Identity
+
+**Status**: ✅ COMPLETED
+
+**Description:** Implement brand mark SVG, favicon, page title, and refine welcome screen.
+
+**Subtasks:**
+
+- **11.7.1** Design stylised stack-of-cards SVG mark:
+  - Three overlapping cards in 45° rotation
+  - Navy/black, subtle shadows
+  - Scalable (no hardcoded dimensions)
+  - Store as constant in `icons.ts` or new `brand.ts`
+
+- **11.7.2** Update header logo:
+  - Replace generic user icon with brand mark
+  - Size: 24px
+  - Click to open home/settings (or link to welcome)
+
+- **11.7.3** Update welcome dialog:
+  - Add brand mark (32–48px)
+  - Use refined typography (`--fs-*` tokens)
+  - Polished copy
+
+- **11.7.4** Set page title:
+  - HTML `<title>Stacks — HyperCard, resurrected</title>`
+
+- **11.7.5** Create favicon (SVG data URI or `public/favicon.svg`):
+  - 16×16px simplified stack-of-cards
+  - Embed in HTML or reference via link tag
+
+- **11.7.6** Update running pill icon (replace user icon with brand mark)
+
+- **11.7.7** Write visual test: brand mark renders correctly at multiple sizes
+
+**Definition of Done:**
+- Brand mark appears in header, welcome, and running pill
+- Favicon visible in browser tab
+- Page title correct
+- Welcome screen polished
+- Tests pass
+

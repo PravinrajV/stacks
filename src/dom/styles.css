@@ -37,6 +37,13 @@
 
   /* Hairline borders */
   --hairline: 1px;
+
+  /* Phase 11: Transition system */
+  --transition-duration: 250ms;
+  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Phase 11: Drawer width */
+  --drawer-width: 320px;
 }
 
 /* ===== Classic Theme (1-bit) ===== */
@@ -257,6 +264,26 @@ body.edit-mode {
   background-color: var(--surface-1);
 }
 
+/* Phase 11.1: Drawer docking at >= 1100px */
+@media (min-width: 1100px) {
+  body.edit-mode.ai-drawer-open {
+    grid-template-columns: 250px 1fr 300px var(--drawer-width);
+  }
+}
+
+/* Below 1100px, drawer stays overlay (position: fixed) */
+@media (max-width: 1099px) {
+  body.edit-mode.ai-drawer-open .ai-drawer {
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    width: 90vw;
+    max-width: 400px;
+    height: 100vh;
+    z-index: 1000;
+  }
+}
+
 body.run-mode {
   display: grid;
   grid-template-columns: 1fr;
@@ -474,6 +501,14 @@ body.run-mode {
   gap: var(--spacing-sm);
   overflow-y: auto;
   color: var(--text-1);
+  /* Phase 11.2: Mode transition */
+  transition: opacity var(--transition-duration) var(--transition-easing), transform var(--transition-duration) var(--transition-easing);
+}
+
+.script-editor.hidden {
+  opacity: 0;
+  transform: translateY(100%);
+  pointer-events: none;
 }
 
 .edit-mode .card-list-panel {
@@ -626,6 +661,32 @@ body.run-mode {
   position: relative;
   transform-origin: top left;
   /* Scale and zoom applied via inline style: translate(...) scale(...) */
+  /* Phase 11.2: Card flip transition */
+  transition: opacity var(--transition-duration) var(--transition-easing);
+}
+
+/* Reduced motion: disable all transitions */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-duration: 0ms;
+  }
+  
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .card-view {
+    transition: none !important;
+  }
+  
+  .script-editor {
+    transition: none !important;
+  }
+  
+  .ai-drawer {
+    transition: none !important;
+  }
 }
 
 [data-theme="haunted"] .card-view {
@@ -858,8 +919,9 @@ button:active,
 .button:active {
   background-color: var(--accent);
   color: var(--accent-contrast);
-  transform: translateY(0);
+  transform: translateY(1px);
   box-shadow: inset 0 2px 4px color-mix(in srgb, #000 20%, transparent);
+  transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 button:focus-visible,
@@ -1958,7 +2020,6 @@ textarea:focus-visible {
 
 
 /* ===== AI Panel Styles (Task 9.5.6) - Deprecated, see section above ===== */
-}
 
 /* Diff line styling */
 .ai-diff-preview > div {
@@ -1981,3 +2042,70 @@ textarea:focus-visible {
 .ai-offline-notice { padding: 8px 12px; height: auto; min-height: 0; }
 .ai-code-block, .ai-diff-preview { height: auto; min-height: 0; max-height: none; flex: 0 0 auto; }
 .script-editor { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; } /* backdrop-filter made .script-editor the containing block for the fixed AI drawer */
+
+
+/* ===== Phase 11.1: AI Drawer Docking ===== */
+
+.ai-drawer {
+  grid-column: 4;
+  grid-row: 2;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-left: var(--glass-border);
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  color: var(--text-1);
+  width: var(--drawer-width);
+  /* Hide by default, show when open */
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity var(--transition-duration) var(--transition-easing), visibility var(--transition-duration) var(--transition-easing);
+}
+
+body.edit-mode.ai-drawer-open .ai-drawer {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Below 1100px, drawer stays fixed overlay */
+@media (max-width: 1099px) {
+  .ai-drawer {
+    grid-column: auto;
+    grid-row: auto;
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    width: 90vw;
+    max-width: 400px;
+    height: 100vh;
+    visibility: hidden;
+    opacity: 0;
+    z-index: 999;
+    transition: opacity var(--transition-duration) var(--transition-easing), visibility var(--transition-duration) var(--transition-easing);
+  }
+  
+  body.edit-mode.ai-drawer-open .ai-drawer {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+/* Drawer close button */
+.ai-drawer-close {
+  align-self: flex-end;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: transparent;
+  border: none;
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  transition: color var(--transition-duration);
+}
+
+.ai-drawer-close:hover {
+  color: var(--text-1);
+}

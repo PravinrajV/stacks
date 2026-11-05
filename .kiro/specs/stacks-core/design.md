@@ -2347,3 +2347,223 @@ All matches in `src/dom/styles.css` and `src/dom/**/*.ts` should be:
 
 **Exception**: Inline styles in JS should NEVER contain hardcoded colors; they must use `var(--token-name)` or CSS classes.
 
+
+
+---
+
+# Phase 11: Premium Finishing — Design
+
+## Design Goals
+
+Transform Stacks from a functional prototype into a polished, production-ready application by:
+1. Establishing a cohesive design system (typography, spacing, colors)
+2. Ensuring responsive layouts that adapt gracefully across viewports
+3. Providing fluid, delightful micro-interactions
+4. Crafting intentional visual hierarchy and depth
+5. Building a recognizable, ownable brand identity
+
+---
+
+## Design System
+
+### Color Palette (1-bit Aesthetic)
+
+The existing color system uses CSS custom properties organized in three tiers:
+
+- **Surfaces:** `--surface-0` (background), `--surface-1` (default), `--surface-2` (hover/active)
+- **Text:** `--text-0` (inverse/highlight), `--text-1` (primary), `--text-2` (secondary), `--text-3` (tertiary/muted)
+- **Accent:** `--accent-color` (navy or deep blue for interactive states)
+- **Semantic:** `--error-color`, `--success-color` (if needed)
+
+### Typography System
+
+**Font Stack:**
+```css
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.monospace { font-family: "Monaco", "Courier New", monospace; }
+```
+
+**Font Sizes (CSS Custom Properties):**
+- `--fs-11`: 11px (minimum for accessibility in captions)
+- `--fs-12`: 12px (labels, hints, gutter)
+- `--fs-13`: 13px (body text, default)
+- `--fs-15`: 15px (subheadings, section titles)
+- `--fs-18`: 18px (headings, card title area)
+- `--fs-24`: 24px (page title, major branding)
+
+### Spacing Rhythm (4px Grid)
+
+All spacing derives from a 4px base unit:
+```css
+--sp-4: 4px;
+--sp-8: 8px;   /* 4 × 2 */
+--sp-12: 12px; /* 4 × 3 */
+--sp-16: 16px; /* 4 × 4 */
+--sp-20: 20px; /* 4 × 5 */
+--sp-24: 24px; /* 4 × 6 */
+```
+
+### Shadow System
+
+**Depth Layers:**
+1. **Flat (no shadow):** inputs, labels
+2. **Card depth:** `0 2px 8px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.05)` (canvas card)
+3. **Floating:** `0 4px 16px rgba(0,0,0,0.12)` (modals, drawers, dropdowns)
+4. **Pressed:** `0 1px 3px rgba(0,0,0,0.08)` (button active)
+
+---
+
+## Layout Architecture
+
+### App Grid (Desktop >= 1100px)
+
+With AI drawer docked:
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Header (logo, toolbar, theme toggle)                        │
+├──────────────────┬──────────────────┬──────────────────────┤
+│                  │                  │                      │
+│ Card List        │ Canvas           │ AI Drawer            │
+│ (240px)          │ (flex, shrink)   │ (280–320px, fixed)   │
+│                  │                  │                      │
+├──────────────────┴──────────────────┴──────────────────────┤
+│ Script Editor / Footer                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Mobile Layout (< 1100px)
+
+```
+┌──────────────────────────┐
+│ Header                   │
+├──────────────────────────┤
+│                          │
+│ Canvas                   │
+│ (full width, scaled)     │
+│                          │
+├──────────────────────────┤
+│ Script Editor / Tabs     │
+├──────────────────────────┤
+│ Card List (collapsible)  │
+└──────────────────────────┘
+```
+
+- AI Drawer overlays (modal-like) with close button
+- Inspector is a tabbed panel or separate view
+- Touch-friendly sizing (larger buttons, more spacing)
+
+---
+
+## Component Design
+
+### Card Canvas
+
+- **Card Element:**
+  - Layered shadow: `box-shadow: 0 2px 8px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.05)`
+  - 1px hairline inner border (e.g., `border: 1px inset rgba(0,0,0,0.05)`)
+  - Border-radius: `--sp-4` (4px, gentle corners)
+  - Background: white (`--surface-1`)
+
+- **Canvas Background:**
+  - Faint vignette: radial gradient from center (light) to edges (darker)
+  - Example: `radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(200,200,200,0.08) 100%)`
+  - Provides visual "pull" toward the card
+
+---
+
+## Transitions & Motion
+
+### Card Flip (Go Next/Previous)
+
+**Timeline:**
+```
+0ms    ├─ Current card: opacity 1 → opacity 0
+       ├─ Next card: opacity 0 → opacity 1
+       └─ Duration: 250ms (cubic-bezier(0.4, 0, 0.2, 1))
+250ms  ├─ Transition complete
+```
+
+### Edit ↔ Run Mode
+
+**Timeline:**
+```
+0ms    ├─ Edit mode: script editor visible (opacity 1)
+       ├─ Run mode: script editor opacity 1 → 0, transform slideOut
+       └─ Duration: 250ms
+250ms  ├─ Transition complete, editor hidden
+```
+
+### Prefers Reduced Motion
+
+**All transitions disabled:**
+```css
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+```
+
+No transitions, instant state changes.
+
+---
+
+## Brand Identity
+
+### Brand Mark (Stylised Stack of Cards)
+
+**SVG Design:**
+```
+Three overlapping cards at 45° rotation, slightly offset:
+- Bottom card: navy rectangle (3×3px each offset +1)
+- Middle card: navy rectangle (offset +1)
+- Top card: navy rectangle (offset +1)
+- Optional: subtle shadow or layering effect
+- Result: 3D "stacked" appearance
+```
+
+**Usage:**
+- Header logo (24px)
+- Welcome screen (32–48px)
+- Favicon (16×16px)
+
+### Page Title
+
+- `<title>Stacks — HyperCard, resurrected</title>`
+- Appears in browser tab and search results
+
+### Favicon
+
+- Format: SVG data URI or `public/favicon.svg`
+- Size: 16×16px (auto-scaled by browser)
+- Design: simplified stack-of-cards mark
+- Monochrome (fits 1-bit aesthetic)
+
+---
+
+## Design Tokens Summary
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--fs-11` | 11px | Captions, section labels |
+| `--fs-12` | 12px | Labels, gutter, hints |
+| `--fs-13` | 13px | Body text (default) |
+| `--fs-15` | 15px | Subheadings, card titles |
+| `--fs-18` | 18px | Headings, major sections |
+| `--fs-24` | 24px | Page title, brand |
+| `--sp-4` | 4px | Base unit, tight spacing |
+| `--sp-8` | 8px | List items, button gaps |
+| `--sp-12` | 12px | Section spacing, padding |
+| `--sp-16` | 16px | Dialog padding, large gaps |
+| `--sp-20` | 20px | Container padding |
+| `--sp-24` | 24px | Major sections |
+
+---
+
+## Quality Checklist
+
+- [ ] Drawer docks at ≥1100px, no overlap with inspector
+- [ ] Card flip transitions smooth, 200–300ms, GPU-friendly (transform/opacity)
+- [ ] Mode switch smooth, no layout jump
+- [ ] Brand mark appears in header and welcome
+- [ ] Favicon renders in tab
+- [ ] Bundle size < 8 kB CSS gz, < 32 kB JS gz
+- [ ] No external requests (fonts, icons, analytics)
