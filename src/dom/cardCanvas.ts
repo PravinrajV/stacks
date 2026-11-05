@@ -105,9 +105,13 @@ export class CardCanvas {
     }
 
     // Get actual client dimensions (excluding any padding/borders)
-    const padding = 0
-    const availWidth = containerWidth - padding * 2
-    const availHeight = containerHeight - padding * 2
+    // HAND EDIT (Phase 11.1): the card is laid out at the container's content
+    // edge, so fit inside the content box (excluding CSS padding) to avoid a double offset.
+    const cs = getComputedStyle(this.container)
+    const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0)
+    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0)
+    const availWidth = containerWidth - padX
+    const availHeight = containerHeight - padY
 
     // Compute fit and centering parameters
     const { scale, left, top } = computeFit(availWidth, availHeight)

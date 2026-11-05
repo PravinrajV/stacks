@@ -42,8 +42,8 @@
   --transition-duration: 250ms;
   --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Phase 11: Drawer width */
-  --drawer-width: 320px;
+  /* Phase 11.1: AI drawer column width (docked at 1100px+) */
+  --ai-col: clamp(300px, 22vw, 360px);
 }
 
 /* ===== Classic Theme (1-bit) ===== */
@@ -258,8 +258,8 @@ body {
 
 body.edit-mode {
   display: grid;
-  grid-template-columns: 250px 1fr 300px;
-  grid-template-rows: 40px 1fr 200px;
+  grid-template-columns: clamp(220px, 15vw, 300px) 1fr clamp(260px, 17vw, 340px);
+  grid-template-rows: clamp(44px, 3.2vw, 60px) 1fr 200px;
   gap: 1px;
   background-color: var(--surface-1);
 }
@@ -267,34 +267,43 @@ body.edit-mode {
 /* Phase 11.1: Drawer docking at >= 1100px */
 @media (min-width: 1100px) {
   body.edit-mode.ai-drawer-open {
-    grid-template-columns: clamp(220px, 15vw, 300px) 1fr clamp(260px, 17vw, 340px) clamp(300px, 22vw, 360px);
-  }
-  
-  body.edit-mode.ai-drawer-open .ai-panel-drawer {
-    position: static;
-    grid-column: 4;
-    grid-row: 2 / span 2;
-    width: auto;
-    height: auto;
-    top: auto;
-    right: auto;
-    border-left: var(--hairline) solid var(--border-color);
-    border-right: none;
-    box-shadow: none;
-    display: flex;
+    grid-template-columns: clamp(220px, 15vw, 300px) 1fr clamp(260px, 17vw, 340px) var(--ai-col);
   }
 }
 
-/* Below 1100px, drawer stays overlay (position: fixed) */
-@media (max-width: 1099px) {
-  body.edit-mode.ai-drawer-open .ai-panel-drawer {
-    position: fixed !important;
-    top: 0;
+/* AI drawer positioning: fixed overlay at all sizes below 1100px, docked column at 1100px+ */
+.ai-panel-drawer {
+  /* Default overlay below 1100px */
+  position: fixed;
+  top: clamp(44px, 3.2vw, 60px);
+  right: 0;
+  bottom: 0;
+  width: 90vw;
+  max-width: 400px;
+  height: calc(100% - clamp(44px, 3.2vw, 60px));
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  border-left: var(--hairline) solid var(--border-color);
+}
+
+@media (min-width: 1100px) {
+  .ai-panel-drawer {
+    /* Docked column layout at >= 1100px */
+    position: fixed;
+    top: clamp(44px, 3.2vw, 60px);
     right: 0;
-    width: 90vw;
-    max-width: 400px;
-    height: 100vh;
-    z-index: 1000;
+    bottom: 0;
+    width: var(--ai-col);
+    height: calc(100% - clamp(44px, 3.2vw, 60px));
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-shadow: none;
+    border-left: var(--hairline) solid var(--border-color);
   }
 }
 
@@ -507,7 +516,6 @@ body.run-mode {
   grid-column: 2;
   grid-row: 3;
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
   border-top: var(--glass-border);
   padding: var(--spacing-md);
   display: flex;
@@ -517,6 +525,7 @@ body.run-mode {
   color: var(--text-1);
   /* Phase 11.2: Mode transition */
   transition: opacity var(--transition-duration) var(--transition-easing), transform var(--transition-duration) var(--transition-easing);
+  /* No backdrop-filter: breaks fixed positioning of AI drawer child elements */
 }
 
 .script-editor.hidden {
@@ -675,7 +684,7 @@ body.run-mode {
   position: relative;
   transform-origin: top left;
   /* Scale and zoom applied via inline style: translate(...) scale(...) */
-  /* Phase 11.2: Card flip transition */
+  /* Phase 11.2: Only animate opacity, not transform (transform is used for fit/zoom) */
   transition: opacity var(--transition-duration) var(--transition-easing);
 }
 
@@ -1598,26 +1607,21 @@ textarea:focus {
   }
 }
 
-/* Phase 11.2: Card transitions in run mode - smooth fade/scale */
 @keyframes runModeCardOut {
   0% {
     opacity: 1;
-    transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: scale(0.985);
   }
 }
 
 @keyframes runModeCardIn {
   0% {
     opacity: 0;
-    transform: scale(0.985);
   }
   100% {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -2089,3 +2093,8 @@ textarea:focus-visible {
 /* ===== Phase 11.1: AI Drawer Docking ===== */
 
 
+/* HAND EDIT (Phase 11.1): drawer width must equal the 4th grid column so the inspector stays visible */
+@media (min-width: 1100px) {
+  body.edit-mode.ai-drawer-open { grid-template-columns: clamp(220px, 15vw, 300px) 1fr clamp(260px, 17vw, 340px) var(--ai-col) !important; }
+  body.edit-mode.ai-drawer-open .ai-panel.ai-panel-drawer { width: var(--ai-col) !important; min-width: 0 !important; max-width: none !important; left: auto !important; right: 0 !important; box-shadow: -1px 0 0 var(--hairline, rgba(255,255,255,.08)), -12px 0 32px rgba(0,0,0,.35); }
+}

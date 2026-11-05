@@ -233,45 +233,47 @@ describe('Phase 11.1: AI Panel Drawer Class Toggle', () => {
       container.parentNode.removeChild(container)
     }
     document.body.classList.remove('ai-drawer-open', 'edit-mode')
-  })
-
-  it('should toggle body.ai-drawer-open class via window.dispatchEvent on resize', async () => {
-    // Test that the window resize event is dispatched when toggling the AI panel
-    expect(document.body.classList.contains('ai-drawer-open')).toBe(false)
-    
-    // Simulate what toggleAIPanel does: add the class and dispatch resize
-    document.body.classList.add('ai-drawer-open')
-    window.dispatchEvent(new Event('resize'))
-    
-    // Verify the class was added
-    expect(document.body.classList.contains('ai-drawer-open')).toBe(true)
-    
-    // Now remove it
-    document.body.classList.remove('ai-drawer-open')
-    window.dispatchEvent(new Event('resize'))
-    
-    expect(document.body.classList.contains('ai-drawer-open')).toBe(false)
-  })
-
-  it('should have CSS rule for body.edit-mode.ai-drawer-open at >=1100px', () => {
-    // Verify CSS target exists by checking that stylesheets contain the rule
-    let foundRule = false
-    const sheets = document.styleSheets
-    for (let i = 0; i < sheets.length; i++) {
-      try {
-        const rules = sheets[i].cssRules || sheets[i].rules
-        for (let j = 0; j < rules.length; j++) {
-          const rule = rules[j]
-          if ((rule as any).selectorText?.includes('ai-drawer-open')) {
-            foundRule = true
-            break
-          }
-        }
-      } catch (e) {
-        // CORS or other errors when accessing stylesheet, skip
-      }
+    // Clean up app container
+    const appContainer = document.getElementById('app')
+    if (appContainer?.parentNode) {
+      appContainer.parentNode.removeChild(appContainer)
     }
-    // CSS rule exists (hard to verify in test environment, but we can verify via computed styles)
-    expect(document.body).toBeTruthy()
+  })
+
+  it('should toggle body.ai-drawer-open class when AI button clicked', async () => {
+    // Create app container
+    const appDiv = document.createElement('div')
+    appDiv.id = 'app'
+    document.body.appendChild(appDiv)
+
+    // Initialize real app
+    const { initApp } = await import('../src/dom/app')
+    initApp()
+
+    try {
+      // Initially no drawer
+      expect(document.body.classList.contains('ai-drawer-open')).toBe(false)
+
+      // Find AI button (✨ AI in header)
+      const buttons = Array.from(document.querySelectorAll('button'))
+      const aiBtn = buttons.find(btn => btn.textContent?.includes('✨') && btn.textContent?.includes('AI'))
+      expect(aiBtn).toBeTruthy()
+
+      // Click AI button to open
+      aiBtn?.click()
+
+      // After click, drawer should be open
+      expect(document.body.classList.contains('ai-drawer-open')).toBe(true)
+
+      // Find and click the close (×) button on the drawer
+      const closeBtn = document.querySelector('.ai-panel-close-btn') as HTMLButtonElement
+      expect(closeBtn).toBeTruthy()
+      closeBtn?.click()
+
+      // After close, class should be removed
+      expect(document.body.classList.contains('ai-drawer-open')).toBe(false)
+    } finally {
+      // Cleanup already handled in afterEach
+    }
   })
 })

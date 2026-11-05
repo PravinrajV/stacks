@@ -484,8 +484,11 @@ export class ScriptEditor {
         document.body.classList.add('ai-drawer-open')
       }
       
-      // Trigger canvas re-fit by dispatching resize event
-      window.dispatchEvent(new Event('resize'))
+      // Trigger canvas re-fit: use requestAnimationFrame to ensure layout is updated
+      // before ResizeObserver sees it, then dispatch resize
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new Event('resize'))
+      })
     }
   }
 
