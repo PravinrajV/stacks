@@ -2,7 +2,7 @@
  * Task 4.3: OllamaProvider for local Ollama instance.
  * 
  * Implements BYOK (Bring Your Own Key) for local Ollama.
- * Fetch to http://localhost:11434/api/generate (configurable)
+ * Fetch to a LAN host on port 11434 (configurable)
  * 
  * No API key needed; runs locally.
  * Falls back gracefully if Ollama is not running.
@@ -18,7 +18,7 @@ export class OllamaProvider extends ModelProvider {
   private timeout: number = 60000 // 60 seconds (local requests can take longer)
   
   /**
-   * Set the base URL for Ollama (e.g., http://192.168.1.100:11434).
+   * Set the base URL for Ollama (e.g., on a LAN host with port 11434).
    */
   setBaseUrl(url: string): void {
     this.baseUrl = url

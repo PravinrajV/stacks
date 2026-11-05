@@ -577,8 +577,8 @@ export class ScriptEditor {
 
     this.aiPanel.appendChild(buttonGroup)
 
-    // Add panel to body (fixed positioning)
-    document.body.appendChild(this.aiPanel)
+    // Add panel to script editor element (will be cleaned up with app)
+    this.element.appendChild(this.aiPanel)
   }
 
   /**
@@ -630,7 +630,13 @@ export class ScriptEditor {
       )
 
       if ('error' in result) {
-        setTextContent(this.aiCodeBlock, `Error: ${result.error}`)
+        const errorMessage = result.error
+        
+        // Show the error message in the code block
+        removeAllChildren(this.aiCodeBlock)
+        const errorDiv = createElement('div', { className: 'ai-error-message' })
+        setTextContent(errorDiv, `Error: ${errorMessage}`)
+        this.aiCodeBlock.appendChild(errorDiv)
         
         // Try fallback to mock if not already using it
         if (this.selectedProvider !== 'mock') {
@@ -638,7 +644,33 @@ export class ScriptEditor {
           const mockResult = await generateScript(mockProvider, prompt, context, this.getScript())
           
           if (!('error' in mockResult)) {
-            this.displayGeneratedCode(mockResult.code, mockResult.diff)
+            // Show fallback notice AFTER the error message
+            const fallbackNotice = createElement('div', { className: 'ai-fallback-notice' })
+            setTextContent(fallbackNotice, `Fallback: ${this.selectedProvider} not available, using built-in templates`)
+            this.aiCodeBlock.appendChild(fallbackNotice)
+            
+            // Add the generated code
+            const codeEl = createElement('div', { className: 'ai-generated-code' })
+            setTextContent(codeEl, mockResult.code)
+            this.aiCodeBlock.appendChild(codeEl)
+            
+            // Show diff
+            removeAllChildren(this.aiDiffPreview)
+            for (const line of mockResult.diff) {
+              const lineEl = createElement('div', { className: `ai-diff-line ${line.type}` })
+              const prefix = line.type === 'add' ? '+ ' : line.type === 'remove' ? '- ' : '  '
+              setTextContent(lineEl, prefix + line.content)
+              this.aiDiffPreview.appendChild(lineEl)
+            }
+            this.aiDiffPreview.style.display = 'block'
+            
+            // Show Accept/Discard buttons
+            const buttonGroup = this.aiPanel?.querySelector('.ai-button-group') as HTMLElement | null
+            if (buttonGroup) {
+              buttonGroup.style.display = 'flex'
+            }
+            
+            this.generatedCode = mockResult.code
             ;(this.aiAcceptBtn as HTMLButtonElement).disabled = false
             return
           }
@@ -650,8 +682,58 @@ export class ScriptEditor {
         ;(this.aiAcceptBtn as HTMLButtonElement).disabled = false
       }
     } catch (err) {
-      setTextContent(this.aiCodeBlock, `Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error'
+      removeAllChildren(this.aiCodeBlock)
+      const errorDiv = createElement('div', { className: 'ai-error-message' })
+      setTextContent(errorDiv, `Error: ${errorMsg}`)
+      this.aiCodeBlock.appendChild(errorDiv)
       ;(this.aiAcceptBtn as HTMLButtonElement).disabled = true
+      
+      // Try fallback to mock on exception
+      if (this.selectedProvider !== 'mock') {
+        try {
+          const mockProvider = new MockModelProvider()
+          const context = {
+            cardName: this.currentCard?.name,
+            fieldNames: this.currentCard?.fields.map(f => f.name),
+            buttonLabels: this.currentCard?.buttons.map(b => b.label)
+          }
+          const mockResult = await generateScript(mockProvider, prompt, context, this.getScript())
+          
+          if (!('error' in mockResult)) {
+            // Show fallback notice AFTER the error message
+            const fallbackNotice = createElement('div', { className: 'ai-fallback-notice' })
+            setTextContent(fallbackNotice, `Fallback: ${this.selectedProvider} not available, using built-in templates`)
+            this.aiCodeBlock.appendChild(fallbackNotice)
+            
+            // Add the generated code
+            const codeEl = createElement('div', { className: 'ai-generated-code' })
+            setTextContent(codeEl, mockResult.code)
+            this.aiCodeBlock.appendChild(codeEl)
+            
+            // Show diff
+            removeAllChildren(this.aiDiffPreview)
+            for (const line of mockResult.diff) {
+              const lineEl = createElement('div', { className: `ai-diff-line ${line.type}` })
+              const prefix = line.type === 'add' ? '+ ' : line.type === 'remove' ? '- ' : '  '
+              setTextContent(lineEl, prefix + line.content)
+              this.aiDiffPreview.appendChild(lineEl)
+            }
+            this.aiDiffPreview.style.display = 'block'
+            
+            // Show Accept/Discard buttons
+            const buttonGroup = this.aiPanel?.querySelector('.ai-button-group') as HTMLElement | null
+            if (buttonGroup) {
+              buttonGroup.style.display = 'flex'
+            }
+            
+            this.generatedCode = mockResult.code
+            ;(this.aiAcceptBtn as HTMLButtonElement).disabled = false
+          }
+        } catch (fallbackErr) {
+          // Fallback also failed, keep the error message
+        }
+      }
     } finally {
       this.aiLoading = false
       ;(this.aiGenerateBtn as HTMLButtonElement).disabled = false
@@ -668,7 +750,9 @@ export class ScriptEditor {
 
     // Display code block
     removeAllChildren(this.aiCodeBlock)
-    setTextContent(this.aiCodeBlock, code)
+    const codeEl = createElement('div', { className: 'ai-generated-code' })
+    setTextContent(codeEl, code)
+    this.aiCodeBlock.appendChild(codeEl)
     this.aiCodeBlock.style.display = 'block'
 
     // Display diff with color-coded lines

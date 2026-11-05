@@ -1870,3 +1870,4 @@ textarea:focus-visible {
 .ai-generate-btn { height: 40px; min-height: 40px; max-height: 40px; }
 .ai-offline-notice { padding: 8px 12px; height: auto; min-height: 0; }
 .ai-code-block, .ai-diff-preview { height: auto; min-height: 0; max-height: none; flex: 0 0 auto; }
+.script-editor { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; } /* backdrop-filter made .script-editor the containing block for the fixed AI drawer */

@@ -658,7 +658,7 @@ Phase 6 (Polish & Documentation)
 
 ### Documentation
 
-- [ ] **8.7** Update README to reflect testing scope and cross-browser checklist. *(Ref: REQ-P8-007)*
+- [x] **8.7** Update README to reflect testing scope and cross-browser checklist. *(Ref: REQ-P8-007)*
   - Location: `README.md`, `docs/BROWSER_SUPPORT.md` (or new checklist file)
   - README: clearly state "Tested headless (Chromium only). Manual cross-browser testing required for production."
   - Feature list: ensure all described features are implemented.
@@ -688,7 +688,7 @@ Phase 6 (Polish & Documentation)
   - Update `document.documentElement.setAttribute("data-theme", theme)` on toggle.
   - Tests: Verify theme persists across page reload, toggle works, both themes render correctly.
 
-- [ ] **9.1.3** Create theme token documentation and usage guide. *(Ref: Design: Theme System)*
+- [x] **9.1.3** Create theme token documentation and usage guide. *(Ref: Design: Theme System)*
   - Location: `docs/THEME.md`
   - Document color palette (Haunted and Classic).
   - Document typography system (display vs. UI fonts).
@@ -713,7 +713,7 @@ Phase 6 (Polish & Documentation)
   - Buttons themed with Haunted/Classic colors and hover effects.
   - Tests: Toolbar renders, buttons are clickable, theme switching applies to toolbar.
 
-- [ ] **9.2.3** Implement tooltip system for toolbar buttons. *(Ref: REQ-P9-004)*
+- [x] **9.2.3** Implement tooltip system for toolbar buttons. *(Ref: REQ-P9-004)*
   - Location: `src/dom/components/tooltip.ts`
   - On button hover, show tooltip with action name and keyboard shortcut.
   - Tooltip positioned above button, themed (glass morphism in Haunted).
@@ -763,7 +763,7 @@ Phase 6 (Polish & Documentation)
 
 ### Card and Mode Transition Animations
 
-- [ ] **9.4.1** Implement card navigation animation (fade + optional flip). *(Ref: REQ-P9-006)*
+- [x] **9.4.1** Implement card navigation animation (fade + optional flip). *(Ref: REQ-P9-006)*
   - Location: `src/dom/cardCanvas.ts`
   - When card changes (via go or card list click), fade out current card and fade in new card.
   - Transition duration: 200–250ms cubic-bezier(0.25, 0.46, 0.45, 0.94).
@@ -783,7 +783,7 @@ Phase 6 (Polish & Documentation)
   - Visual state changes still apply (colors, positions), just no animation duration.
   - Tests: Animations disabled when prefers-reduced-motion is set, layout/functionality unchanged.
 
-- [ ] **9.4.4** Test animation interruption and completion edge cases. *(Ref: REQ-P9-006)*
+- [x] **9.4.4** Test animation interruption and completion edge cases. *(Ref: REQ-P9-006)*
   - Location: `tests/animation.test.ts`
   - Scenario: User clicks during card transition → verify final state reached, no stalling.
   - Scenario: Rapid mode switches → verify no animation queue buildup.
@@ -801,7 +801,7 @@ Phase 6 (Polish & Documentation)
   - Transition: fade-in with theme colors.
   - Tests: Welcome screen displays on app start, buttons functional, creates/loads stack correctly.
 
-- [ ] **9.5.2** Implement styled alert dialog replacing window.alert(). *(Ref: REQ-P9-010)*
+- [x] **9.5.2** Implement styled alert dialog replacing window.alert(). *(Ref: REQ-P9-010)*
   - Location: `src/dom/components/styledDialogs.ts`
   - Custom modal with title, message, and button.
   - Themed (Haunted or Classic).
@@ -823,13 +823,13 @@ Phase 6 (Polish & Documentation)
   - Themed (Haunted or Classic).
   - Tests: Prompt dialog displays with pre-filled text, returns value or null.
 
-- [ ] **9.5.5** Replace native prompt/confirm/alert calls throughout app with styled versions. *(Ref: REQ-P9-010)*
+- [x] **9.5.5** Replace native prompt/confirm/alert calls throughout app with styled versions. *(Ref: REQ-P9-010)*
   - Location: `src/dom/app.ts`, `src/dom/runMode.ts`, and other components
   - Search for `window.alert()`, `window.confirm()`, `window.prompt()` calls.
   - Replace with styled dialog functions.
   - Tests: All dialogs use styled versions, no native dialogs appear.
 
-- [ ] **9.5.6** Implement refined AI panel with diff preview and accept/reject flow. *(Ref: REQ-P9-008)*
+- [x] **9.5.6** Implement refined AI panel with diff preview and accept/reject flow. *(Ref: REQ-P9-008)*
   - Location: `src/dom/components/aiPanel.ts`
   - Text input for description, "Generate" button.
   - Diff preview: side-by-side old/new code with color-coded changes.
@@ -841,48 +841,48 @@ Phase 6 (Polish & Documentation)
 
 ### Contrast, Accessibility, and Testing
 
-- [ ] **9.6.1** Verify WCAG AA contrast for all theme colors. *(Ref: REQ-P9-001, REQ-P9-013)*
+- [x] **9.6.1** Verify WCAG AA contrast for all theme colors. *(Ref: REQ-P9-001, REQ-P9-013)*
   - Location: `tests/contrast.test.ts`
   - Test all text/background color combinations in both themes.
   - Verify normal text ≥ 4.5:1, large text ≥ 3:1, UI components ≥ 3:1.
   - Generate contrast report in test output or docs.
   - Tests: All combinations pass WCAG AA, report generated.
 
-- [ ] **9.6.2** Test focus rings and keyboard navigation in both themes. *(Ref: REQ-P9-001, REQ-P9-013)*
+- [x] **9.6.2** Test focus rings and keyboard navigation in both themes. *(Ref: REQ-P9-001, REQ-P9-013)*
   - Location: `tests/focus.test.ts`
   - Verify visible focus rings on all interactive elements (buttons, inputs, fields).
   - Verify focus ring contrast ≥ 3:1 (or better).
   - Test Tab navigation through UI elements in both themes.
   - Tests: Focus rings visible, Tab navigation works, focus order logical.
 
-- [ ] **9.6.3** Test prefers-reduced-motion behavior. *(Ref: REQ-P9-001, REQ-P9-013)*
+- [x] **9.6.3** Test prefers-reduced-motion behavior. *(Ref: REQ-P9-001, REQ-P9-013)*
   - Location: `tests/reduced-motion.test.ts`
   - Simulate `prefers-reduced-motion: reduce` media query.
   - Verify animations disabled (transition duration 0s).
   - Verify visual state changes still apply (no broken layout).
   - Tests: Animations disabled, layout intact, functionality unchanged.
 
-- [ ] **9.6.4** Test no external network requests and static resources only. *(Ref: REQ-P9-011)*
+- [x] **9.6.4** Test no external network requests and static resources only. *(Ref: REQ-P9-011)*
   - Location: `tests/network.test.ts`
   - Intercept fetch/XHR calls during app load and interaction.
   - Verify no requests to Google Fonts, CDNs, analytics, etc.
   - Allow only explicitly configured model provider endpoints (e.g., Claude API).
   - Tests: No external requests detected (except model provider if configured).
 
-- [ ] **9.6.5** Verify bundle size (CSS + JS + fonts gzipped ≤ 40 kB). *(Ref: REQ-P9-012)*
+- [x] **9.6.5** Verify bundle size (CSS + JS + fonts gzipped ≤ 40 kB). *(Ref: REQ-P9-012)*
   - Location: Build output and `npm run size` command
   - Run `npm run build` and measure gzipped size.
   - Break down by file (CSS, JS, fonts).
   - Report in build output and docs/PERFORMANCE.md.
   - Tests: Total size ≤ 40 kB, report generated and committed.
 
-- [ ] **9.6.6** Test theme persistence across page reload. *(Ref: REQ-P9-003)*
+- [x] **9.6.6** Test theme persistence across page reload. *(Ref: REQ-P9-003)*
   - Location: `tests/theme-persistence.test.ts`
   - Set theme to Haunted → simulate page reload → verify Haunted theme loads.
   - Set theme to Classic → simulate page reload → verify Classic theme loads.
   - Tests: Theme persisted correctly, localStorage working.
 
-- [ ] **9.6.7** Test class name and data-attribute compatibility with Phase 8 tests. *(Ref: REQ-P9-013)*
+- [x] **9.6.7** Test class name and data-attribute compatibility with Phase 8 tests. *(Ref: REQ-P9-013)*
   - Location: `tests/backwards-compat.test.ts`
   - Verify existing test selectors (e.g., `.card-canvas`, `[data-button-id]`) still work.
   - Verify no class/attribute renames or removals.
