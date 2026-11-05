@@ -536,9 +536,11 @@ export class App {
     titleContainer.appendChild(titleText)
     header.appendChild(titleContainer)
 
-    // Edit/Run toggle button
+    // Group 1: Run button (primary accent color)
+    const group1 = createElement('div', { className: 'app-header-group' })
+    
     const modeToggleBtn = createElement('button', {
-      className: ['button', 'mode-toggle']
+      className: ['button', 'mode-toggle', 'button-primary']
     })
     modeToggleBtn.setAttribute('aria-pressed', this.appState.mode === 'run' ? 'true' : 'false')
     modeToggleBtn.setAttribute('title', this.appState.mode === 'edit' ? 'Switch to Run Mode (Ctrl/Cmd+R)' : 'Switch to Edit Mode (Ctrl/Cmd+E)')
@@ -568,27 +570,35 @@ export class App {
       }
     })
     
-    header.appendChild(modeToggleBtn)
+    group1.appendChild(modeToggleBtn)
+    header.appendChild(group1)
 
-    // Add Button and Add Field buttons (edit mode only)
+    // Group 2: Button and Field (edit mode only)
     if (this.appState.mode === 'edit') {
+      const group2 = createElement('div', { className: 'app-header-group' })
+      
       const addButtonBtn = new ButtonComponent('Button', () => this.addButton(), createPlusIcon())
       addButtonBtn.getElement().setAttribute('aria-label', 'Add new button to current card')
       addButtonBtn.getElement().setAttribute('title', 'Add new button to current card')
-      header.appendChild(addButtonBtn.getElement())
+      group2.appendChild(addButtonBtn.getElement())
 
       const addFieldBtn = new ButtonComponent('Field', () => this.addField(), createPlusIcon())
       addFieldBtn.getElement().setAttribute('aria-label', 'Add new field to current card')
       addFieldBtn.getElement().setAttribute('title', 'Add new field to current card')
-      header.appendChild(addFieldBtn.getElement())
+      group2.appendChild(addFieldBtn.getElement())
+      
+      header.appendChild(group2)
     }
 
+    // Group 3: File operations (Export, Import, Save)
+    const group3 = createElement('div', { className: 'app-header-group' })
+    
     const exportBtn = new ButtonComponent('Export', () => {
       exportJSON(this.appState.stack, 'my-stack.json')
     })
     exportBtn.getElement().setAttribute('aria-label', 'Export stack as JSON file')
     exportBtn.getElement().setAttribute('title', 'Export stack as JSON file (Ctrl/Cmd+E to export)')
-    header.appendChild(exportBtn.getElement())
+    group3.appendChild(exportBtn.getElement())
 
     const importBtn = new ButtonComponent('Import', () => {
       const input = document.createElement('input')
@@ -616,25 +626,35 @@ export class App {
     })
     importBtn.getElement().setAttribute('aria-label', 'Import stack from JSON file')
     importBtn.getElement().setAttribute('title', 'Import stack from JSON file')
-    header.appendChild(importBtn.getElement())
+    group3.appendChild(importBtn.getElement())
 
     const saveBtn = new ButtonComponent('Save', () => this.save())
     saveBtn.getElement().setAttribute('aria-label', 'Save current stack (Ctrl/Cmd+S)')
     saveBtn.getElement().setAttribute('title', 'Save current stack (Ctrl/Cmd+S)')
-    header.appendChild(saveBtn.getElement())
+    group3.appendChild(saveBtn.getElement())
+    
+    header.appendChild(group3)
 
+    // Group 4: AI Settings
+    const group4 = createElement('div', { className: 'app-header-group' })
+    
     const aiSettingsBtn = new ButtonComponent('⚙ AI Settings', () => this.openAISettings())
     aiSettingsBtn.getElement().setAttribute('aria-label', 'Open AI model provider settings')
     aiSettingsBtn.getElement().setAttribute('title', 'Configure API key and model provider')
-    header.appendChild(aiSettingsBtn.getElement())
+    group4.appendChild(aiSettingsBtn.getElement())
+    
+    header.appendChild(group4)
 
+    // Group 5: Theme and Palette
+    const group5 = createElement('div', { className: 'app-header-group' })
+    
     const themeToggleBtn = createElement('button', { className: 'theme-toggle button' })
     themeToggleBtn.setAttribute('title', `Switch to ${this.currentTheme === 'haunted' ? 'Classic' : 'Haunted'} theme`)
     themeToggleBtn.setAttribute('aria-label', `Switch to ${this.currentTheme === 'haunted' ? 'Classic' : 'Haunted'} theme`)
     const themeIcon = this.currentTheme === 'haunted' ? createSunIcon() : createMoonIcon()
     themeToggleBtn.appendChild(themeIcon)
     addEventListener(themeToggleBtn, 'click', () => this.toggleTheme())
-    header.appendChild(themeToggleBtn)
+    group5.appendChild(themeToggleBtn)
 
     // Palette selector (hidden in Classic theme, visible in Haunted) - Phase 10.2
     if (this.currentTheme === 'haunted') {
@@ -663,8 +683,10 @@ export class App {
         this.setPalette(newPalette)
       })
 
-      header.appendChild(paletteSelector)
+      group5.appendChild(paletteSelector)
     }
+    
+    header.appendChild(group5)
 
     app.appendChild(header)
 

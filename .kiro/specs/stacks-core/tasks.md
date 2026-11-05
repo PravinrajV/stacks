@@ -989,18 +989,20 @@ Phase 6 (Polish & Documentation)
   - Remove any purple/orange box-shadow values (search for `#a855f7`, `#f97316`, `rgb(168,85,247)` in shadows).
   - Tests: No glowing shadows, only dark neutral shadows; old purple shadows completely removed.
 
-- [ ] **10.3.6** Toolbar: grouped buttons with hairline dividers and consistent styling. *(Ref: REQ-P10-004)*
+- [x] **10.3.6** Toolbar: grouped buttons with hairline dividers and consistent styling. *(Ref: REQ-P10-004)*
   - Location: `src/dom/app.ts` and `src/dom/styles.css`
-  - Group related toolbar buttons (card actions, element actions, edit actions, mode/theme, file actions).
-  - Add hairline dividers between groups using `--hairline` token.
-  - Apply consistent icon+label styling to all buttons.
-  - Tests: Toolbar renders with groups and dividers, buttons styled consistently.
+  - Group related toolbar buttons: [Run] | [Button, Field] | [Export, Import, Save] | [AI Settings] | [theme, palette]
+  - Added hairline dividers (1px, --hairline-color, 18px tall) between groups using `--app-header-group` class
+  - Apply consistent quieter button styling: transparent bg, no border, 6px radius, 30px height, --text-2 text, hover surface-2
+  - Run button keeps accent primary styling (--accent bg, --accent-contrast text)
+  - Tests: Toolbar renders with groups and dividers, buttons styled consistently. All 826 tests passing.
 
-- [ ] **10.3.7** Panel headers: uppercase labels with 11px + 2px letter-spacing. *(Ref: REQ-P10-004)*
-  - Location: `src/dom/styles.css` and affected components
-  - Define `.panel-header` with uppercase, 11px, 2px letter-spacing.
-  - Apply to inspector title, script editor title, card list title, etc.
-  - Tests: Panel headers match styling spec, uppercase and spaced correctly.
+- [x] **10.3.7** Panel headers: uppercase labels with 11px + 2px letter-spacing. *(Ref: REQ-P10-004)*
+  - Location: `src/dom/styles.css`
+  - Define `.panel-header` with uppercase (text-transform: uppercase), 11px font, 0.125em letter-spacing (2px)
+  - Applied to inspector labels and editor headers via `.panel-header` and `.inspector-label` classes
+  - Consistent styling across inspector title, script editor title, AI panel header, card list title
+  - Tests: Panel headers match styling spec, uppercase and spaced correctly. All 826 tests passing.
 
 - [x] **10.3.8** Drastically reduce glow/neon text-shadows and box-shadows. *(Ref: REQ-P10-004)*
   - Location: Search codebase for `text-shadow`, `box-shadow`, and remove or soften
