@@ -773,3 +773,187 @@ As a maintainer, I want comprehensive tests for theme switching, animations, con
 - WHEN a test removes a theme CSS variable or animation, THE SYSTEM SHALL fail (no silent fallback to broken state).
 - WHEN existing tests run, THEY SHALL continue to pass (class names and data-attributes used by old tests remain unchanged).
 
+
+
+---
+
+## Phase 10: Premium Palettes
+
+### REQ-P10-001: CSS Custom Properties (Token Refactor)
+
+**User Story**
+As a designer, I want to move all hardcoded colors in CSS and inline styles to semantic CSS custom properties so that themes can be swapped cleanly without touching HTML/JS.
+
+**Acceptance Criteria**
+- WHEN styles are parsed, THE SYSTEM SHALL find zero hardcoded color hex values or rgba/rgb functions in `src/dom/styles.css` or `src/dom/**/*.ts`.
+- WHEN a color is needed, THE SYSTEM SHALL use a CSS custom property (e.g., `var(--accent)`, `var(--surface-0)`, `var(--text-1)`).
+- WHEN a semantic token is used, THE SYSTEM SHALL document its purpose (accent color, surface background, text color, border, shadow, etc.).
+- WHEN the Classic theme is active, THE SYSTEM SHALL define all tokens to match the existing 1-bit black/white/gray palette.
+- WHEN a new theme is activated, THE SYSTEM SHALL redefine all tokens without requiring any JavaScript theme-switching logic (pure CSS).
+
+### REQ-P10-002: Three Premium Palettes for Dark Theme
+
+**User Story**
+As a user, I want to choose between three refined, restrained luxury palettes ("Ink", "Navy", "Graphite") that replace the purple/orange neon aesthetic with sophisticated, muted tones.
+
+**Acceptance Criteria**
+- WHEN the app loads in dark mode, THE SYSTEM SHALL support three palettes via a `[data-palette="ink|navy|graphite"]` attribute on the `<html>` element.
+- WHEN the user selects a palette, THE SYSTEM SHALL apply it via the data attribute (no DOM manipulation required, pure CSS).
+- WHEN "Ink" palette is active, THE SYSTEM SHALL render surfaces in ink black (#0a0a0b-ish), accents in champagne gold (~#d4b98c), and adjust all semantic tokens accordingly.
+- WHEN "Navy" palette is active, THE SYSTEM SHALL render surfaces in midnight navy (#0b1220-ish), accents in ice blue/silver (~#a9c7e8 / #c9d1db), and adjust all semantic tokens.
+- WHEN "Graphite" palette is active, THE SYSTEM SHALL render surfaces in warm graphite (#1a1816-ish), accents in copper (~#c8875a), and adjust all semantic tokens.
+- WHEN a palette is selected, THE SYSTEM SHALL save the choice to localStorage under key `"stacks-palette"`.
+- WHEN the app loads, THE SYSTEM SHALL restore the palette from localStorage (or use "ink" as default).
+- WHEN a URL parameter `?palette=ink|navy|graphite` is present, THE SYSTEM SHALL override localStorage and apply the specified palette.
+- WHEN an invalid palette is provided in the URL, THE SYSTEM SHALL ignore it and use the saved or default palette.
+
+### REQ-P10-003: Semantic Color Tokens
+
+**User Story**
+As a designer, I want a complete set of semantic color tokens so that every color decision is intentional and consistent across all three palettes.
+
+**Acceptance Criteria**
+- WHEN tokens are defined, THE SYSTEM SHALL include:
+  - `--accent`: Primary accent color (gold/ice-blue/copper)
+  - `--accent-strong`: Stronger/darker variant for emphasis
+  - `--accent-soft`: RGBA variant with transparency for backgrounds
+  - `--accent-contrast`: Text color (white/black) for readable text on accent
+  - `--surface-0`: Darkest background (panels, containers)
+  - `--surface-1`: Slightly lighter (cards, dialog backgrounds)
+  - `--surface-2`: Mid-tone (hover states)
+  - `--surface-3`: Light surface for contrast
+  - `--hairline`: Thin border color (subtle dividers)
+  - `--hairline-strong`: Thicker border color (stronger dividers)
+  - `--text-1`: Primary text color (body, labels)
+  - `--text-2`: Secondary text color (hints, muted)
+  - `--text-3`: Tertiary text color (disabled, very subtle)
+  - `--shadow-sm`, `--shadow-md`, `--shadow-lg`: Shadow definitions (subtle, no colored glows)
+  - `--radius-sm`, `--radius-md`, `--radius-lg`: Border radius values (6px, 10px, 14px)
+  - `--glow`: Tiny glow for subtle focus/hover effects (minimal, not neon)
+- WHEN each token is applied, ALL THREE PALETTES SHALL redefine it with appropriate values (no palette has conflicting definitions).
+
+### REQ-P10-004: Premium Refinement
+
+**User Story**
+As a designer, I want the UI to feel luxurious and restrained with refined typography, subtle gradients, and crafted components so that the overall aesthetic matches "premium" rather than "neon".
+
+**Acceptance Criteria**
+- WHEN typography is rendered, THE SYSTEM SHALL use:
+  - Titles/section labels: 11px uppercase with 2px letter-spacing, optional small-caps styling
+  - Body text: consistent 13–14px with comfortable line-height
+  - Monospace (script editor): 12px Monaco or system monospace
+- WHEN surfaces need visual depth, THE SYSTEM SHALL apply very low-contrast surface gradients (e.g., 1–2% brightness shift from top to bottom) rather than flat colors.
+- WHEN borders are used, THE SYSTEM SHALL use 1px hairline borders (via `--hairline` token) instead of thick outlines.
+- WHEN rounded corners are needed, THE SYSTEM SHALL use consistent radius values: 6px (small buttons), 10px (cards/panels), 14px (modals/large containers).
+- WHEN shadows are applied, THE SYSTEM SHALL use dark, soft shadows (no colored glows or bright box-shadows): `box-shadow: 0 2px 8px rgba(0,0,0,0.2)` style (no neon, no purple tint).
+- WHEN the toolbar is rendered, THE SYSTEM SHALL group related buttons with hairline dividers and consistent icon+label styling.
+- WHEN panel headers are rendered, THE SYSTEM SHALL use uppercase labels with consistent 11px + 2px letter-spacing.
+
+### REQ-P10-005: Palette Selector UI
+
+**User Story**
+As a user, I want an accessible palette selector in the toolbar so that I can switch between palettes without visiting settings.
+
+**Acceptance Criteria**
+- WHEN the app is rendered, THE SYSTEM SHALL display a palette selector (segmented control or `<select>`) in the toolbar near the Classic/Haunted theme toggle.
+- WHEN the palette selector is displayed, THE SYSTEM SHALL include options: "Ink", "Navy", "Graphite".
+- WHEN a palette is selected, THE SYSTEM SHALL immediately apply it and save the choice to localStorage.
+- WHEN the Classic theme is active, THE SYSTEM SHALL hide or disable the palette selector (only relevant for dark themes).
+- WHEN Haunted theme is activated, THE SYSTEM SHALL re-enable and show the palette selector.
+- WHEN the palette selector is rendered, IT SHALL include an `aria-label="Palette"` for screen readers.
+
+### REQ-P10-006: Welcome and Empty State Refinement
+
+**User Story**
+As a new user, I want a refined welcome dialog and tasteful empty-state card so that the experience feels intentional and premium.
+
+**Acceptance Criteria**
+- WHEN the app loads with no saved stack, THE SYSTEM SHALL display a welcome dialog (not just a blank canvas).
+- WHEN the welcome dialog is shown, IT SHALL include:
+  - Elegant heading (e.g., "Welcome to Stacks")
+  - Short tagline (1–2 lines, e.g., "HyperCard revival for the web")
+  - A hairline-bordered card showing a preview or icon
+  - A primary button using `--accent` color (gold/ice-blue/copper)
+  - Optional "Load Example" button
+- WHEN a card is empty (no elements), THE SYSTEM SHALL display a tasteful empty-state message with a hairline border and centered layout (not stark/blank).
+- WHEN both dialog and empty state are rendered, THEY SHALL harmonize with the current palette and follow the premium refinement guidelines.
+
+### REQ-P10-007: Syntax Highlight Color Harmonization
+
+**User Story**
+As a script author, I want syntax highlight colors in the editor to harmonize with the current palette so that code is readable and aesthetically consistent.
+
+**Acceptance Criteria**
+- WHEN the script editor renders syntax highlighting in Haunted mode, THE SYSTEM SHALL use muted, palette-aware colors (not bright/neon).
+- WHEN highlighting is applied, EACH TOKEN TYPE SHALL use a color from the current palette's semantic tokens:
+  - Keywords: use `--accent` or `--accent-strong`
+  - Strings: use a muted variant of accent or secondary text color
+  - Numbers: use `--text-1` or a subtle accent variant
+  - Comments: use `--text-2` (muted)
+  - Operators/punctuation: use `--text-1`
+- WHEN the Classic theme is active, THE SYSTEM SHALL revert to 1-bit black/gray highlighting (no colored accents).
+
+### REQ-P10-008: Reduced-Motion and Focus Compliance
+
+**User Story**
+As an accessibility-conscious user, I want the app to respect reduced-motion preferences and provide visible, compliant focus rings.
+
+**Acceptance Criteria**
+- WHEN `prefers-reduced-motion` is enabled, THE SYSTEM SHALL disable all transitions and animations (no state changes are skipped, only animation duration set to 0).
+- WHEN an interactive element has focus, THE SYSTEM SHALL display a visible focus ring using `--accent` color with a 2–3px width.
+- WHEN focus rings are checked, THEY SHALL have a contrast ratio of at least 3:1 against the background (WCAG AAA for focus indicators).
+- WHEN focus is applied to text inputs, THE SYSTEM SHALL apply a focus ring (not just a color change inside the input).
+
+### REQ-P10-009: Test Coverage for Palettes and Colors
+
+**User Story**
+As a maintainer, I want comprehensive tests for palette switching, color tokens, and contrast compliance so that the theme system remains robust.
+
+**Acceptance Criteria**
+- WHEN tests run, THE SYSTEM SHALL verify that palette selection persists to localStorage and loads on app startup.
+- WHEN a palette is changed, THE SYSTEM SHALL verify that the `[data-palette]` attribute updates on `<html>` and CSS is re-evaluated (no forced refresh).
+- WHEN contrast is checked, ALL text-on-surface and accent-contrast pairs SHALL meet WCAG AA (4.5:1) for all three palettes and Classic theme.
+- WHEN a URL with `?palette=` parameter is loaded, THE SYSTEM SHALL validate and apply the specified palette (or reject invalid values).
+- WHEN CSS is parsed, THE SYSTEM SHALL verify NO hardcoded hex colors or rgba functions remain in `src/dom/styles.css` (all via CSS custom properties).
+- WHEN tests run, THEY SHALL verify that switching from Haunted → Classic removes palette selector, then back to Haunted re-enables it.
+- WHEN an inline style in `src/dom/**/*.ts` uses color, IT SHALL fail the test (colors must come from computed styles or CSS classes, not inline style attributes).
+
+### REQ-P10-010: Documentation: THEMING.md Update
+
+**User Story**
+As a developer, I want comprehensive theming documentation so that future contributors understand how to add themes or modify color tokens.
+
+**Acceptance Criteria**
+- WHEN docs/THEMING.md is read, IT SHALL include:
+  - Overview of the three-tier theme system (Classic, Haunted, Palettes)
+  - Complete semantic token glossary with purposes
+  - Guide for defining a new palette (minimal: update 15 core tokens)
+  - CSS custom property structure and naming conventions
+  - URL parameter override documentation (`?palette=...`)
+  - localStorage key (`stacks-palette`)
+  - Browser DevTools tips for testing theme changes (Chrome/Firefox DevTools CSS variable overrides)
+  - Contrast requirements and testing guidance
+- WHEN the documentation is complete, IT SHALL be clear enough for a new contributor to add a fourth palette within 30 minutes.
+
+### REQ-P10-011: No New Dependencies or Breaking Changes
+
+**User Story**
+As a maintainer, I want to refactor colors without adding dependencies or breaking existing tests so that the refactor is low-risk and focused.
+
+**Acceptance Criteria**
+- THE SYSTEM SHALL NOT add npm dependencies (CSS-in-JS, color libraries, theme managers).
+- WHEN existing tests run, THEY SHALL continue to pass (test selectors by class/data-attribute, not by color or appearance).
+- WHEN tests that relied on old purple/orange values are updated, ONLY THOSE TESTS SHALL BE MODIFIED (no unrelated tests touched).
+- WHEN a test asserts color, IT SHALL be updated to reflect the new palette tokens (or removed if appearance-assertion is not critical).
+- WHEN CSS is gzipped and bundled, THE SYSTEM SHALL verify size is under 8 kB (or report the actual size and flag if over).
+
+### REQ-P10-012: Classic Theme Preservation
+
+**User Story**
+As a user of Classic theme, I want it to continue working exactly as before so that the palette refactor is transparent to Classic-only users.
+
+**Acceptance Criteria**
+- WHEN Classic theme is active (via toggle), THE SYSTEM SHALL render identically to before the refactor (black, white, gray, no rounded corners, no shadows, no gradients).
+- WHEN CSS custom properties are evaluated in Classic mode, THEY SHALL resolve to the existing black/white/gray values.
+- WHEN tests that target Classic theme run, THEY SHALL pass without modification (appearance must be unchanged).
+

@@ -889,3 +889,237 @@ Phase 6 (Polish & Documentation)
   - Run full test suite; ensure all old tests pass.
   - Tests: All Phase 8 tests pass unchanged.
 
+
+
+---
+
+## Phase 10: Premium Palettes
+
+### CSS Token Refactor
+
+- [ ] **10.1.1** Define all semantic CSS custom properties in `src/dom/styles.css`. *(Ref: REQ-P10-001, REQ-P10-003)*
+  - Location: `src/dom/styles.css` (new `:root` blocks)
+  - Define base tokens: `--accent`, `--surface-0/1/2/3`, `--text-1/2/3`, `--hairline`, `--shadow-sm/md/lg`, `--radius-sm/md/lg`, `--glow`.
+  - Define palette-specific values: `:root[data-palette="ink"]`, `:root[data-palette="navy"]`, `:root[data-palette="graphite"]`.
+  - Ensure Classic theme tokens remain (`[data-theme="classic"]`).
+  - Tests: Verify all tokens defined, no undefined CSS var() references in computed styles.
+
+- [ ] **10.1.2** Replace hardcoded colors in `src/dom/styles.css` with CSS custom properties. *(Ref: REQ-P10-001)*
+  - Location: `src/dom/styles.css`
+  - Search for all hex colors, rgb(), rgba() functions.
+  - Replace with `var(--token-name)`.
+  - Verify zero remaining hardcoded colors (use regex `#[0-9a-f]{6}|rgba?\(` to check).
+  - Tests: Regex test passes (no hardcoded colors found).
+
+- [ ] **10.1.3** Replace inline color styles in `src/dom/**/*.ts` files with CSS classes or `var()`. *(Ref: REQ-P10-001)*
+  - Location: Search codebase for `color:`, `backgroundColor:`, `borderColor:` in inline styles
+  - Files likely affected: `src/dom/app.ts`, `src/dom/cardCanvas.ts`, `src/dom/runMode.ts`, `src/dom/elementInspector.ts`, `src/dom/scriptEditor.ts`, `src/dom/components/*.ts`
+  - Replace inline `style.color = "#..."` with CSS classes or `style.color = "var(--text-1)"`.
+  - Tests: Verify no hardcoded colors in inline styles, only `var()` expressions.
+
+- [ ] **10.1.4** Verify Classic theme backward compatibility with token refactor. *(Ref: REQ-P10-012)*
+  - Location: Render Classic theme, visually inspect
+  - Classic theme should appear identical to Phase 9 Classic theme (black, white, gray, 1-bit aesthetic).
+  - Verify no color changes or regressions.
+  - Tests: Run Phase 9 Classic theme tests; all pass unchanged.
+
+### Three Premium Palettes
+
+- [ ] **10.2.1** Implement palette selector in toolbar. *(Ref: REQ-P10-002, REQ-P10-005)*
+  - Location: `src/dom/app.ts` (or new `src/dom/components/paletteSelector.ts`)
+  - Create `<select>` or segmented control with options: "Ink", "Navy", "Graphite".
+  - Add `aria-label="Palette"` for accessibility.
+  - Place near Classic/Haunted theme toggle in toolbar.
+  - Tests: Selector renders, options selectable, aria-label present.
+
+- [ ] **10.2.2** Implement palette persistence in localStorage and URL override. *(Ref: REQ-P10-002)*
+  - Location: `src/dom/storage.ts` or `src/dom/app.ts`
+  - On load: restore palette from localStorage key `"stacks-palette"` (default: "ink").
+  - On change: save to localStorage.
+  - Parse URL parameter `?palette=ink|navy|graphite` on page load.
+  - Validate palette value; ignore if invalid.
+  - Apply palette via `document.documentElement.setAttribute("data-palette", palette)`.
+  - Tests: Persistence test (load → change → reload → verify), URL override test, invalid URL rejection.
+
+- [ ] **10.2.3** Palette selector visibility: hidden in Classic theme, visible in Haunted. *(Ref: REQ-P10-005)*
+  - Location: `src/dom/app.ts`
+  - When theme is "classic": `selector.style.display = "none"` or `selector.disabled = true`.
+  - When theme is "haunted": `selector.style.display = "block"` and `selector.disabled = false`.
+  - Tests: Selector visibility toggles with theme switch.
+
+- [ ] **10.2.4** Verify palette colors match design spec. *(Ref: REQ-P10-002, REQ-P10-003)*
+  - Location: Visually inspect or CSS test
+  - Ink: surfaces #0a0a0b-ish, accent champagne gold #d4b98c.
+  - Navy: surfaces #0b1220-ish, accent ice blue #a9c7e8.
+  - Graphite: surfaces #1a1816-ish, accent copper #c8875a.
+  - Verify palette colors appear correct on screen.
+  - Tests: Color values match spec (computed style assertions).
+
+### Premium Refinement
+
+- [ ] **10.3.1** Typography hierarchy: titles, section labels, body, monospace. *(Ref: REQ-P10-004)*
+  - Location: `src/dom/styles.css`
+  - Define `.heading-primary`, `.label-section` (11px uppercase, 2px letter-spacing), `.text-body`, `.text-mono`.
+  - Apply to relevant UI elements (panel headers, button labels, script editor, inspector labels).
+  - Tests: Typography rendered correctly, font sizes and letter-spacing match.
+
+- [ ] **10.3.2** Subtle surface gradients (very low-contrast, 1–2% shift). *(Ref: REQ-P10-004)*
+  - Location: `src/dom/styles.css`
+  - Define `.surface-gradient` with linear-gradient (top to bottom, 1–2% brightness increase).
+  - Apply to panels, cards, dialogs where depth is needed.
+  - Tests: Gradients visible in Haunted mode, barely noticeable (not distracting).
+
+- [ ] **10.3.3** Hairline borders (1px) throughout UI. *(Ref: REQ-P10-004)*
+  - Location: `src/dom/styles.css`
+  - Replace 2px borders with 1px `border: 1px solid var(--hairline)`.
+  - Update buttons, panels, panels headers, dialogs, input fields.
+  - Tests: All borders are 1px, use `--hairline` token.
+
+- [ ] **10.3.4** Consistent border radius: 6px (small), 10px (medium), 14px (large). *(Ref: REQ-P10-004)*
+  - Location: `src/dom/styles.css`
+  - Define `--radius-sm: 6px`, `--radius-md: 10px`, `--radius-lg: 14px`.
+  - Apply to buttons (6px), panels/cards (10px), modals/dialogs (14px).
+  - Update all existing hardcoded border-radius values.
+  - Tests: Radius values match spec, applied consistently.
+
+- [ ] **10.3.5** Soft dark shadows (no colored glows): `0 Xpx Ypx rgba(0,0,0,0.Z)`. *(Ref: REQ-P10-004)*
+  - Location: `src/dom/styles.css`
+  - Replace glowing purple/orange shadows with neutral dark shadows.
+  - Define `--shadow-sm: 0 2px 4px rgba(0,0,0,0.3)`, `--shadow-md: 0 4px 12px rgba(0,0,0,0.4)`, `--shadow-lg: 0 12px 24px rgba(0,0,0,0.5)`.
+  - Remove any purple/orange box-shadow values (search for `#a855f7`, `#f97316`, `rgb(168,85,247)` in shadows).
+  - Tests: No glowing shadows, only dark neutral shadows; old purple shadows completely removed.
+
+- [ ] **10.3.6** Toolbar: grouped buttons with hairline dividers and consistent styling. *(Ref: REQ-P10-004)*
+  - Location: `src/dom/app.ts` and `src/dom/styles.css`
+  - Group related toolbar buttons (card actions, element actions, edit actions, mode/theme, file actions).
+  - Add hairline dividers between groups using `--hairline` token.
+  - Apply consistent icon+label styling to all buttons.
+  - Tests: Toolbar renders with groups and dividers, buttons styled consistently.
+
+- [ ] **10.3.7** Panel headers: uppercase labels with 11px + 2px letter-spacing. *(Ref: REQ-P10-004)*
+  - Location: `src/dom/styles.css` and affected components
+  - Define `.panel-header` with uppercase, 11px, 2px letter-spacing.
+  - Apply to inspector title, script editor title, card list title, etc.
+  - Tests: Panel headers match styling spec, uppercase and spaced correctly.
+
+- [ ] **10.3.8** Drastically reduce glow/neon text-shadows and box-shadows. *(Ref: REQ-P10-004)*
+  - Location: Search codebase for `text-shadow`, `box-shadow`, and remove or soften
+  - Replace `text-shadow: 0 0 12px #a855f7` (neon glow) with minimal/no text-shadow.
+  - Replace glowing button shadows with neutral `var(--shadow-sm)`.
+  - Verify `--glow` token is used sparingly (only subtle focus effects).
+  - Tests: Regex/grep confirms no neon glow shadows found, only neutral soft shadows.
+
+### Welcome/Empty State Refinement
+
+- [ ] **10.4.1** Refine welcome dialog with elegant heading, tagline, hairline card, accent button. *(Ref: REQ-P10-006)*
+  - Location: `src/dom/welcomeScreen.ts`
+  - Update heading text styling to `.heading-primary`.
+  - Add 1–2 line tagline.
+  - Wrap preview/description in a hairline-bordered card (`border: 1px solid var(--hairline)`).
+  - Make primary button use `--accent` color (palette-aware).
+  - Tests: Welcome dialog renders with refined styling, button uses accent color from current palette.
+
+- [ ] **10.4.2** Create tasteful empty-state message for cards with no elements. *(Ref: REQ-P10-006)*
+  - Location: `src/dom/cardCanvas.ts` (or card renderer)
+  - When card is empty: display centered message with hairline border around it.
+  - Text: "This card is empty" (body) + "Use the toolbar to add buttons and fields" (secondary).
+  - Tests: Empty card state displays when appropriate, styling matches spec.
+
+### Reduced-Motion and Focus
+
+- [ ] **10.5.1** Ensure reduced-motion media query disables all animations. *(Ref: REQ-P10-008)*
+  - Location: `src/dom/styles.css`
+  - Add `@media (prefers-reduced-motion: reduce)` rule: set all `transition-duration` and `animation-duration` to 0s.
+  - Tests: `tests/reduced-motion.test.ts` - verify animations disabled when media query active.
+
+- [ ] **10.5.2** Implement visible, compliant focus rings (accent color, 2–3px, 3:1 contrast). *(Ref: REQ-P10-008)*
+  - Location: `src/dom/styles.css`
+  - Add `:focus-visible` rule: `outline: 2px solid var(--accent); outline-offset: 2px;`.
+  - Apply to buttons, inputs, selects, form fields.
+  - Verify outline color has 3:1+ contrast against background.
+  - Tests: Focus rings visible on all interactive elements, contrast ≥ 3:1.
+
+### Syntax Highlight Harmonization
+
+- [ ] **10.6.1** Harmonize syntax highlight colors per palette in script editor. *(Ref: REQ-P10-007)*
+  - Location: `src/dom/styles.css` (new `--token-*` properties) and `src/dom/scriptEditor.ts`
+  - Define `--token-keyword`, `--token-string`, `--token-number`, `--token-comment`, `--token-operator` for each palette.
+  - Classic: 1-bit colors (black, gray).
+  - Ink: gold accents, muted tones.
+  - Navy: ice blue accents, muted tones.
+  - Graphite: copper accents, muted tones.
+  - Apply in script editor via CSS classes or inline `style.color = "var(--token-keyword)"`.
+  - Tests: Syntax highlighting colors match palette, readable in all three palettes.
+
+### Testing and Verification
+
+- [ ] **10.6.2** Contrast test: text-1/2/3 on surfaces + accent-contrast on accent for all three palettes and Classic. *(Ref: REQ-P10-009)*
+  - Location: `tests/contrast.test.ts` (extend from Phase 9)
+  - Test all combinations: `--text-1` on `--surface-0/1/2/3`, etc., for each palette and Classic.
+  - Test `--accent-contrast` on `--accent` for each palette.
+  - Verify all ≥ 4.5:1 (WCAG AA for normal text).
+  - Tests: All contrast pairs pass, report generated.
+
+- [ ] **10.6.3** Palette persistence test: localStorage key, URL override, invalid rejection. *(Ref: REQ-P10-009)*
+  - Location: `tests/theme-persistence.test.ts` (extend)
+  - Test: Select palette → reload → palette persists.
+  - Test: URL `?palette=navy` → applies Navy palette.
+  - Test: URL `?palette=invalid` → ignores, uses saved palette.
+  - Tests: All scenarios pass.
+
+- [ ] **10.6.4** Palette selector behavior: visibility toggle with theme, options selectable. *(Ref: REQ-P10-009)*
+  - Location: `tests/class-names.test.ts` or new test
+  - Test: Classic theme active → selector hidden/disabled.
+  - Test: Haunted theme active → selector visible/enabled.
+  - Test: Select "Navy" → palette changes to Navy.
+  - Tests: All behaviors verified.
+
+- [ ] **10.6.5** CSS token verification: no hardcoded colors in styles.css or inline styles. *(Ref: REQ-P10-009)*
+  - Location: `tests/` or `npm run test`
+  - Regex check: zero matches for `#[0-9a-f]{6}`, `#[0-9a-f]{3}`, `rgba?\(.*[0-9]` in `src/dom/styles.css` and inline styles.
+  - Exception: allowed in comments, test files, documentation.
+  - Tests: Regex passes for production CSS.
+
+- [ ] **10.6.6** Update existing tests that asserted old purple colors to use new palette tokens. *(Ref: REQ-P10-009)*
+  - Location: Search tests for assertions on `#a855f7`, `#c084fc`, `#f97316`, `#9333ea`
+  - Update each assertion to use the palette-appropriate token instead (or remove if not critical).
+  - Ensure no tests are skipped; only color assertions modified.
+  - Tests: All existing tests pass; purple color assertions removed or updated.
+
+- [ ] **10.6.7** Run full test suite and fix failures. *(Ref: REQ-P10-009)*
+  - Location: `npm run test` (or `npm run test:run`)
+  - Run all tests; identify and fix failures caused by color refactor.
+  - Verify bundle size: `npm run build` and check gzipped size ≤ 8 kB CSS (or report actual).
+  - Tests: All tests pass, bundle size acceptable.
+
+### Documentation
+
+- [ ] **10.7.1** Update docs/THEMING.md with complete palette and token documentation. *(Ref: REQ-P10-010)*
+  - Location: `docs/THEMING.md` (create or update)
+  - Include:
+    - Overview of three-tier theme system (Classic, Haunted, Palettes)
+    - Complete semantic token glossary (purpose of each token)
+    - Guide for defining a new palette (minimal: 15 core tokens)
+    - CSS custom property structure and naming conventions
+    - URL parameter override (`?palette=...`)
+    - localStorage key (`stacks-palette`)
+    - Browser DevTools tips for testing (CSS variable overrides)
+    - Contrast requirements and testing guidance
+  - Ensure clarity for new contributors (should be able to add fourth palette in 30 mins).
+  - Tests: Documentation is clear and complete, examples work.
+
+---
+
+## Dependency Graph (Updated)
+
+```
+Phase 1–9: existing (model, interpreter, UI, dark theme)
+     ↓
+Phase 10: Premium Palettes
+  - 10.1: CSS Token Refactor (foundation)
+    ↓
+  - 10.2–10.6: Premium Palettes, Refinement, Testing
+  - All can proceed in parallel after 10.1
+  - 10.7: Documentation (can proceed in parallel)
+```
+

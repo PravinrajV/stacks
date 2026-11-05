@@ -1819,3 +1819,531 @@ To maintain test compatibility:
   - `class="card-canvas theme-haunted"` (not `class="card-canvas-haunted"`)
   - `data-theme="haunted"` on root or specific containers
 
+
+
+---
+
+## Phase 10: Premium Palettes Design
+
+### CSS Custom Properties Architecture
+
+All colors in the system are defined as semantic CSS custom properties. The property naming follows a clear hierarchy:
+
+```css
+/* Core semantic tokens (same across all themes) */
+:root[data-theme="haunted"] {
+  /* Accent: primary interactive color */
+  --accent: #d4b98c;                    /* Ink: champagne gold */
+  --accent-strong: #e6d4a3;             /* Lighter/emphasis variant */
+  --accent-soft: rgba(212, 185, 140, 0.15);  /* Transparent for backgrounds */
+  --accent-contrast: #000000;           /* Text on accent (black for gold) */
+
+  /* Surfaces: layered backgrounds */
+  --surface-0: #0a0a0b;                 /* Darkest: panels, containers */
+  --surface-1: #121314;                 /* Dialog backgrounds */
+  --surface-2: #1a1c1e;                 /* Hover states */
+  --surface-3: #252829;                 /* Light surface for contrast */
+
+  /* Text colors */
+  --text-1: #f0f0f0;                    /* Primary text */
+  --text-2: #a0a0a0;                    /* Secondary/muted */
+  --text-3: #606060;                    /* Tertiary/disabled */
+
+  /* Borders and separators */
+  --hairline: #404040;                  /* Subtle dividers (1px) */
+  --hairline-strong: #606060;           /* Stronger dividers */
+
+  /* Shadows (soft, not glowy) */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.5);
+
+  /* Border radius (consistent design system) */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Glow effect (subtle, not neon) */
+  --glow: 0 0 12px rgba(212, 185, 140, 0.2);
+}
+
+/* Navy palette variant */
+:root[data-theme="haunted"][data-palette="navy"] {
+  --accent: #a9c7e8;                    /* Ice blue/silver */
+  --accent-strong: #c0d9f0;
+  --accent-soft: rgba(169, 199, 232, 0.15);
+  --accent-contrast: #000000;
+  
+  --surface-0: #0b1220;
+  --surface-1: #131c2f;
+  --surface-2: #1a2540;
+  --surface-3: #253150;
+  
+  --hairline: #3d4858;
+  --hairline-strong: #555f7a;
+  
+  --glow: 0 0 12px rgba(169, 199, 232, 0.2);
+}
+
+/* Graphite palette variant */
+:root[data-theme="haunted"][data-palette="graphite"] {
+  --accent: #c8875a;                    /* Copper */
+  --accent-strong: #d99966;
+  --accent-soft: rgba(200, 135, 90, 0.15);
+  --accent-contrast: #000000;
+  
+  --surface-0: #1a1816;
+  --surface-1: #22201c;
+  --surface-2: #2a2824;
+  --surface-3: #333029;
+  
+  --hairline: #4a4238;
+  --hairline-strong: #605850;
+  
+  --glow: 0 0 12px rgba(200, 135, 90, 0.2);
+}
+
+/* Classic theme (1-bit, unchanged) */
+:root[data-theme="classic"] {
+  --accent: #000000;
+  --accent-strong: #000000;
+  --accent-soft: transparent;
+  --accent-contrast: #ffffff;
+  
+  --surface-0: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #cccccc;
+  --surface-3: #999999;
+  
+  --text-1: #000000;
+  --text-2: #666666;
+  --text-3: #999999;
+  
+  --hairline: #000000;
+  --hairline-strong: #000000;
+  
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  
+  --glow: none;
+}
+```
+
+### Typography Hierarchy
+
+```css
+/* Display/headings */
+.heading-primary {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-1);
+}
+
+/* Section labels (uppercase, small caps) */
+.label-section {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-1);
+  /* Optional: font-variant: small-caps; */
+}
+
+/* Body text */
+.text-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-1);
+}
+
+/* Body text (compact) */
+.text-body-sm {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-1);
+}
+
+/* Monospace (script editor) */
+.text-mono {
+  font-family: Monaco, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-1);
+}
+
+/* Secondary text (muted) */
+.text-secondary {
+  color: var(--text-2);
+}
+
+/* Disabled/tertiary text */
+.text-disabled {
+  color: var(--text-3);
+  opacity: 0.6;
+}
+```
+
+### Surface and Component Styling
+
+```css
+/* Panels (glass-morphism) */
+.panel {
+  background: var(--surface-0);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  /* Optional: backdrop-filter: blur(10px) for glass effect */
+}
+
+.panel-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-1);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-1);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.btn:hover {
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-strong);
+  box-shadow: var(--shadow-md);
+}
+
+/* Focus ring (compliant) */
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Dividers */
+.divider {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: 8px 0;
+}
+
+.divider-strong {
+  border-top: 1px solid var(--hairline-strong);
+}
+```
+
+### Surface Gradients (Subtle)
+
+```css
+/* Very low-contrast gradient for depth */
+.surface-gradient {
+  background: linear-gradient(180deg, var(--surface-0) 0%, color-mix(in srgb, var(--surface-0) 98%, white) 100%);
+  /* Or: background: linear-gradient(180deg, var(--surface-0), rgba(255, 255, 255, 0.02)); */
+}
+```
+
+### Palette Selector Logic
+
+The palette selector is a simple `<select>` or segmented control in the toolbar:
+
+```typescript
+// src/dom/app.ts
+function initPaletteSelector(container: HTMLElement) {
+  const selector = document.createElement("select");
+  selector.id = "palette-selector";
+  selector.setAttribute("aria-label", "Palette");
+  
+  const options = ["Ink", "Navy", "Graphite"];
+  options.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name.toLowerCase();
+    opt.textContent = name;
+    selector.appendChild(opt);
+  });
+  
+  // Restore from localStorage or default to "ink"
+  const saved = localStorage.getItem("stacks-palette") || "ink";
+  selector.value = saved;
+  document.documentElement.setAttribute("data-palette", saved);
+  
+  selector.addEventListener("change", (e) => {
+    const palette = (e.target as HTMLSelectElement).value;
+    // Validate palette (in case URL was tampered with)
+    if (["ink", "navy", "graphite"].includes(palette)) {
+      document.documentElement.setAttribute("data-palette", palette);
+      localStorage.setItem("stacks-palette", palette);
+    }
+  });
+  
+  // Handle URL override: ?palette=navy
+  const params = new URLSearchParams(window.location.search);
+  const urlPalette = params.get("palette");
+  if (urlPalette && ["ink", "navy", "graphite"].includes(urlPalette)) {
+    document.documentElement.setAttribute("data-palette", urlPalette);
+    selector.value = urlPalette;
+    localStorage.setItem("stacks-palette", urlPalette);
+  }
+  
+  container.appendChild(selector);
+}
+
+// Hide palette selector when Classic theme is active
+function updatePaletteVisibility() {
+  const selector = document.getElementById("palette-selector") as HTMLSelectElement;
+  if (selector) {
+    const isHaunted = document.documentElement.getAttribute("data-theme") === "haunted";
+    selector.style.display = isHaunted ? "block" : "none";
+    selector.disabled = !isHaunted;
+  }
+}
+```
+
+### Syntax Highlighting Color Map
+
+```css
+/* Classic theme (1-bit) */
+:root[data-theme="classic"] {
+  --token-keyword: #000000;
+  --token-string: #666666;
+  --token-number: #333333;
+  --token-comment: #999999;
+  --token-operator: #000000;
+}
+
+/* Haunted + Ink palette (default) */
+:root[data-theme="haunted"][data-palette="ink"],
+:root[data-theme="haunted"]:not([data-palette]) {
+  --token-keyword: var(--accent);        /* Gold */
+  --token-string: #c0a080;               /* Muted gold/tan */
+  --token-number: #a9c7e8;               /* Ice blue (borrowed from Navy) */
+  --token-comment: var(--text-2);        /* Muted text */
+  --token-operator: var(--text-1);       /* Primary text */
+}
+
+/* Haunted + Navy palette */
+:root[data-theme="haunted"][data-palette="navy"] {
+  --token-keyword: var(--accent);        /* Ice blue */
+  --token-string: #889cc4;               /* Muted blue */
+  --token-number: #c8875a;               /* Copper (from Graphite) */
+  --token-comment: var(--text-2);
+  --token-operator: var(--text-1);
+}
+
+/* Haunted + Graphite palette */
+:root[data-theme="haunted"][data-palette="graphite"] {
+  --token-keyword: var(--accent);        /* Copper */
+  --token-string: #a06545;               /* Muted copper */
+  --token-number: #a9c7e8;               /* Ice blue (from Navy) */
+  --token-comment: var(--text-2);
+  --token-operator: var(--text-1);
+}
+```
+
+Apply in the script editor:
+
+```typescript
+// src/dom/scriptEditor.ts
+const tokens = lexer.tokenize(scriptSource);
+for (const token of tokens) {
+  const span = document.createElement("span");
+  const colorVar = `--token-${token.type}`;
+  span.style.color = `var(${colorVar})`;
+  span.textContent = token.value;
+  highlightContainer.appendChild(span);
+}
+```
+
+### Welcome Dialog and Empty State Design
+
+**Welcome Dialog HTML Structure**:
+
+```html
+<div class="modal modal-welcome">
+  <div class="modal-content">
+    <h1 class="modal-title">Welcome to Stacks</h1>
+    <p class="modal-tagline">HyperCard revival for the web</p>
+    <div class="modal-card" style="border: 1px solid var(--hairline); padding: 16px; margin: 16px 0;">
+      <p class="text-body">Create interactive stacks with buttons, fields, and HyperTalk scripts.</p>
+    </div>
+    <button class="btn btn-primary">Create First Stack</button>
+    <button class="btn">Load Example</button>
+  </div>
+</div>
+```
+
+**Empty Card State**:
+
+```html
+<div class="card-empty">
+  <div class="empty-state" style="border: 1px solid var(--hairline); padding: 24px; text-align: center;">
+    <p class="text-body text-secondary">This card is empty</p>
+    <p class="text-body-sm">Use the toolbar to add buttons and fields</p>
+  </div>
+</div>
+```
+
+### Toolbar Design (Grouped Buttons + Dividers)
+
+```html
+<div class="toolbar">
+  <!-- Card actions -->
+  <div class="toolbar-group">
+    <button class="btn" title="Add Card (Ctrl+N)">➕ Card</button>
+    <div class="toolbar-divider"></div>
+  </div>
+  
+  <!-- Element actions -->
+  <div class="toolbar-group">
+    <button class="btn" title="Add Button">➕ Button</button>
+    <button class="btn" title="Add Field">➕ Field</button>
+    <button class="btn" title="Delete">🗑️</button>
+    <div class="toolbar-divider"></div>
+  </div>
+  
+  <!-- Edit actions -->
+  <div class="toolbar-group">
+    <button class="btn" title="Undo (Ctrl+Z)">↶ Undo</button>
+    <button class="btn" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+    <div class="toolbar-divider"></div>
+  </div>
+  
+  <!-- Mode & Theme -->
+  <div class="toolbar-group">
+    <button class="btn" id="run-mode-toggle" title="Run Mode (Ctrl+Enter)">▶️ Run</button>
+    <button class="btn" id="theme-toggle" title="Toggle Classic/Haunted">🎨 Theme</button>
+    <select id="palette-selector" aria-label="Palette">
+      <option value="ink">Ink</option>
+      <option value="navy">Navy</option>
+      <option value="graphite">Graphite</option>
+    </select>
+    <div class="toolbar-divider"></div>
+  </div>
+  
+  <!-- File actions -->
+  <div class="toolbar-group">
+    <button class="btn" title="Save (Ctrl+S)">💾 Save</button>
+    <button class="btn" title="Export">📥 Export</button>
+    <button class="btn" title="Import">📤 Import</button>
+  </div>
+</div>
+```
+
+**Toolbar CSS**:
+
+```css
+.toolbar {
+  display: flex;
+  gap: 0;
+  padding: 8px;
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--hairline);
+  align-items: center;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--hairline);
+  margin: 0 4px;
+}
+
+.toolbar-group > .btn {
+  margin: 0 2px;
+}
+
+#palette-selector {
+  padding: 6px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-1);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#palette-selector:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+#palette-selector:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+```
+
+### Contrast Verification Table
+
+| Element | Ink Palette | Navy Palette | Graphite Palette | Classic | Target |
+|---------|-------------|--------------|------------------|---------|--------|
+| `--text-1` on `--surface-0` | #f0f0f0 on #0a0a0b | #f0f0f0 on #0b1220 | #f0f0f0 on #1a1816 | #000000 on #ffffff | 4.5:1 ✓ |
+| `--accent-contrast` on `--accent` | #000000 on #d4b98c | #000000 on #a9c7e8 | #000000 on #c8875a | — | 4.5:1 ✓ |
+| `--text-2` on `--surface-0` | #a0a0a0 on #0a0a0b | #a0a0a0 on #0b1220 | #a0a0a0 on #1a1816 | #666666 on #ffffff | 4.5:1 ✓ |
+| Focus ring | 2px #d4b98c | 2px #a9c7e8 | 2px #c8875a | 2px #000000 | 3:1 min ✓ |
+
+### Reduced-Motion Compliance
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
+}
+```
+
+### No Hardcoded Colors Verification
+
+**Regex for testing**:
+
+```regex
+# Find any hardcoded hex colors
+#[0-9a-f]{6}|#[0-9a-f]{3}
+
+# Find any rgb/rgba functions
+rgba?\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+
+
+# Find hsl functions
+hsla?\s*\(\s*\d+\s*,
+```
+
+All matches in `src/dom/styles.css` and `src/dom/**/*.ts` should be:
+1. Inside comments (explaining the refactor or token purpose)
+2. In test files (for color assertions)
+3. In documentation or examples
+
+**Exception**: Inline styles in JS should NEVER contain hardcoded colors; they must use `var(--token-name)` or CSS classes.
+
