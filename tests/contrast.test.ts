@@ -73,17 +73,43 @@ describe('Theme Contrast Ratios (WCAG AA)', () => {
     text_secondary: '#666666',
     text_tertiary: '#999999',
     border: '#000000',
+    accent_contrast: '#ffffff',
   };
 
-  // Haunted theme colors
-  const hauntedTheme = {
-    bg_primary: '#0b0614',
-    bg_secondary: '#1a1a2e',
-    bg_tertiary: '#2d2d4f',
+  // Ink palette (default Haunted)
+  const inkTheme = {
+    bg_primary: '#0b0b0c',
+    bg_secondary: '#121214',
+    bg_tertiary: '#18181b',
     text_primary: '#e8e8f0',
     text_secondary: '#a8a8c8',
     text_tertiary: '#808090',
-    border_accent: '#a855f7',
+    accent: '#d4b98c',
+    accent_contrast: '#000000',
+  };
+
+  // Navy palette
+  const navyTheme = {
+    bg_primary: '#0a1020',
+    bg_secondary: '#0f172a',
+    bg_tertiary: '#141e33',
+    text_primary: '#e8f0f8',
+    text_secondary: '#a8c8e8',
+    text_tertiary: '#8090a8',
+    accent: '#a9c7e8',
+    accent_contrast: '#000000',
+  };
+
+  // Graphite palette
+  const graphiteTheme = {
+    bg_primary: '#161412',
+    bg_secondary: '#1d1a17',
+    bg_tertiary: '#24201c',
+    text_primary: '#f0ede8',
+    text_secondary: '#c8b8a8',
+    text_tertiary: '#a0908a',
+    accent: '#c8875a',
+    accent_contrast: '#1d1a17',
   };
 
   describe('Classic Theme', () => {
@@ -135,37 +161,104 @@ describe('Theme Contrast Ratios (WCAG AA)', () => {
     });
   });
 
-  describe('Haunted Theme', () => {
+  describe('Haunted Theme - Ink Palette', () => {
     const pairs: TokenPair[] = [
-      // Body text on primary
+      // Body text on surfaces
       {
-        text: { name: 'text_primary', value: hauntedTheme.text_primary },
-        background: { name: 'bg_primary', value: hauntedTheme.bg_primary },
+        text: { name: 'text_primary', value: inkTheme.text_primary },
+        background: { name: 'bg_primary', value: inkTheme.bg_primary },
       },
-      // Body text on secondary
       {
-        text: { name: 'text_primary', value: hauntedTheme.text_primary },
-        background: { name: 'bg_secondary', value: hauntedTheme.bg_secondary },
+        text: { name: 'text_primary', value: inkTheme.text_primary },
+        background: { name: 'bg_secondary', value: inkTheme.bg_secondary },
       },
-      // Body text on tertiary
       {
-        text: { name: 'text_primary', value: hauntedTheme.text_primary },
-        background: { name: 'bg_tertiary', value: hauntedTheme.bg_tertiary },
+        text: { name: 'text_primary', value: inkTheme.text_primary },
+        background: { name: 'bg_tertiary', value: inkTheme.bg_tertiary },
       },
-      // Secondary text on primary
+      // Secondary text on surfaces
       {
-        text: { name: 'text_secondary', value: hauntedTheme.text_secondary },
-        background: { name: 'bg_primary', value: hauntedTheme.bg_primary },
+        text: { name: 'text_secondary', value: inkTheme.text_secondary },
+        background: { name: 'bg_primary', value: inkTheme.bg_primary },
       },
-      // Secondary text on secondary
       {
-        text: { name: 'text_secondary', value: hauntedTheme.text_secondary },
-        background: { name: 'bg_secondary', value: hauntedTheme.bg_secondary },
+        text: { name: 'text_secondary', value: inkTheme.text_secondary },
+        background: { name: 'bg_secondary', value: inkTheme.bg_secondary },
       },
-      // Accent (focus/buttons) on primary
+      // Accent text on accent background (button)
       {
-        text: { name: 'border_accent', value: hauntedTheme.border_accent },
-        background: { name: 'bg_primary', value: hauntedTheme.bg_primary },
+        text: { name: 'accent_contrast', value: inkTheme.accent_contrast },
+        background: { name: 'accent', value: inkTheme.accent },
+      },
+    ];
+
+    pairs.forEach((pair) => {
+      it(`${pair.text.name} on ${pair.background.name} >= 4.5:1`, () => {
+        const ratio = getContrastRatio(pair.text.value, pair.background.value);
+        expect(ratio).not.toBeNull();
+        if (ratio !== null) {
+          expect(ratio).toBeGreaterThanOrEqual(
+            4.5,
+            `Contrast ${ratio.toFixed(2)}:1 is below 4.5:1 minimum. ` +
+              `Text: ${pair.text.value} on ${pair.background.value}`
+          );
+        }
+      });
+    });
+  });
+
+  describe('Haunted Theme - Navy Palette', () => {
+    const pairs: TokenPair[] = [
+      {
+        text: { name: 'text_primary', value: navyTheme.text_primary },
+        background: { name: 'bg_primary', value: navyTheme.bg_primary },
+      },
+      {
+        text: { name: 'text_primary', value: navyTheme.text_primary },
+        background: { name: 'bg_secondary', value: navyTheme.bg_secondary },
+      },
+      {
+        text: { name: 'text_secondary', value: navyTheme.text_secondary },
+        background: { name: 'bg_primary', value: navyTheme.bg_primary },
+      },
+      {
+        text: { name: 'accent_contrast', value: navyTheme.accent_contrast },
+        background: { name: 'accent', value: navyTheme.accent },
+      },
+    ];
+
+    pairs.forEach((pair) => {
+      it(`${pair.text.name} on ${pair.background.name} >= 4.5:1`, () => {
+        const ratio = getContrastRatio(pair.text.value, pair.background.value);
+        expect(ratio).not.toBeNull();
+        if (ratio !== null) {
+          expect(ratio).toBeGreaterThanOrEqual(
+            4.5,
+            `Contrast ${ratio.toFixed(2)}:1 is below 4.5:1 minimum. ` +
+              `Text: ${pair.text.value} on ${pair.background.value}`
+          );
+        }
+      });
+    });
+  });
+
+  describe('Haunted Theme - Graphite Palette', () => {
+    const pairs: TokenPair[] = [
+      {
+        text: { name: 'text_primary', value: graphiteTheme.text_primary },
+        background: { name: 'bg_primary', value: graphiteTheme.bg_primary },
+      },
+      {
+        text: { name: 'text_primary', value: graphiteTheme.text_primary },
+        background: { name: 'bg_secondary', value: graphiteTheme.bg_secondary },
+      },
+      {
+        text: { name: 'text_secondary', value: graphiteTheme.text_secondary },
+        background: { name: 'bg_primary', value: graphiteTheme.bg_primary },
+      },
+      {
+        text: { name: 'accent_contrast', value: graphiteTheme.accent_contrast },
+        background: { name: 'accent', value: graphiteTheme.accent },
       },
     ];
 

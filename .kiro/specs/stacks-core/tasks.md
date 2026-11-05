@@ -1027,12 +1027,12 @@ Phase 6 (Polish & Documentation)
 
 ### Reduced-Motion and Focus
 
-- [ ] **10.5.1** Ensure reduced-motion media query disables all animations. *(Ref: REQ-P10-008)*
+- [x] **10.5.1** Ensure reduced-motion media query disables all animations. *(Ref: REQ-P10-008)*
   - Location: `src/dom/styles.css`
   - Add `@media (prefers-reduced-motion: reduce)` rule: set all `transition-duration` and `animation-duration` to 0s.
   - Tests: `tests/reduced-motion.test.ts` - verify animations disabled when media query active.
 
-- [ ] **10.5.2** Implement visible, compliant focus rings (accent color, 2–3px, 3:1 contrast). *(Ref: REQ-P10-008)*
+- [x] **10.5.2** Implement visible, compliant focus rings (accent color, 2–3px, 3:1 contrast). *(Ref: REQ-P10-008)*
   - Location: `src/dom/styles.css`
   - Add `:focus-visible` rule: `outline: 2px solid var(--accent); outline-offset: 2px;`.
   - Apply to buttons, inputs, selects, form fields.
@@ -1041,7 +1041,7 @@ Phase 6 (Polish & Documentation)
 
 ### Syntax Highlight Harmonization
 
-- [ ] **10.6.1** Harmonize syntax highlight colors per palette in script editor. *(Ref: REQ-P10-007)*
+- [x] **10.6.1** Harmonize syntax highlight colors per palette in script editor. *(Ref: REQ-P10-007)*
   - Location: `src/dom/styles.css` (new `--token-*` properties) and `src/dom/scriptEditor.ts`
   - Define `--token-keyword`, `--token-string`, `--token-number`, `--token-comment`, `--token-operator` for each palette.
   - Classic: 1-bit colors (black, gray).
@@ -1053,28 +1053,28 @@ Phase 6 (Polish & Documentation)
 
 ### Testing and Verification
 
-- [ ] **10.6.2** Contrast test: text-1/2/3 on surfaces + accent-contrast on accent for all three palettes and Classic. *(Ref: REQ-P10-009)*
+- [x] **10.6.2** Contrast test: text-1/2/3 on surfaces + accent-contrast on accent for all three palettes and Classic. *(Ref: REQ-P10-009)*
   - Location: `tests/contrast.test.ts` (extend from Phase 9)
   - Test all combinations: `--text-1` on `--surface-0/1/2/3`, etc., for each palette and Classic.
   - Test `--accent-contrast` on `--accent` for each palette.
   - Verify all ≥ 4.5:1 (WCAG AA for normal text).
   - Tests: All contrast pairs pass, report generated.
 
-- [ ] **10.6.3** Palette persistence test: localStorage key, URL override, invalid rejection. *(Ref: REQ-P10-009)*
+- [x] **10.6.3** Palette persistence test: localStorage key, URL override, invalid rejection. *(Ref: REQ-P10-009)*
   - Location: `tests/theme-persistence.test.ts` (extend)
   - Test: Select palette → reload → palette persists.
   - Test: URL `?palette=navy` → applies Navy palette.
   - Test: URL `?palette=invalid` → ignores, uses saved palette.
   - Tests: All scenarios pass.
 
-- [ ] **10.6.4** Palette selector behavior: visibility toggle with theme, options selectable. *(Ref: REQ-P10-009)*
+- [x] **10.6.4** Palette selector behavior: visibility toggle with theme, options selectable. *(Ref: REQ-P10-009)*
   - Location: `tests/class-names.test.ts` or new test
   - Test: Classic theme active → selector hidden/disabled.
   - Test: Haunted theme active → selector visible/enabled.
   - Test: Select "Navy" → palette changes to Navy.
   - Tests: All behaviors verified.
 
-- [ ] **10.6.5** CSS token verification: no hardcoded colors in styles.css or inline styles. *(Ref: REQ-P10-009)*
+- [x] **10.6.5** CSS token verification: no hardcoded colors in styles.css or inline styles. *(Ref: REQ-P10-009)*
   - Location: `tests/` or `npm run test`
   - Regex check: zero matches for `#[0-9a-f]{6}`, `#[0-9a-f]{3}`, `rgba?\(.*[0-9]` in `src/dom/styles.css` and inline styles.
   - Exception: allowed in comments, test files, documentation.
@@ -1086,7 +1086,7 @@ Phase 6 (Polish & Documentation)
   - Ensure no tests are skipped; only color assertions modified.
   - Tests: All existing tests pass; purple color assertions removed or updated.
 
-- [ ] **10.6.7** Run full test suite and fix failures. *(Ref: REQ-P10-009)*
+- [x] **10.6.7** Run full test suite and fix failures. *(Ref: REQ-P10-009)*
   - Location: `npm run test` (or `npm run test:run`)
   - Run all tests; identify and fix failures caused by color refactor.
   - Verify bundle size: `npm run build` and check gzipped size ≤ 8 kB CSS (or report actual).
@@ -1094,7 +1094,7 @@ Phase 6 (Polish & Documentation)
 
 ### Documentation
 
-- [ ] **10.7.1** Update docs/THEMING.md with complete palette and token documentation. *(Ref: REQ-P10-010)*
+- [x] **10.7.1** Update docs/THEMING.md with complete palette and token documentation. *(Ref: REQ-P10-010)*
   - Location: `docs/THEMING.md` (create or update)
   - Include:
     - Overview of three-tier theme system (Classic, Haunted, Palettes)
