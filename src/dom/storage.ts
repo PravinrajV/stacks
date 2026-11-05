@@ -29,8 +29,8 @@ export function loadPalette(): Palette {
     return saved
   }
   
-  // Default to ink
-  return 'ink'
+  // Default to navy
+  return 'navy'
 }
 
 /**

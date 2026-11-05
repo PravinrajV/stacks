@@ -62,7 +62,7 @@ export class App {
   private settingsPanel: SettingsPanel | null = null
   private settingsModal: ModalComponent | null = null
   private currentTheme: 'haunted' | 'classic' = 'haunted'
-  private currentPalette: 'ink' | 'navy' | 'graphite' = 'ink'
+  private currentPalette: 'ink' | 'navy' | 'graphite' = 'navy'
   private welcomeScreen: WelcomeScreen | null = null
 
   constructor(containerId: string) {
