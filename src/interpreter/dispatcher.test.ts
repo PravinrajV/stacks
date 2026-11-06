@@ -196,6 +196,32 @@ describe('Message Dispatcher', () => {
     expect((context as any).uiResponder).toBe(uiResponder)
   })
 
+  it('shows answer dialogs that sit inside if/else', async () => {
+    const stack = createTestStack()
+    const card = stack.cards[0]
+    const button = createButton('btn1', 'Enter', { left: 10, top: 10, right: 110, bottom: 50 })
+    card.buttons.push(button)
+    button.scripts['mouseUp'] = `on mouseUp
+  if 1 = 0 then
+    answer "then"
+  else
+    answer "else"
+  end if
+end mouseUp`
+
+    const messages: string[] = []
+    const context = createExecutionContext(stack, card)
+    const result = await send('mouseUp', button, context, {
+      showAnswer: async (message: string) => {
+        messages.push(message)
+        return 0
+      }
+    })
+
+    expect(result.success).toBe(true)
+    expect(messages).toEqual(['else'])
+  })
+
   it('dispatches to card when button has no handler', async () => {
     const stack = createTestStack()
     const card = stack.cards[0]

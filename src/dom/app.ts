@@ -25,14 +25,14 @@ import { WelcomeScreen } from './welcomeScreen'
 import { StyledAlert, StyledConfirm, StyledPrompt } from './components/styledDialogs'
 import { animateModeSwitchIn, animateModeSwitchOut, prefersReducedMotion } from './utils/animations'
 
-// Import haunted-counter.json as a string at build time
-declare const HAUNTED_COUNTER_STACK: string | undefined
+// Import haunted-house.json as a string at build time
+declare const HAUNTED_HOUSE_STACK: string | undefined
 
-// Function to get haunted counter stack (allows for testing)
-function getHauntedCounterStack(): Stack | null {
+// Function to get the haunted house starter (allows for testing)
+function getHauntedHouseStack(): Stack | null {
   try {
-    if (typeof HAUNTED_COUNTER_STACK === 'string') {
-      return deserializeStack(HAUNTED_COUNTER_STACK)
+    if (typeof HAUNTED_HOUSE_STACK === 'string') {
+      return deserializeStack(HAUNTED_HOUSE_STACK)
     }
   } catch (err) {
     console.warn('Failed to deserialize starter stack:', err)
@@ -88,8 +88,8 @@ export class App {
     if (loaded) {
       stack = loaded
     } else {
-      // On first visit, try to load the starter stack from haunted-counter.json
-      const starterStack = getHauntedCounterStack()
+      // On first visit, try to load the starter stack from haunted-house.json
+      const starterStack = getHauntedHouseStack()
       if (starterStack) {
         stack = starterStack
       } else {
@@ -169,9 +169,9 @@ export class App {
       this.welcomeScreen = null
     })
 
-    // Handle "Open the Haunted Counter" - load example stack
+    // Handle "Open the Haunted House" - load example stack
     this.welcomeScreen.onLoadExampleClicked(() => {
-      const exampleStack = getHauntedCounterStack()
+      const exampleStack = getHauntedHouseStack()
       if (exampleStack) {
         this.appState.stack = exampleStack
         this.appState.currentCardId = exampleStack.cards[0]?.id || ''

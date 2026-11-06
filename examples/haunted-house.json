@@ -1,0 +1,604 @@
+{
+  "version": "1.0",
+  "stack": {
+    "id": "stack-haunted-house",
+    "name": "Haunted House",
+    "backgrounds": [],
+    "variables": {
+      "key": ""
+    },
+    "cards": [
+      {
+        "id": "card-porch",
+        "backgroundId": null,
+        "name": "Porch",
+        "scripts": {
+          "openCard": "on openCard\n  if stack key = \"brass\" then\n    put \"You carry a brass key.\" into field \"Inventory\"\n  else\n    put \"You carry nothing.\" into field \"Inventory\"\n  end if\nend openCard"
+        },
+        "variables": {},
+        "fields": [
+          {
+            "id": "f-porch-title",
+            "name": "Title",
+            "content": "The Porch",
+            "rect": {
+              "left": 20,
+              "top": 14,
+              "right": 492,
+              "bottom": 52
+            },
+            "font": "Monaco",
+            "fontSize": 16,
+            "textStyle": {
+              "bold": true,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-porch-body",
+            "name": "Story",
+            "content": "Rain needles the warped boards. A black door stands shut, and something on the other side counts each blow.\n\nKnock three times if you mean to be let in.",
+            "rect": {
+              "left": 20,
+              "top": 60,
+              "right": 492,
+              "bottom": 168
+            },
+            "font": "Monaco",
+            "fontSize": 13,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-porch-status",
+            "name": "Status",
+            "content": "Nobody has knocked yet.",
+            "rect": {
+              "left": 20,
+              "top": 176,
+              "right": 330,
+              "bottom": 208
+            },
+            "font": "Monaco",
+            "fontSize": 12,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-porch-knocks",
+            "name": "Knocks",
+            "content": "Knocks",
+            "rect": {
+              "left": 338,
+              "top": 176,
+              "right": 420,
+              "bottom": 208
+            },
+            "font": "Monaco",
+            "fontSize": 12,
+            "textStyle": {
+              "bold": true,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-porch-count",
+            "name": "Count",
+            "content": "0",
+            "rect": {
+              "left": 428,
+              "top": 176,
+              "right": 492,
+              "bottom": 208
+            },
+            "font": "Monaco",
+            "fontSize": 16,
+            "textStyle": {
+              "bold": true,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-porch-inventory",
+            "name": "Inventory",
+            "content": "You carry nothing.",
+            "rect": {
+              "left": 20,
+              "top": 276,
+              "right": 492,
+              "bottom": 312
+            },
+            "font": "Monaco",
+            "fontSize": 12,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          }
+        ],
+        "buttons": [
+          {
+            "id": "b-porch-knock",
+            "label": "Knock",
+            "rect": {
+              "left": 20,
+              "top": 220,
+              "right": 156,
+              "bottom": 260
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  put field \"Count\" + 1 into field \"Count\"\n  put \"Someone knocked \" & field \"Count\" & \" times\" into field \"Status\"\nend mouseUp"
+            }
+          },
+          {
+            "id": "b-porch-enter",
+            "label": "Enter",
+            "rect": {
+              "left": 172,
+              "top": 220,
+              "right": 308,
+              "bottom": 260
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  if field \"Count\" >= 3 then\n    go to card \"card-hall\"\n  else\n    answer \"The door won't budge.\"\n  end if\nend mouseUp"
+            }
+          }
+        ]
+      },
+      {
+        "id": "card-hall",
+        "backgroundId": null,
+        "name": "Hall",
+        "scripts": {
+          "openCard": "on openCard\n  if stack key = \"brass\" then\n    put \"You carry a brass key.\" into field \"Inventory\"\n  else\n    put \"You carry nothing.\" into field \"Inventory\"\n  end if\nend openCard"
+        },
+        "variables": {},
+        "fields": [
+          {
+            "id": "f-hall-title",
+            "name": "Title",
+            "content": "The Hall",
+            "rect": {
+              "left": 20,
+              "top": 14,
+              "right": 492,
+              "bottom": 52
+            },
+            "font": "Monaco",
+            "fontSize": 16,
+            "textStyle": {
+              "bold": true,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-hall-body",
+            "name": "Story",
+            "content": "Cold wax and a long runner. The library door is on the left. The crypt door is on the right, locked in old brass.\n\nOnly the librarian's word will open it.",
+            "rect": {
+              "left": 20,
+              "top": 60,
+              "right": 492,
+              "bottom": 196
+            },
+            "font": "Monaco",
+            "fontSize": 13,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-hall-inventory",
+            "name": "Inventory",
+            "content": "You carry nothing.",
+            "rect": {
+              "left": 20,
+              "top": 276,
+              "right": 492,
+              "bottom": 312
+            },
+            "font": "Monaco",
+            "fontSize": 12,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          }
+        ],
+        "buttons": [
+          {
+            "id": "b-hall-library",
+            "label": "Library",
+            "rect": {
+              "left": 20,
+              "top": 212,
+              "right": 156,
+              "bottom": 252
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  go to card \"card-library\"\nend mouseUp"
+            }
+          },
+          {
+            "id": "b-hall-crypt",
+            "label": "Crypt",
+            "rect": {
+              "left": 172,
+              "top": 212,
+              "right": 308,
+              "bottom": 252
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  if stack key = \"brass\" then\n    go to card \"card-crypt\"\n  else\n    answer \"The crypt is locked. The librarian's word opens it.\"\n  end if\nend mouseUp"
+            }
+          },
+          {
+            "id": "b-hall-porch",
+            "label": "Porch",
+            "rect": {
+              "left": 324,
+              "top": 212,
+              "right": 460,
+              "bottom": 252
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  go to card \"card-porch\"\nend mouseUp"
+            }
+          }
+        ]
+      },
+      {
+        "id": "card-library",
+        "backgroundId": null,
+        "name": "Library",
+        "scripts": {
+          "openCard": "on openCard\n  if stack key = \"brass\" then\n    put \"You carry a brass key.\" into field \"Inventory\"\n  else\n    put \"You carry nothing.\" into field \"Inventory\"\n  end if\nend openCard"
+        },
+        "variables": {},
+        "fields": [
+          {
+            "id": "f-library-title",
+            "name": "Title",
+            "content": "The Library",
+            "rect": {
+              "left": 20,
+              "top": 14,
+              "right": 492,
+              "bottom": 52
+            },
+            "font": "Monaco",
+            "fontSize": 16,
+            "textStyle": {
+              "bold": true,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-library-body",
+            "name": "Story",
+            "content": "A book lies open on the lectern. The ink is still wet:\n\nThis house is called Ravenwood.\n\nSpeak that name, and the shelf will answer.",
+            "rect": {
+              "left": 20,
+              "top": 60,
+              "right": 492,
+              "bottom": 164
+            },
+            "font": "Monaco",
+            "fontSize": 13,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-library-prompt",
+            "name": "Prompt",
+            "content": "Speak the house's name",
+            "rect": {
+              "left": 20,
+              "top": 172,
+              "right": 236,
+              "bottom": 208
+            },
+            "font": "Monaco",
+            "fontSize": 12,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-library-answer",
+            "name": "Answer",
+            "content": "",
+            "rect": {
+              "left": 248,
+              "top": 168,
+              "right": 492,
+              "bottom": 212
+            },
+            "font": "Monaco",
+            "fontSize": 14,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": true,
+            "scripts": {}
+          },
+          {
+            "id": "f-library-inventory",
+            "name": "Inventory",
+            "content": "You carry nothing.",
+            "rect": {
+              "left": 20,
+              "top": 276,
+              "right": 492,
+              "bottom": 312
+            },
+            "font": "Monaco",
+            "fontSize": 12,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          }
+        ],
+        "buttons": [
+          {
+            "id": "b-library-speak",
+            "label": "Speak",
+            "rect": {
+              "left": 20,
+              "top": 220,
+              "right": 156,
+              "bottom": 260
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  if uppercase(trim(field \"Answer\")) = \"RAVENWOOD\" then\n    put \"brass\" into stack key\n    put \"You carry a brass key.\" into field \"Inventory\"\n    answer \"A brass key falls from the shelf.\"\n  else\n    answer \"The shelves stay silent. That is not the house's name.\"\n  end if\nend mouseUp"
+            }
+          },
+          {
+            "id": "b-library-hall",
+            "label": "Hall",
+            "rect": {
+              "left": 172,
+              "top": 220,
+              "right": 308,
+              "bottom": 260
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  go to card \"card-hall\"\nend mouseUp"
+            }
+          }
+        ]
+      },
+      {
+        "id": "card-crypt",
+        "backgroundId": null,
+        "name": "Crypt",
+        "scripts": {
+          "openCard": "on openCard\n  if stack key = \"brass\" then\n    put \"You carry a brass key.\" into field \"Inventory\"\n  else\n    put \"You carry nothing.\" into field \"Inventory\"\n  end if\nend openCard"
+        },
+        "variables": {},
+        "fields": [
+          {
+            "id": "f-crypt-title",
+            "name": "Title",
+            "content": "The Crypt",
+            "rect": {
+              "left": 20,
+              "top": 14,
+              "right": 492,
+              "bottom": 52
+            },
+            "font": "Monaco",
+            "fontSize": 16,
+            "textStyle": {
+              "bold": true,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-crypt-body",
+            "name": "Story",
+            "content": "The lock turns. On the stone table sits the family ledger, its pages warm. The whispering stops.\n\nThe haunting lifts.",
+            "rect": {
+              "left": 20,
+              "top": 60,
+              "right": 492,
+              "bottom": 200
+            },
+            "font": "Monaco",
+            "fontSize": 13,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-crypt-inventory",
+            "name": "Inventory",
+            "content": "You carry nothing.",
+            "rect": {
+              "left": 20,
+              "top": 276,
+              "right": 492,
+              "bottom": 312
+            },
+            "font": "Monaco",
+            "fontSize": 12,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          }
+        ],
+        "buttons": [
+          {
+            "id": "b-crypt-ledger",
+            "label": "Carry the ledger",
+            "rect": {
+              "left": 20,
+              "top": 216,
+              "right": 228,
+              "bottom": 256
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  go to card \"card-dawn\"\nend mouseUp"
+            }
+          }
+        ]
+      },
+      {
+        "id": "card-dawn",
+        "backgroundId": null,
+        "name": "Dawn",
+        "scripts": {
+          "openCard": "on openCard\n  if stack key = \"brass\" then\n    put \"You carry a brass key.\" into field \"Inventory\"\n  else\n    put \"You carry nothing.\" into field \"Inventory\"\n  end if\nend openCard"
+        },
+        "variables": {},
+        "fields": [
+          {
+            "id": "f-dawn-title",
+            "name": "Title",
+            "content": "Dawn",
+            "rect": {
+              "left": 20,
+              "top": 14,
+              "right": 492,
+              "bottom": 52
+            },
+            "font": "Monaco",
+            "fontSize": 16,
+            "textStyle": {
+              "bold": true,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-dawn-body",
+            "name": "Story",
+            "content": "You carry the ledger into a thin morning. The porch is only a porch. The house is still, and whatever counted your knocks has gone quiet.",
+            "rect": {
+              "left": 20,
+              "top": 60,
+              "right": 492,
+              "bottom": 200
+            },
+            "font": "Monaco",
+            "fontSize": 13,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          },
+          {
+            "id": "f-dawn-inventory",
+            "name": "Inventory",
+            "content": "You carry nothing.",
+            "rect": {
+              "left": 20,
+              "top": 276,
+              "right": 492,
+              "bottom": 312
+            },
+            "font": "Monaco",
+            "fontSize": 12,
+            "textStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            },
+            "editable": false,
+            "scripts": {}
+          }
+        ],
+        "buttons": [
+          {
+            "id": "b-dawn-return",
+            "label": "Return to the porch",
+            "rect": {
+              "left": 20,
+              "top": 216,
+              "right": 236,
+              "bottom": 256
+            },
+            "style": "default",
+            "scripts": {
+              "mouseUp": "on mouseUp\n  go to card \"card-porch\"\nend mouseUp"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

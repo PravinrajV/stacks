@@ -91,7 +91,7 @@ export class WelcomeScreen {
     const exampleBtn = createElement('button', {
       className: 'welcome-btn welcome-btn-secondary'
     })
-    setTextContent(exampleBtn, 'Open the Haunted Counter')
+    setTextContent(exampleBtn, 'Open the Haunted House')
     addEventListener(exampleBtn, 'click', (evt: Event) => {
       this.handleLoadExample()
     })

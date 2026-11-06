@@ -925,6 +925,24 @@ export class Parser {
       } as FieldAccessExpr
     }
 
+    // Scoped variables: `card name` and `stack name`.
+    // A bare identifier is local to the handler and does not survive the click.
+    if (this.check('keyword', 'CARD') || this.check('keyword', 'STACK')) {
+      const scopeToken = this.advance()
+      const scope = scopeToken.value === 'STACK' ? 'stack' : 'card'
+      if (!this.match('identifier')) {
+        return this.error(`Expected variable name after ${scope}`)
+      }
+      const name = this.previous().value
+      return {
+        type: 'VariableAccess',
+        name,
+        scope,
+        line: token.line,
+        column: token.column
+      } as VariableAccessExpr
+    }
+
     // Parenthesized expression
     if (this.match('punctuation', '(')) {
       const expr = this.parseExpression()

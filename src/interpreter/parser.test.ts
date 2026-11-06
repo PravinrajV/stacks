@@ -146,6 +146,27 @@ describe('Parser (Tasks 2.7-2.12)', () => {
       expect(stmt.type).toBe('GoStatement')
     })
 
+    it('should parse go to card by id string', () => {
+      const result = parseCode('go to card "card-hall"')
+      expect(result).not.toHaveProperty('type', 'ParseError')
+      if (!('statements' in result)) throw new Error('Expected Program')
+      const stmt = result.statements[0] as any
+      expect(stmt.type).toBe('GoStatement')
+      expect(stmt.destination.type).toBe('Literal')
+      expect(stmt.destination.value).toBe('card-hall')
+    })
+
+    it('should parse card and stack variable access', () => {
+      const result = parseCode('put "brass" into stack key\nput card n + 1 into card n')
+      expect(result).not.toHaveProperty('type', 'ParseError')
+      if (!('statements' in result)) throw new Error('Expected Program')
+      const first = result.statements[0] as any
+      const second = result.statements[1] as any
+      expect(first.target).toMatchObject({ type: 'VariableAccess', name: 'key', scope: 'stack' })
+      expect(second.value.left).toMatchObject({ type: 'VariableAccess', name: 'n', scope: 'card' })
+      expect(second.target).toMatchObject({ type: 'VariableAccess', name: 'n', scope: 'card' })
+    })
+
     it('should parse go next/previous/first/last', () => {
       const tests = ['go next card', 'go previous card', 'go first card', 'go last card']
       for (const test of tests) {

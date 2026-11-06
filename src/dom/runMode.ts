@@ -187,7 +187,12 @@ export class RunModeViewer {
       left: `${field.rect.left}px`,
       top: `${field.rect.top}px`,
       width: `${rectWidth(field.rect)}px`,
-      height: `${rectHeight(field.rect)}px`
+      height: `${rectHeight(field.rect)}px`,
+      fontSize: `${field.fontSize || 12}px`,
+      fontFamily: field.font || 'inherit',
+      fontWeight: field.textStyle?.bold ? 'bold' : 'normal',
+      fontStyle: field.textStyle?.italic ? 'italic' : 'normal',
+      textDecoration: field.textStyle?.underline ? 'underline' : 'none'
     })
 
     setTextContent(el, field.content)
