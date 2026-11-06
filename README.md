@@ -52,7 +52,7 @@ npm test
 
 Runs all Vitest tests using happy-dom (lightweight DOM simulation). Use `npm run test -- --run` for single execution.
 
-**Test Count**: 831 automated (51 files) unit and integration tests covering:
+**Test Count**: 862 automated (52 files) unit and integration tests covering:
 - Model (Stack, Card, Button, Field) serialization and round-trip
 - HyperTalk lexer, parser, and runtime
 - Script execution and message dispatch
