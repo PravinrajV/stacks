@@ -48,6 +48,7 @@ const KEYWORDS = new Set([
   'GO',
   'TO',
   'CARD',
+  'STACK',
   'BACKGROUND',
   'NEXT',
   'PREVIOUS',

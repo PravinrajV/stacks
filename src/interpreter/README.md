@@ -29,7 +29,7 @@ Safe, sandboxed execution engine for HyperTalk scripts. No `eval`, no DOM access
 - Logical: `and`, `or`, `not`
 - String concatenation: `&`
 - Field access: `field "NAME"`
-- Variables: card-level, stack-level, local
+- Variables: `card name`, `stack name`, or a bare local name (`put 1 into n` lasts only for that handler)
 
 ### Built-in Functions
 

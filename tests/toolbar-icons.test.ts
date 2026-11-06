@@ -11,6 +11,8 @@
 
 /// <reference types="vitest" />
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import { initApp } from '../src/dom/app'
 import { clearStack } from '../src/dom/storage'
 import {
@@ -142,16 +144,14 @@ describe('Phase 11.4: Toolbar SVG Icons', () => {
     
     it('should define active state transform in CSS file', async () => {
       // Read the CSS file to verify active state rule exists
-      const { readFileSync } = await import('fs')
-      const css = readFileSync('/workspace/stacks/src/dom/styles.css', 'utf-8')
+      const css = readFileSync(join(process.cwd(), 'src/dom/styles.css'), 'utf-8')
       
       // Look for active state with translateY
       expect(css).toMatch(/button:active[\s\S]*transform:\s*translateY/)
     })
 
     it('should define focus-visible outline for toolbar buttons in CSS', async () => {
-      const { readFileSync } = await import('fs')
-      const css = readFileSync('/workspace/stacks/src/dom/styles.css', 'utf-8')
+      const css = readFileSync(join(process.cwd(), 'src/dom/styles.css'), 'utf-8')
       
       // Look for focus-visible rule
       expect(css).toMatch(/app-header[\s\S]*button:focus-visible/)
@@ -160,8 +160,7 @@ describe('Phase 11.4: Toolbar SVG Icons', () => {
     })
 
     it('should enhance brand mark icon visibility in CSS', async () => {
-      const { readFileSync } = await import('fs')
-      const css = readFileSync('/workspace/stacks/src/dom/styles.css', 'utf-8')
+      const css = readFileSync(join(process.cwd(), 'src/dom/styles.css'), 'utf-8')
       
       // Look for brand mark icon styles
       expect(css).toMatch(/app-header-title-icon/)
@@ -171,8 +170,7 @@ describe('Phase 11.4: Toolbar SVG Icons', () => {
     })
 
     it('should enhance card glow in Haunted theme', async () => {
-      const { readFileSync } = await import('fs')
-      const css = readFileSync('/workspace/stacks/src/dom/styles.css', 'utf-8')
+      const css = readFileSync(join(process.cwd(), 'src/dom/styles.css'), 'utf-8')
       
       // Look for enhanced glow
       expect(css).toMatch(/data-theme.*haunted[\s\S]*card-view/)

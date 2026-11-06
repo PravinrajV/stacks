@@ -2,59 +2,86 @@ import { describe, it, expect } from 'vitest'
 import { deserializeStack } from '../src/model/serialization'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import { Lexer } from '../src/interpreter/lexer'
+import { Parser } from '../src/interpreter/parser'
+
+const CARD_WIDTH = 512
+const CARD_HEIGHT = 342
+
+function loadHouse() {
+  const filePath = join(process.cwd(), 'examples', 'haunted-house.json')
+  return deserializeStack(readFileSync(filePath, 'utf-8'))
+}
 
 describe('Examples', () => {
-  describe('haunted-counter.json', () => {
-    it('should load and deserialize correctly', () => {
-      const filePath = join(process.cwd(), 'examples', 'haunted-counter.json')
-      const fileContent = readFileSync(filePath, 'utf-8')
+  describe('haunted-house.json', () => {
+    it('loads the five-card haunted house', () => {
+      const stack = loadHouse()
 
-      // deserializeStack expects the full JSON string with version
-      const stack = deserializeStack(fileContent)
+      expect(stack.id).toBe('stack-haunted-house')
+      expect(stack.name).toBe('Haunted House')
+      expect(stack.cards.map((card) => card.name)).toEqual([
+        'Porch',
+        'Hall',
+        'Library',
+        'Crypt',
+        'Dawn'
+      ])
+      expect(stack.variables.get('key')).toBe('')
 
-      // Validate stack structure
-      expect(stack.id).toBe('stack-demo')
-      expect(stack.name).toBe('Haunted Counter')
-      expect(stack.cards.length).toBe(2)
+      const porch = stack.cards[0]
+      expect(porch.fields.find((field) => field.name === 'Status')?.content).toBe(
+        'Nobody has knocked yet.'
+      )
+      expect(porch.fields.find((field) => field.name === 'Count')?.content).toBe('0')
+      expect(porch.buttons.map((button) => button.label)).toEqual(['Knock', 'Enter'])
 
-      // Validate first card
-      const card1 = stack.cards[0]
-      expect(card1.name).toBe('Welcome')
-      expect(card1.fields.length).toBe(2)
-      expect(card1.buttons.length).toBe(2)
-
-      // Validate button labels
-      const knockBtn = card1.buttons.find(b => b.label === 'Knock')
-      expect(knockBtn).toBeDefined()
-      expect(knockBtn?.scripts.mouseUp).toContain('field "Count"')
-
-      const openBtn = card1.buttons.find(b => b.label === 'Open the door')
-      expect(openBtn).toBeDefined()
-
-      // Validate second card
-      const card2 = stack.cards[1]
-      expect(card2.name).toBe('Inside')
-      expect(card2.fields.length).toBe(1)
-      expect(card2.buttons.length).toBe(2)
-
-      const helloBtn = card2.buttons.find(b => b.label === 'Say hello')
-      expect(helloBtn).toBeDefined()
-      expect(helloBtn?.scripts.mouseUp).toContain('Welcome back, HyperCard')
+      const library = stack.cards[2]
+      const book = library.fields.find((field) => field.name === 'Story')
+      expect(book?.content).toContain('Ravenwood')
+      expect(library.fields.find((field) => field.name === 'Answer')?.editable).toBe(true)
+      expect(library.buttons.map((button) => button.label)).toEqual(['Speak', 'Hall'])
     })
 
-    it('should preserve field content and properties', () => {
-      const filePath = join(process.cwd(), 'examples', 'haunted-counter.json')
-      const fileContent = readFileSync(filePath, 'utf-8')
+    it('keeps every part inside the 512×342 card and gives each card a real text block', () => {
+      const stack = loadHouse()
 
-      const stack = deserializeStack(fileContent)
-      const card1 = stack.cards[0]
+      for (const card of stack.cards) {
+        const parts = [...card.fields, ...card.buttons]
+        expect(parts.length).toBeGreaterThan(2)
+        const story = card.fields.find((field) => field.name === 'Story')
+        expect(story).toBeTruthy()
+        expect(story!.rect.right - story!.rect.left).toBeGreaterThanOrEqual(400)
+        expect(story!.rect.bottom - story!.rect.top).toBeGreaterThanOrEqual(80)
 
-      // Check field values
-      const statusField = card1.fields.find(f => f.name === 'Status')
-      expect(statusField?.content).toBe('Nobody has knocked yet.')
+        for (const part of parts) {
+          expect(part.rect.left).toBeGreaterThanOrEqual(0)
+          expect(part.rect.top).toBeGreaterThanOrEqual(0)
+          expect(part.rect.right).toBeLessThanOrEqual(CARD_WIDTH)
+          expect(part.rect.bottom).toBeLessThanOrEqual(CARD_HEIGHT)
+          expect(part.rect.right).toBeGreaterThan(part.rect.left)
+          expect(part.rect.bottom).toBeGreaterThan(part.rect.top)
+        }
+      }
+    })
 
-      const countField = card1.fields.find(f => f.name === 'Count')
-      expect(countField?.content).toBe('0')
+    it('parses every button and card script', () => {
+      const stack = loadHouse()
+      const scripts: string[] = []
+      for (const card of stack.cards) {
+        scripts.push(...Object.values(card.scripts))
+        for (const button of card.buttons) scripts.push(...Object.values(button.scripts))
+        for (const field of card.fields) scripts.push(...Object.values(field.scripts))
+      }
+
+      expect(scripts.length).toBeGreaterThan(0)
+      for (const source of scripts) {
+        expect(source).not.toMatch(/\b(ask|hide|show|play|visual)\b/i)
+        const tokens = new Lexer(source).tokenize()
+        expect(Array.isArray(tokens)).toBe(true)
+        const ast = new Parser(tokens as any).parse()
+        expect(ast).not.toMatchObject({ type: 'ParseError' })
+      }
     })
   })
 })

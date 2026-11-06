@@ -171,20 +171,7 @@ export class Runtime {
       }
       this.handlers = handlerMap
 
-      let lastValue: any = undefined
-      for (const statement of program.statements) {
-        // Check if this is an answer statement that needs async handling
-        if ((statement as any).type === 'AnswerStatement') {
-          const result = await this.executeAnswerStatementAsync(statement as AnswerStatement)
-          if (!result.success) return result
-          lastValue = result.value
-        } else {
-          const result = this.executeStatement(statement)
-          if (!result.success) return result
-          lastValue = result.value
-        }
-      }
-      return { success: true, value: this.returnValue !== undefined ? this.returnValue : lastValue }
+      return this.executeStatementsAsync(program.statements)
     } catch (e) {
       return {
         success: false,
@@ -240,22 +227,75 @@ export class Runtime {
       }
     }
 
+    return this.executeStatementsAsync(handler.body)
+  }
+
+  /**
+   * Run statements, awaiting answer dialogs even when they sit inside if/else.
+   * The sync walker cannot show a dialog, so a conditional `answer` used to no-op.
+   */
+  private async executeStatementsAsync(statements: Statement[]): Promise<ExecutionResult> {
     let lastValue: any = undefined
-    for (const statement of handler.body) {
-      // Check if this is an answer statement that needs async handling
-      if ((statement as any).type === 'AnswerStatement') {
-        const result = await this.executeAnswerStatementAsync(statement as AnswerStatement)
-        if (!result.success) return result
-        lastValue = result.value
-      } else {
-        const result = this.executeStatement(statement)
-        if (!result.success) return result
-        lastValue = result.value
-      }
+    for (const statement of statements) {
+      const result = await this.executeStatementAsync(statement)
+      if (!result.success) return result
+      lastValue = result.value
       if (this.shouldReturn) break
     }
-
     return { success: true, value: this.returnValue !== undefined ? this.returnValue : lastValue }
+  }
+
+  private async executeStatementAsync(stmt: Statement): Promise<ExecutionResult> {
+    if (stmt.type === 'AnswerStatement') {
+      return this.executeAnswerStatementAsync(stmt as AnswerStatement)
+    }
+    if (stmt.type === 'IfStatement') {
+      return this.executeIfStatementAsync(stmt as IfStatement)
+    }
+    // repeat still runs synchronously; an answer nested only inside repeat
+    // does not open a dialog. The haunted-house scripts do not do that.
+    return this.executeStatement(stmt)
+  }
+
+  private async executeIfStatementAsync(stmt: IfStatement): Promise<ExecutionResult> {
+    this.context.stepCount++
+    if (this.context.stepCount > MAX_STEPS) {
+      return {
+        success: false,
+        error: {
+          type: 'ExecutionTimeout',
+          message: `Execution timeout: exceeded ${MAX_STEPS} steps`,
+          line: stmt.line,
+          column: stmt.column,
+        },
+      }
+    }
+
+    const elapsedMs = Date.now() - this.context.startTime
+    if (elapsedMs > MAX_TIME_MS) {
+      return {
+        success: false,
+        error: {
+          type: 'ExecutionTimeout',
+          message: `Execution timeout: exceeded ${MAX_TIME_MS}ms`,
+          line: stmt.line,
+          column: stmt.column,
+        },
+      }
+    }
+
+    if (this.shouldReturn) {
+      return { success: true, value: this.returnValue }
+    }
+
+    const condResult = this.evaluateExpression(stmt.condition)
+    if (!condResult.success) return condResult
+
+    const branch = this.isTruthy(condResult.value) ? stmt.thenBranch : stmt.elseBranch
+    if (!branch) {
+      return { success: true, value: undefined }
+    }
+    return this.executeStatementsAsync(branch)
   }
 
   /**

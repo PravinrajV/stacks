@@ -4,7 +4,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   define: {
-    HAUNTED_COUNTER_STACK: JSON.stringify(readFileSync(resolve(__dirname, 'examples/haunted-counter.json'), 'utf-8'))
+    HAUNTED_HOUSE_STACK: JSON.stringify(readFileSync(resolve(__dirname, 'examples/haunted-house.json'), 'utf-8'))
   },
   build: {
     target: 'es2020',

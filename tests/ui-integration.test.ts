@@ -1413,11 +1413,11 @@ describe('Task 8.2b: Starter Stack Loading', () => {
     expect(stack.cards.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('loads haunted-counter.json stack if available (production only)', () => {
+  it('loads haunted-house.json stack if available (production only)', () => {
     const app = new App('app')
 
-    // In test environment, HAUNTED_COUNTER_STACK is undefined, so it creates default stack
-    // In production (after build), HAUNTED_COUNTER_STACK will be injected by Vite
+    // In test environment, HAUNTED_HOUSE_STACK is undefined, so it creates default stack
+    // In production (after build), HAUNTED_HOUSE_STACK will be injected by Vite
     // Just verify that the app initialized successfully
     expect(app['appState'].stack).toBeTruthy()
     expect(app['appState'].stack.cards.length).toBeGreaterThanOrEqual(1)

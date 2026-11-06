@@ -260,9 +260,7 @@ export class CardCanvas {
       height: `${rectHeight(rect)}px`
     })
 
-    // Truncate text content
-    const displayText = content.length > 20 ? content.substring(0, 17) + '...' : content
-    el.textContent = displayText
+    el.textContent = content
 
     addEventListener(el, 'mousedown', (e) => this.handleMouseDown(e as MouseEvent, id, rect))
 

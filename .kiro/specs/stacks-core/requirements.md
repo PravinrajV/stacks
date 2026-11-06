@@ -498,7 +498,7 @@ As a user, I want the card editor and run mode to fill the window with a fixed c
 As a creator, I want to build stacks from scratch using in-UI tools so that I never need to touch JSON or external editors.
 
 **Acceptance Criteria**
-- WHEN the app loads with no saved stack, THE SYSTEM SHALL display the starter stack from `examples/haunted-counter.json` as the default stack.
+- WHEN the app loads with no saved stack, THE SYSTEM SHALL display the starter stack from `examples/haunted-house.json` as the default stack.
 - WHEN the "Add Card" button is clicked, THE SYSTEM SHALL create a new card with a unique ID, name ("Card X"), and no elements.
 - WHEN the "Add Button" button is clicked, THE SYSTEM SHALL create a button with default position (100, 100) and size (100, 30), label "Button X", and add it to the current card.
 - WHEN the "Add Field" button is clicked, THE SYSTEM SHALL create a field with default position (100, 150), size (300, 60), name "field_X", content "", and add it to the current card.
@@ -714,7 +714,7 @@ As a new user, I want a welcoming, clear empty state when starting Stacks so tha
 **Acceptance Criteria**
 - WHEN the app loads with no saved stack, THE SYSTEM SHALL display a welcome screen (not a blank canvas).
 - WHEN the welcome screen is shown, THE SYSTEM SHALL include a brief welcome message, a preview of what Stacks is, and a "Create First Stack" or "Load Example" button.
-- WHEN the user clicks a button, THE SYSTEM SHALL either create a new empty stack or load the haunted-counter example.
+- WHEN the user clicks a button, THE SYSTEM SHALL either create a new empty stack or load the haunted-house example.
 - WHEN a stack is loaded, THE SYSTEM SHALL transition smoothly (fade-in) to the main editor.
 - WHEN the welcome screen is displayed, IT SHALL maintain theme consistency and use polished styling.
 

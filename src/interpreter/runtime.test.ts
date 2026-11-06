@@ -331,6 +331,30 @@ describe('Runtime: Put/Get Commands (3.7, 3.8)', () => {
     expect(ctx.localVariables.get('myVar')).toBe(123)
   })
 
+  it('put command assigns a stack variable that survives a new context', () => {
+    const { stack, card } = createTestCard()
+    const field = createField('f1', 'out', '')
+    card.fields.push(field)
+
+    const write = new Runtime(createExecutionContext(stack, card))
+    const wrote = write.execute(parseCode('put "brass" into stack key'))
+    expect(wrote.success).toBe(true)
+    expect(stack.variables.get('key')).toBe('brass')
+
+    const read = new Runtime(createExecutionContext(stack, card))
+    const readResult = read.execute(parseCode('put stack key into field "out"'))
+    expect(readResult.success).toBe(true)
+    expect(field.content).toBe('brass')
+  })
+
+  it('put command assigns a card variable on the current card', () => {
+    const { stack, card } = createTestCard()
+    const runtime = new Runtime(createExecutionContext(stack, card))
+    const result = runtime.execute(parseCode('put 0 into card n\nput card n + 1 into card n'))
+    expect(result.success).toBe(true)
+    expect(card.variables.get('n')).toBe(1)
+  })
+
   it('put command assigns to field', () => {
     const { stack, card } = createTestCard()
     const field = createField('f1', 'myField', '')

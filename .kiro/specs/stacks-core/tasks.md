@@ -603,10 +603,10 @@ Phase 6 (Polish & Documentation)
   - Delete: confirmation prompt before removal.
   - Tests: All CRUD operations work; elements created with correct defaults; renames persist.
 
-- [x] **8.2b** Load starter stack (`examples/haunted-counter.json`) on first visit when no saved stack exists. *(Ref: REQ-P8-002)*
+- [x] **8.2b** Load starter stack (`examples/haunted-house.json`) on first visit when no saved stack exists. *(Ref: REQ-P8-002)*
   - Location: `src/dom/app.ts`, `src/dom/storage.ts`
   - On app startup: check localStorage for saved stack.
-  - If no stack exists: load `examples/haunted-counter.json` as default.
+  - If no stack exists: load `examples/haunted-house.json` as default. The starter is a five-card haunted-house adventure (it replaced the two-card Haunted Counter).
   - If file not found: create empty starter stack with one blank card.
   - Auto-save any changes to localStorage.
   - Tests: First visit shows starter stack; subsequent visits show last-saved stack.

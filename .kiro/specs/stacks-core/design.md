@@ -1061,7 +1061,7 @@ function screenToLogical(screenX: number, screenY: number, viewport: CardViewpor
 - Elements appear on canvas immediately; can be dragged/resized.
 
 **Starter Stack**:
-- On first visit, load `examples/haunted-counter.json` (or create empty if missing).
+- On first visit, load `examples/haunted-house.json` (or create empty if missing).
 - Subsequent visits restore last-saved stack from localStorage.
 
 ### 1-Bit Aesthetic Design

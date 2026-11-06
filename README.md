@@ -52,7 +52,7 @@ npm test
 
 Runs all Vitest tests using happy-dom (lightweight DOM simulation). Use `npm run test -- --run` for single execution.
 
-**Test Count**: 862 automated (52 files) unit and integration tests covering:
+**Test Count**: 871 automated (53 files) unit and integration tests covering:
 - Model (Stack, Card, Button, Field) serialization and round-trip
 - HyperTalk lexer, parser, and runtime
 - Script execution and message dispatch
@@ -120,17 +120,16 @@ See `docs/CROSS_BROWSER_CHECKLIST.md` for manual testing procedures.
 
 ## Try the Example
 
-Load the **Haunted Counter** example to see Stacks in action:
+The welcome dialog opens the **Haunted House**, a five-card adventure in `examples/haunted-house.json`. You can also import that file. Switch to **Run** and play it in about half a minute:
 
-1. Open the app and click the **Import** button in the header
-2. Select `examples/haunted-counter.json`
-3. Switch to **Run mode** (top-right button)
-4. Click **Knock** to increment the counter
-5. Click **Open the door** to navigate to the next card
-6. Click **Say hello** and watch the message change
-7. Click **Go back** to return to the first card
+1. On the **Porch**, **Enter** before three knocks. The door won't budge.
+2. **Knock** three times. The status line counts each knock. **Enter** the **Hall**.
+3. Try the **Crypt**. It is locked. The librarian's word opens it.
+4. Open the **Library**. The book names the house: Ravenwood. A wrong **Speak** is only a gentle reply.
+5. Type `Ravenwood` (any case) and **Speak**. A brass key falls from the shelf.
+6. Back in the **Hall**, the **Crypt** opens. **Carry the ledger** to **Dawn**.
 
-This example demonstrates navigation, button click handlers, field content manipulation, and variable counting.
+Knock counts live in a field. The key is the stack variable `key` (`""` until it becomes `"brass"`), so it survives the next card and the next click.
 
 ## HyperTalk Language
 
@@ -140,7 +139,7 @@ Stacks uses a subset of HyperTalk, inspired by the original Apple HyperCard lang
 
 - `put VALUE into TARGET` — Assign value to a field or variable
 - `get EXPR` — Evaluate expression (result in "it")
-- `go to CARD` — Navigate to a card (or `go next card`, `go previous card`, `go first card`, `go last card`)
+- `go to card "card-id"` — Navigate to a card by id, or by numeric index (`go to card 1`). Also `go next card`, `go previous card`, `go first card`, `go last card`
 - `answer MESSAGE` — Show a modal dialog with buttons
 - `if COND then ... else ... end if` — Conditionals
 - `repeat 10 | while COND | until COND ... end repeat` — Loops
@@ -158,10 +157,10 @@ Stacks uses a subset of HyperTalk, inspired by the original Apple HyperCard lang
 ### Built-in Variables
 
 - `it` — Result of last `get` statement
-- `field "NAME"` — Access field content
-- `variable "NAME"` — Access card or stack variables
-- Card-level variables: `put "value" into variable "myVar"`
-- Stack-level variables: accessible from all cards
+- `field "NAME"` — Access field content on the current card
+- `card name` — Card variable (`put 1 into card n`). Stays on that card
+- `stack name` — Stack variable (`put "brass" into stack key`). Visible from every card, and it survives the next click
+- A bare name (`put 1 into n`) is local to that handler and is discarded when the handler ends
 
 ### Handlers (Event Handlers)
 
@@ -275,7 +274,7 @@ See individual module READMEs in `src/*/README.md` for details.
 
 ## Performance
 
-Bundle size (gzipped): **~32 KB** (JavaScript + CSS combined)
+Bundle size (gzipped): **~36 KB** (JavaScript + CSS combined)
 
 Run `npm run size` to measure current bundle size.
 
