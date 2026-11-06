@@ -227,3 +227,34 @@ When all browsers have been tested:
 - MDN: Browser Compatibility: https://developer.mozilla.org/en-US/docs/MDN/Writing_guidelines/Writing_style_guide/Compatibility_tables
 - WCAG Testing: https://www.w3.org/WAI/test-evaluate/
 - Web.dev: Debugging: https://web.dev/debug/
+
+## Automated coverage (as of Nov 6, 2026, America/New_York)
+
+Headless Chromium (Playwright) smoke against local preview and previously against https://stacks-6go.pages.dev:
+
+- Welcome once, edit canvas, Run mode, AI drawer docking at 1280/1440
+- Answer dialog, rename/delete card, last-card guard
+- Toolbar SVG icons present; `:focus-visible` outline 2px accent measured
+- Hover/press toolbar screenshots captured under `/workspace/kiroween/submission/smoke/p12-*.png`
+- No console errors; no external network requests in those runs
+
+**Not covered by automation (Pravinraj must still check in real GUI browsers):**
+
+| Check | Chrome (GUI) | Firefox | Safari | Edge |
+|-------|--------------|---------|--------|------|
+| First-load welcome + dismiss | ☐ | ☐ | ☐ | ☐ |
+| Toolbar icons crisp / not clipped | ☐ | ☐ | ☐ | ☐ |
+| Brand mark visible in header tab + favicon | ☐ | ☐ | ☐ | ☐ |
+| Focus rings when Tabbing | ☐ | ☐ | ☐ | ☐ |
+| Hover + press feedback on toolbar | ☐ | ☐ | ☐ | ☐ |
+| Card glow looks intentional (not clipped) | ☐ | ☐ | ☐ | ☐ |
+| AI drawer docks beside inspector ≥1100px | ☐ | ☐ | ☐ | ☐ |
+| Edit ↔ Run fade; card change fade | ☐ | ☐ | ☐ | ☐ |
+| Classic theme + each palette (Navy/Ink/Graphite) | ☐ | ☐ | ☐ | ☐ |
+| Import/Export/Save round-trip | ☐ | ☐ | ☐ | ☐ |
+| BYOK settings panel opens (no key required for demo) | ☐ | ☐ | ☐ | ☐ |
+| Reduced motion: OS setting disables fades | ☐ | ☐ | ☐ | ☐ |
+| Mobile/narrow width (<1100): drawer overlays, inspector usable | ☐ | ☐ | ☐ | ☐ |
+
+Safari especially: Web Animations API, `color-mix`, and SVG currentColor. Firefox: focus-visible. Edge: Chromium-parity but still confirm.
+
