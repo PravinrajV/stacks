@@ -298,6 +298,62 @@ export function createSunIcon(): SVGElement {
   return svg
 }
 
+export function createPencilIcon(): SVGElement {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('viewBox', '0 0 24 24')
+  svg.setAttribute('width', '24')
+  svg.setAttribute('height', '24')
+  svg.setAttribute('fill', 'none')
+  svg.setAttribute('stroke', 'currentColor')
+  svg.setAttribute('stroke-width', '1.5')
+  svg.setAttribute('stroke-linecap', 'round')
+  svg.setAttribute('stroke-linejoin', 'round')
+  
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  path.setAttribute('d', 'M3 17.25V21h3.75L17.81 9.94m-10.86-3.87l2.83-2.83a2 2 0 0 1 2.83 0l2.83 2.83a2 2 0 0 1 0 2.83l-2.83 2.83')
+  svg.appendChild(path)
+  
+  return svg
+}
+
+export function createFieldIcon(): SVGElement {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('viewBox', '0 0 24 24')
+  svg.setAttribute('width', '24')
+  svg.setAttribute('height', '24')
+  svg.setAttribute('fill', 'none')
+  svg.setAttribute('stroke', 'currentColor')
+  svg.setAttribute('stroke-width', '1.5')
+  svg.setAttribute('stroke-linecap', 'round')
+  svg.setAttribute('stroke-linejoin', 'round')
+  
+  // Text field rectangle
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+  rect.setAttribute('x', '4')
+  rect.setAttribute('y', '6')
+  rect.setAttribute('width', '16')
+  rect.setAttribute('height', '12')
+  rect.setAttribute('rx', '1.5')
+  svg.appendChild(rect)
+  
+  // Lines to indicate text
+  const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+  line1.setAttribute('x1', '8')
+  line1.setAttribute('y1', '10')
+  line1.setAttribute('x2', '16')
+  line1.setAttribute('y2', '10')
+  svg.appendChild(line1)
+  
+  const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+  line2.setAttribute('x1', '8')
+  line2.setAttribute('y1', '14')
+  line2.setAttribute('x2', '16')
+  line2.setAttribute('y2', '14')
+  svg.appendChild(line2)
+  
+  return svg
+}
+
 export function createGhostIcon(): SVGElement {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   svg.setAttribute('viewBox', '0 0 24 24')
@@ -314,8 +370,8 @@ export function createGhostIcon(): SVGElement {
 
 /**
  * Task 11.1: Brand mark - stylized stack of three overlapping cards.
- * Inline SVG (viewBox 0 0 24 24, currentColor strokes 1.5px, no fill except subtle accent).
- * Three stacked, offset rounded rectangles (cards) with the front card slightly brighter.
+ * Inline SVG (viewBox 0 0 24 24, currentColor strokes 1.5px, subtle fill on front card).
+ * Three stacked, offset rounded rectangles (cards) with the front card highlighted.
  * Used in header logo, welcome screen, and running pill.
  */
 export function createBrandMark(): SVGElement {
@@ -327,14 +383,14 @@ export function createBrandMark(): SVGElement {
   svg.setAttribute('stroke-linecap', 'round')
   svg.setAttribute('stroke-linejoin', 'round')
   
-  // Back card (darkest)
+  // Back card (full stroke, minimal opacity)
   const rect1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
   rect1.setAttribute('x', '2')
   rect1.setAttribute('y', '10')
   rect1.setAttribute('width', '10')
   rect1.setAttribute('height', '10')
   rect1.setAttribute('rx', '2')
-  rect1.setAttribute('opacity', '0.4')
+  rect1.setAttribute('opacity', '0.7')
   svg.appendChild(rect1)
   
   // Middle card
@@ -344,16 +400,18 @@ export function createBrandMark(): SVGElement {
   rect2.setAttribute('width', '10')
   rect2.setAttribute('height', '10')
   rect2.setAttribute('rx', '2')
-  rect2.setAttribute('opacity', '0.7')
+  rect2.setAttribute('opacity', '0.9')
   svg.appendChild(rect2)
   
-  // Front card (brightest - subtle accent fill)
+  // Front card (brightest - subtle fill at ~0.15 opacity for accent)
   const rect3 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
   rect3.setAttribute('x', '12')
   rect3.setAttribute('y', '4')
   rect3.setAttribute('width', '10')
   rect3.setAttribute('height', '10')
   rect3.setAttribute('rx', '2')
+  rect3.setAttribute('fill', 'currentColor')
+  rect3.setAttribute('fill-opacity', '0.15')
   svg.appendChild(rect3)
   
   return svg

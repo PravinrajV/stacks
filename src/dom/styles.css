@@ -2236,3 +2236,44 @@ textarea:focus-visible {
 .app-header-title-icon { width: 18px; height: 18px; flex: 0 0 18px; color: var(--accent, currentColor); }
 .inspector-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 8px; }
 .inspector-row .inspector-col, .inspector-row input { min-width: 0; width: 100%; box-sizing: border-box; }
+
+
+/* ===== PHASE 11.4: Toolbar SVG Icons, Brand Mark Visibility, Card Glow ===== */
+
+/* Enhance app header title icon (brand mark): stronger visibility */
+.app-header-title-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Button active/press state: translateY and reduced shadow */
+button:active,
+.button:active,
+.toolbar .button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Toolbar button focus-visible: 2px outline with 2px offset */
+.app-header-group .button:focus-visible,
+.app-header .button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Haunted theme: enhanced card glow for better card edge visibility */
+[data-theme="haunted"] .card-view {
+  box-shadow: 0 0 28px rgba(212, 185, 140, 0.55);
+}
+
+/* Navy palette glow (enhanced) */
+[data-theme="haunted"][data-palette="navy"] .card-view {
+  box-shadow: 0 0 28px rgba(169, 199, 232, 0.55);
+}
+
+/* Graphite palette glow (enhanced) */
+[data-theme="haunted"][data-palette="graphite"] .card-view {
+  box-shadow: 0 0 28px rgba(200, 135, 90, 0.55);
+}

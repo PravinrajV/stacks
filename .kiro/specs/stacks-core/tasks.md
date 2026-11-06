@@ -1250,35 +1250,35 @@ Implement the design system, responsive layouts, smooth transitions, and polishe
 
 ## 11.4 Inline SVG Icon Set & States
 
-**Status**: NOT STARTED
+**Status**: ✅ COMPLETED
 
 **Description:** Create and implement an inline SVG icon set with hover/press states for toolbar buttons.
 
 **Subtasks:**
 
-- **11.4.1** Design 9 SVG icons (16×16px viewBox, 1.5px stroke):
+- **11.4.1** ✅ Design 9 SVG icons (16×16px viewBox, 1.5px stroke):
   - Play (Run), Pencil (Edit), Plus (Add Button), Text Field (Add Field)
   - Download (Export), Upload (Import), Disk (Save), Gear (AI Settings), Moon/Sun (Theme)
   - Store as constants or functions in `icons.ts`
 
-- **11.4.2** Define icon rendering function:
+- **11.4.2** ✅ Define icon rendering function:
   ```typescript
   function createIcon(name: 'run' | 'edit' | ..., attrs?: object): SVGElement
   ```
 
-- **11.4.3** Update toolbar buttons to use inline icons:
+- **11.4.3** ✅ Update toolbar buttons to use inline icons:
   - Replace text/generic icons with SVG
   - Maintain button text labels (if space)
   - Icons inherit `currentColor`
 
-- **11.4.4** Implement button states in CSS:
+- **11.4.4** ✅ Implement button states in CSS:
   - Default: icon visible
   - Hover: background shift (existing)
   - **Press:** `transform: translateY(1px)`, shadow reduced
   - Focus-visible: 2px accent ring, 2px offset
   - Disabled: `opacity: 0.5`, `cursor: not-allowed`
 
-- **11.4.5** Define focus-visible ring style:
+- **11.4.5** ✅ Define focus-visible ring style:
   ```css
   button:focus-visible {
     outline: 2px solid var(--accent-color);
@@ -1286,9 +1286,9 @@ Implement the design system, responsive layouts, smooth transitions, and polishe
   }
   ```
 
-- **11.4.6** Write component test: icons render (SVG present, correct viewBox)
-- **11.4.7** Write interaction test: press state feedback (transform applied)
-- **11.4.8** Write a11y test: focus ring visible on Tab
+- **11.4.6** ✅ Write component test: icons render (SVG present, correct viewBox)
+- **11.4.7** ✅ Write interaction test: press state feedback (transform applied)
+- **11.4.8** ✅ Write a11y test: focus ring visible on Tab
 
 **Definition of Done:**
 - All 9 icons inline, crisply rendered

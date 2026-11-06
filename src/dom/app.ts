@@ -20,7 +20,7 @@ import { send } from '../interpreter/dispatcher'
 import { createExecutionContext } from '../interpreter/runtime'
 import { defaultRegistry } from '../generator/providerRegistry'
 import { deserializeStack } from '../model/serialization'
-import { createSunIcon, createMoonIcon, createGhostIcon, createPlayIcon, createPlusIcon, createBrandMark } from './icons'
+import { createSunIcon, createMoonIcon, createGhostIcon, createPlayIcon, createPlusIcon, createBrandMark, createDownloadIcon, createUploadIcon, createSaveIcon, createSettingsIcon, createFieldIcon, createPencilIcon } from './icons'
 import { WelcomeScreen } from './welcomeScreen'
 import { StyledAlert, StyledConfirm, StyledPrompt } from './components/styledDialogs'
 import { animateModeSwitchIn, animateModeSwitchOut, prefersReducedMotion } from './utils/animations'
@@ -551,6 +551,11 @@ export class App {
       playIcon.setAttribute('width', '16')
       playIcon.setAttribute('height', '16')
       modeToggleBtn.appendChild(playIcon)
+    } else {
+      const pencilIcon = createPencilIcon()
+      pencilIcon.setAttribute('width', '16')
+      pencilIcon.setAttribute('height', '16')
+      modeToggleBtn.appendChild(pencilIcon)
     }
     
     const modeLabel = document.createElement('span')
@@ -582,7 +587,7 @@ export class App {
       addButtonBtn.getElement().setAttribute('title', 'Add new button to current card')
       group2.appendChild(addButtonBtn.getElement())
 
-      const addFieldBtn = new ButtonComponent('Field', () => this.addField(), createPlusIcon())
+      const addFieldBtn = new ButtonComponent('Field', () => this.addField(), createFieldIcon())
       addFieldBtn.getElement().setAttribute('aria-label', 'Add new field to current card')
       addFieldBtn.getElement().setAttribute('title', 'Add new field to current card')
       group2.appendChild(addFieldBtn.getElement())
@@ -595,7 +600,7 @@ export class App {
     
     const exportBtn = new ButtonComponent('Export', () => {
       exportJSON(this.appState.stack, 'my-stack.json')
-    })
+    }, createDownloadIcon())
     exportBtn.getElement().setAttribute('aria-label', 'Export stack as JSON file')
     exportBtn.getElement().setAttribute('title', 'Export stack as JSON file (Ctrl/Cmd+E to export)')
     group3.appendChild(exportBtn.getElement())
@@ -623,12 +628,12 @@ export class App {
         }
       })
       input.click()
-    })
+    }, createUploadIcon())
     importBtn.getElement().setAttribute('aria-label', 'Import stack from JSON file')
     importBtn.getElement().setAttribute('title', 'Import stack from JSON file')
     group3.appendChild(importBtn.getElement())
 
-    const saveBtn = new ButtonComponent('Save', () => this.save())
+    const saveBtn = new ButtonComponent('Save', () => this.save(), createSaveIcon())
     saveBtn.getElement().setAttribute('aria-label', 'Save current stack (Ctrl/Cmd+S)')
     saveBtn.getElement().setAttribute('title', 'Save current stack (Ctrl/Cmd+S)')
     group3.appendChild(saveBtn.getElement())
@@ -638,7 +643,7 @@ export class App {
     // Group 4: AI Settings
     const group4 = createElement('div', { className: 'app-header-group' })
     
-    const aiSettingsBtn = new ButtonComponent('⚙ AI Settings', () => this.openAISettings())
+    const aiSettingsBtn = new ButtonComponent('AI Settings', () => this.openAISettings(), createSettingsIcon())
     aiSettingsBtn.getElement().setAttribute('aria-label', 'Open AI model provider settings')
     aiSettingsBtn.getElement().setAttribute('title', 'Configure API key and model provider')
     group4.appendChild(aiSettingsBtn.getElement())
