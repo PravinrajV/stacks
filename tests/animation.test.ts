@@ -101,24 +101,28 @@ describe('Task 9.4.1: Card Navigation Animation', () => {
   })
 
   it('should complete animation flow within expected duration', async () => {
-    const cardView = cardCanvas.getElement().querySelector('.card-view')!
+    // Use fake timers so the 320ms+320ms cardCanvas timeouts are deterministic under load.
+    // Real wall-clock setTimeout(650) was flaky when the box was busy (duration >750ms).
+    vi.useFakeTimers()
+    try {
+      const cardView = cardCanvas.getElement().querySelector('.card-view')!
 
-    cardCanvas.render(card1, background)
-    const startTime = performance.now()
+      cardCanvas.render(card1, background)
+      cardCanvas.render(card2, background)
+      expect(cardView.classList.contains('card-fade-out')).toBe(true)
 
-    cardCanvas.render(card2, background)
+      // After fade-out (320ms): fade-in should be applied
+      await vi.advanceTimersByTimeAsync(320)
+      expect(cardView.classList.contains('card-fade-out')).toBe(false)
+      expect(cardView.classList.contains('card-fade-in')).toBe(true)
 
-    // Wait for animation to complete
-    await new Promise((resolve) => setTimeout(resolve, 650))
-
-    const duration = performance.now() - startTime
-    // Total duration: 320ms fade-out + 320ms fade-in = 640ms (allow 100ms margin)
-    expect(duration).toBeGreaterThanOrEqual(640)
-    expect(duration).toBeLessThan(750)
-
-    // Animation classes should be cleared
-    expect(cardView.classList.contains('card-fade-out')).toBe(false)
-    expect(cardView.classList.contains('card-fade-in')).toBe(false)
+      // After fade-in (another 320ms): classes cleared
+      await vi.advanceTimersByTimeAsync(320)
+      expect(cardView.classList.contains('card-fade-out')).toBe(false)
+      expect(cardView.classList.contains('card-fade-in')).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 
