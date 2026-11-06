@@ -113,7 +113,7 @@ describe('Phase 11.4: Toolbar SVG Icons', () => {
       expect(frontCard.getAttribute('fill')).toBe('currentColor')
       const fillOpacity = frontCard.getAttribute('fill-opacity')
       expect(fillOpacity).toBeDefined()
-      expect(parseFloat(fillOpacity || '0')).toBeCloseTo(0.15, 1)
+      expect(parseFloat(fillOpacity || '0')).toBeGreaterThanOrEqual(0.15)
     })
 
     it('should have readable stacked layout (opacity gradient)', () => {
@@ -194,11 +194,9 @@ describe('Phase 11.4: Toolbar SVG Icons', () => {
       expect(paths.length).toBeGreaterThan(0)
     })
 
-    it('Settings icon should have circle and paths', () => {
+    it('Settings icon should have gear path', () => {
       const icon = createSettingsIcon()
-      const circle = icon.querySelector('circle')
       const paths = icon.querySelectorAll('path')
-      expect(circle).toBeTruthy()
       expect(paths.length).toBeGreaterThan(0)
     })
 

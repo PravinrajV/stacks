@@ -2233,7 +2233,7 @@ textarea:focus-visible {
   body.edit-mode.ai-drawer-open .ai-panel.ai-panel-drawer { width: var(--ai-col) !important; min-width: 0 !important; max-width: none !important; left: auto !important; right: 0 !important; box-shadow: -1px 0 0 var(--hairline, rgba(255,255,255,.08)), -12px 0 32px rgba(0,0,0,.35); }
 }
 /* HAND EDIT (Phase 11): header brand mark had no size (0x0); inspector two-column rows overflowed */
-.app-header-title-icon { width: 18px; height: 18px; flex: 0 0 18px; color: var(--accent, currentColor); }
+.app-header-title-icon { width: 22px; height: 22px; flex: 0 0 22px; color: var(--accent, currentColor); }
 .inspector-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 8px; }
 .inspector-row .inspector-col, .inspector-row input { min-width: 0; width: 100%; box-sizing: border-box; }
 
@@ -2244,8 +2244,10 @@ textarea:focus-visible {
 .app-header-title-icon {
   width: 22px;
   height: 22px;
+  flex: 0 0 22px;
   color: var(--accent);
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
+  opacity: 1;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 70%, transparent));
 }
 
 /* Button active/press state: translateY and reduced shadow */
